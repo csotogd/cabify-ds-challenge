@@ -1,0 +1,46 @@
+{
+  "actualizado": "2026-10-14",
+  "estado": "El usuario autorizó incorporar el diseño el 14 de octubre de 2026. Desarrollo integrado en el notebook, Parte II, secciones 14–27.",
+  "metodo_a_defender": {
+    "nombre": "Análisis de potencia a priori mediante simulaciones basadas en datos históricos",
+    "distincion": "El efecto mínimo relevante se fija por la decisión de negocio; el efecto mínimo detectable (MDE) se calcula para un diseño, un nivel de significación y una potencia. Un tamaño de comunidad no es una dosis de tratamiento ni garantiza un efecto causal.",
+    "diseno_actual": "Ciudades o áreas metropolitanas como unidades de asignación. Auditar con búsquedas compartidas y áreas de reparto la competencia entre fronteras. Emparejar antes del sorteo; dentro de cada pareja asignar al azar acceso ahora o acceso diferido. Solicitar el servicio sigue siendo voluntario. Mantener el análisis por asignación inicial, incluida la baja aceptación.",
+    "metricas": "La propuesta en discusión es el crecimiento del margen de contribución semanal en euros, neto de costes incrementales del programa, respecto a una base previa positiva y suficientemente alejada de cero. El efecto se expresa en puntos adicionales de crecimiento; no en puntos del porcentaje de rentabilidad. Definir pesos de ciudades y acompañar de impacto en euros antes del análisis.",
+    "pasos": [
+      "Fijar población, política, estimando, horizonte, métrica y efecto relevante. Como propuesta de trabajo: significación bilateral del 5 % y potencia objetivo del 80 %; explorar 90 %.",
+      "Construir candidatos de ciudades, emparejamientos y duraciones con información anterior al experimento. Usar datos distintos para formar parejas y evaluar su precisión; reservar validación final para evitar optimismo al seleccionar el diseño.",
+      "Usar ventanas históricas conjuntas de todas las ciudades para preservar estacionalidad y fluctuaciones compartidas. Comprobar representatividad y cambios históricos del servicio; el historial no es automáticamente un futuro sin intervención.",
+      "En cada ensayo, sortear dentro de las parejas, añadir a los resultados del periodo de prueba un efecto conocido bajo un escenario explícito y ejecutar el análisis previsto. Repetir asignaciones y ventanas; no tratar las repeticiones o semanas correlacionadas como nuevas ciudades independientes.",
+      "Estimar potencia como proporción de rechazos con efecto añadido. Repetir con efecto cero para revisar falsos positivos y cobertura. Estimar también sesgo bajo escenarios de heterogeneidad e interferencia pertinentes.",
+      "Comparar costes, duración, número de ciudades y contaminación entre unidades. Verificar sensibilidad a participación, publicación tardía, proporción de actividad afectada y shocks persistentes. Congelar las reglas antes del sorteo real."
+    ],
+    "aproximacion": "Para J parejas independientes y diferencias aproximadamente normales: MDE ≈ (1.96 + 0.84) * sigma_D / sqrt(J). sigma_D es la desviación de las diferencias entre ciudades emparejadas para el horizonte y ajuste previstos. Usar t/no central o simulación para un cálculo más adecuado con pocas parejas.",
+    "ejemplo_no_empirico": "50 parejas, sigma_D de 10 puntos y alpha bilateral 5 % con potencia 80 % dan un MDE aproximado de 4 puntos. No demuestra viabilidad real ni permite deducir cuántas sesiones producirán ese efecto.",
+    "limitaciones": [
+      "Todavía no hay datos internos de Just Eat para validar muestra, duración ni ruido.",
+      "Contar municipios públicos no equivale a contar mercados independientes, elegibles y operativamente viables.",
+      "Más restaurantes y usuarios pueden reducir parte del ruido, pero no eliminan shocks compartidos por ciudad.",
+      "El efecto y la aceptación reales son desconocidos; la simulación debe mostrar escenarios y depende de su plausibilidad.",
+      "Aumentar intensidad del servicio puede cambiar la política evaluada. No excluir después ciudades con pocas solicitudes o fotografías publicadas.",
+      "Una comparación ahora frente a después evalúa ese despliegue durante el horizonte; no identifica automáticamente el efecto de cerrar permanentemente todo el servicio."
+    ]
+  },
+  "pregunta_pendiente_de_diseno": "Cómo definir ciudades similares: priorizar país/contexto operativo, evolución histórica de la métrica, actividad de la plataforma y exposición prevista al programa. Evitar estratificación exacta por todas las características. El emparejamiento busca precisión; la asignación aleatoria sustenta la comparación causal.",
+  "fuentes": [
+    {
+      "titulo": "Holtz et al., Airbnb: apéndice D, elección del tamaño de los grupos",
+      "url": "https://pubsonline.informs.org/doi/suppl/10.1287/mnsc.2020.01157/suppl_file/mnsc.2020.01157.sm1.pdf",
+      "nota": "Comparan umbrales de 250 y 1000 alojamientos, con MDE inicial para detectar interferencia 1.17 veces mayor en el segundo diseño, y medidas de demanda contenida en cada grupo. No trasladar esos tamaños a Just Eat ni atribuirles literalmente nuestro protocolo de simulación."
+    },
+    {
+      "titulo": "Google Trimmed Match: diseño de experimentos geográficos aleatorizados por parejas",
+      "url": "https://github.com/google/trimmed_match/blob/master/trimmed_match/g3doc/Trimmed_Match_design_colab_guide.md",
+      "nota": "Precedente práctico para separar entrenamiento, evaluación y pruebas A/A, y evaluar duración, presupuesto y precisión con históricos. Su estimando publicitario no es directamente el del servicio de fotografía."
+    },
+    {
+      "titulo": "DoorDash: network effects, learning effects and power",
+      "url": "https://careersatdoordash.com/blog/balancing-network-effects-learning-effects-and-power-in-experiments/"
+    }
+  ],
+  "decision_sobre_pesos": "Propuesta explícita del notebook: primaria de crecimiento neto agregado ponderada por margen previo; media por ciudad secundaria. Las cuentas teóricas se condicionan a la desviación de los contrastes que correspondan a esos pesos."
+}
