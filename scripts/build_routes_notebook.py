@@ -8,42 +8,42 @@ def md(s):cells.append(nbf.v4.new_markdown_cell(s.strip()))
 def code(s):cells.append(nbf.v4.new_code_cell(s.strip()))
 
 md(r"""
-# ¿Han seguido la misma ruta?
-## De dos trazados GPS a una decisión que podamos defender
+# Did they follow the same route?
+## From two GPS traces to a decision we can defend
 
-**Parte 2 · Model Prototyping · Cabify Data Science Challenge**
+**Part 2 · Model Prototyping · Cabify Data Science Challenge**
 
-> ### En seis líneas
+> ### In six lines
 >
-> 1. **Basta con geometría simple.** Ocho medidas y un XGBoost dan un 94,3 % de acierto equilibrado en test. Un vector de 42 variables, una adaptación de t2vec y un híbrido no mejoran de forma demostrable: sus intervalos de confianza pareados incluyen el cero.
-> 2. **El límite no es el modelo, es la etiqueta.** El 83 % de los viajes los juzga una sola persona, y el panel son ocho anotadores con criterios distintos: uno marca «diferentes» el 65 % de las veces y otro el 40 %. El modelo acierta un 98 % con el anotador indulgente y un 88 % con el exigente. Ha aprendido un umbral concreto, no una verdad.
-> 3. **Traducido a dinero, la desviación mediana son 11 céntimos** sobre una tarifa media de 4,63 €. Parece poco hasta que se compara con el margen: Cabify cerró 2025 con un 3,3 % de EBITDA, así que **casi la mitad de los viajes se desvía más de lo que ese viaje deja de beneficio**.
-> 4. **El modelo detecta el 90,2 % de los casos pero recupera el 97,4 % del dinero:** se equivoca en los viajes baratos. La exactitud infravalora lo que hace.
-> 5. **Se puede convertir el error en una palanca.** Con predicción conforme, enviar el 6 % de los viajes a revisión humana baja el error automático del 6,3 % al 1,9 %; el 13 %, al 0,5 %. Negocio elige el punto.
-> 6. **Recomendación:** desplegar geometría básica con conformal, revisar por impacto económico y no por tasa fija, y gastar el siguiente euro en una segunda anotación —no en un modelo mayor. El detalle está en la [sección 11](#recomendacion).
+> 1. **Simple geometry is enough.** Eight measurements and an XGBoost give 94.3 % balanced accuracy on test. A 42-variable vector, a t2vec adaptation and a hybrid do not improve on that in any defensible way: their paired confidence intervals include zero.
+> 2. **The limit is not the model, it is the label.** 83 % of journeys are judged by a single person, and the panel is eight annotators with different criteria: one marks «they differ» 65 % of the time and another 40 %. The model agrees 98 % with the lenient annotator and 88 % with the strict one. It has learned a particular threshold, not a truth.
+> 3. **Translated into money, the median deviation is 11 cents** on an average fare of €4.63. That sounds small until you compare it with the margin: Cabify closed 2025 with 3.3 % EBITDA, so **almost half of all journeys deviate by more than that journey leaves in profit**.
+> 4. **The model catches 90.2 % of the cases but recovers 97.4 % of the money:** it fails on the cheap trips. Accuracy understates what it does.
+> 5. **The error can be turned into a lever.** With conformal prediction, sending 6 % of journeys to human review brings the automated error down from 6.3 % to 1.9 %; 13 % brings it to 0.5 %. The business picks the point.
+> 6. **Recommendation:** deploy basic geometry with conformal prediction, review by economic impact rather than by a fixed rate, and spend the next euro on a second annotation — not on a bigger model. The detail is in [section 11](#recomendacion).
 
-Tenemos dos recorridos de un mismo viaje: el previsto y el realizado, y la etiqueta que nos dan es perceptual: si una persona los considera similares al verlos en un mapa. Pero el enunciado motiva el problema desde el **precio**, que se fija antes de viajar con la ruta estimada. Esas dos preguntas no son la misma, y una parte del valor de este trabajo consiste en medir cuánto se separan: lo hacemos en la [sección 9](#dinero), después de haber resuelto el problema tal y como viene planteado.
+We have two traces of the same journey: the one that was predicted and the one that happened. The label we are given is perceptual: whether a person considers them similar when looking at a map. But the brief motivates the problem from **pricing**, which is set before the trip using the estimated route. Those two questions are not the same, and part of the value of this work lies in measuring how far apart they are: we do that in [section 9](#dinero), after solving the problem as posed.
 
-Dos preguntas guían el recorrido. La técnica: **¿necesitamos aprender una representación compleja o bastan unas medidas geométricas bien elegidas?** Y la de negocio, que aparece en la segunda mitad: **¿cuánto cuesta que el motor de rutas se equivoque, y cuánta revisión humana hace falta para decidir el resto automáticamente?**
+Two questions guide the walkthrough. The technical one: **do we need to learn a complex representation, or are a few well-chosen geometric measurements enough?** And the business one, which appears in the second half: **what does it cost when the routing engine is wrong, and how much human review is needed to decide the rest automatically?**
 
-Compararemos una referencia de ocho variables, un vector interpretable de 42 medidas, una adaptación reducida de t2vec con decoder de reconstrucción y clasificador, y una combinación de vectores. Añadimos ampliaciones exploratorias con red viaria y una versión de t2vec corregida tras auditar su reconstrucción, realizadas después de inspeccionar el test original.
+We will compare an eight-variable baseline, an interpretable 42-measurement vector, a reduced t2vec adaptation with a reconstruction decoder and a classifier, and a combination of vectors. We add exploratory extensions using the road network and a t2vec version corrected after auditing its reconstruction, both carried out after inspecting the original test set.
 
-El recorrido del análisis es: entender los votos → construir representaciones → comparar en validación → comprobar en test → volver a las rutas para entender aciertos y errores. **El mejor modelo será el elegido por la regla fijada en validación**, no el que salga primero al ordenar el test.
+The path of the analysis is: understand the votes → build representations → compare on validation → check on test → go back to the routes to understand hits and misses. **The best model will be the one chosen by the rule fixed on validation**, not whichever comes first when sorting the test results.
 
-| Método que probamos | Qué recibe el clasificador | Por qué probarlo | Qué puede perder o costar |
+| Method we try | What the classifier receives | Why try it | What it may lose or cost |
 |---|---|---|---|
-| Geometría básica + XGBoost | 8 medidas: ambas longitudes, diferencia relativa, extremos, medias de separación y máximo discreto | Comprobar cuánto resuelve una referencia pequeña y comprensible | Resume cada pareja; puede diluir la importancia de un desvío localizado |
-| Vector interpretable + XGBoost | 42 medidas, incluidas las 8 anteriores: proporciones alejadas, tramos, IoU, giros y orden | Representar explícitamente las diferencias que proponíamos mirar en el mapa | Más variables no aportan necesariamente información nueva; pueden sobreajustar |
-| t2vec reducido + clasificador neuronal | Dos embeddings de 64 dimensiones, más su diferencia absoluta y producto: 256 valores | Aprender patrones sin etiquetas antes de aprender el juicio humano | La auditoría posterior detectó reconstrucción fallida y un defecto en la pérdida muestreada; no representa un benchmark válido del t2vec original |
-| Vector interpretable + t2vec + XGBoost | Las 42 medidas y los 256 valores anteriores: 298 en total | Comprobar si lo aprendido complementa lo que medimos a mano | Mayor complejidad; podría añadir ruido sin mejorar de forma estable |
-| t2vec reducido con pérdida corregida + clasificador | La misma arquitectura y comparación de vectores, reentrenadas con un objetivo normalizado completo | Corregir el tratamiento del fin de secuencia y evaluar reconstrucción y clasificación por separado | Sigue requiriendo datos y una resolución adecuada; se documenta como experimento nuevo |
-| Grafo viario y tiempos + XGBoost, solo y con geometría | Variables de calles, conectividad, tiempos estimados y calidad del encaje | Distinguir cercanía geométrica de conectividad y coste de circulación | Mapa actual, aproximaciones y encajes inciertos; comparación exploratoria posterior al test original |
+| Basic geometry + XGBoost | 8 measurements: both lengths, relative difference, endpoints, mean separations and discrete maximum | Check how much a small, understandable baseline already solves | Summarises each pair; may dilute the weight of a localised detour |
+| Interpretable vector + XGBoost | 42 measurements, including the previous 8: far-apart proportions, segments, IoU, turns and ordering | Explicitly represent the differences we proposed looking at on a map | More variables do not necessarily add new information; they can overfit |
+| Reduced t2vec + neural classifier | Two 64-dimensional embeddings, plus their absolute difference and product: 256 values | Learn patterns without labels before learning the human judgement | The later audit found failed reconstruction and a defect in the sampled loss; it is not a valid benchmark of the original t2vec |
+| Interpretable vector + t2vec + XGBoost | The 42 measurements and the 256 values above: 298 in total | Check whether what was learned complements what we measured by hand | More complexity; it could add noise without improving stably |
+| Reduced t2vec with corrected loss + classifier | The same architecture and vector comparison, retrained with a fully normalised objective | Fix the handling of the end-of-sequence token and evaluate reconstruction and classification separately | It still needs data and adequate resolution; documented as a new experiment |
+| Road graph and travel times + XGBoost, alone and with geometry | Street variables, connectivity, estimated times and map-match quality | Separate geometric closeness from connectivity and cost of driving | Current map, approximations and uncertain matches; exploratory comparison made after the original test |
 
-**No son solo vectores de diferencias.** La referencia ya conserva las longitudes individuales; t2vec conserva ambos embeddings completos además de su comparación. No hemos hecho una ablación de «solo concatenación» frente a «solo diferencias»: para responder esa pregunta habría que probarla con validación.
+**These are not just difference vectors.** The baseline already keeps the individual lengths; t2vec keeps both full embeddings in addition to their comparison. We have not run an ablation of «concatenation only» against «differences only»: answering that would require testing it on validation.
 
-> Los resultados que siguen proceden del archivo real del challenge. No son simulaciones. Las estimaciones del experimento de fotografía pertenecen al notebook anterior.
+> The results that follow come from the real challenge file. They are not simulations. The estimates for the photography experiment belong to the previous notebook.
 
-El enunciado menciona 5.000 viajes seleccionados. El archivo enlazado contiene **2.386 viajes distintos**. La petición 3.000/1.000/1.000 se interpreta como entrenamiento/validación/test; conservamos su proporción 60/20/20 sin duplicar viajes: **1.432 / 477 / 477**.
+The brief mentions 5,000 selected journeys. The linked file contains **2,386 distinct journeys**. The 3,000/1,000/1,000 request is read as training/validation/test; we keep its 60/20/20 proportion without duplicating journeys: **1,432 / 477 / 477**.
 """)
 
 code("""
@@ -90,19 +90,19 @@ names={'geometria_base':'Geometría básica','vector_interpretable':'Vector inte
 """)
 
 md(r"""
-## 1. Antes de modelar: ¿cuántos ejemplos tenemos realmente?
+## 1. Before modelling: how many examples do we actually have?
 
-Una fila es una **anotación**, no un viaje nuevo. Además, algunas personas figuran varias veces para el mismo viaje. Si contamos esas filas como votos independientes, sobreponderamos a esa persona.
+A row is an **annotation**, not a new journey. On top of that, some people appear several times for the same journey. Counting those rows as independent votes would over-weight that person.
 
-Aplicamos una regla anterior al entrenamiento:
+We apply a rule that predates training:
 
-1. Un anotador cuenta como máximo una vez por viaje.
-2. Sus respuestas repetidas idénticas se colapsan.
-3. Si combina «no sé» con una única decisión, conservamos la decisión.
-4. Si la misma persona dice tanto «iguales» como «diferentes», su voto queda indeterminado.
-5. Entre personas distintas, conservamos el desacuerdo en vez de inventar una certeza.
+1. An annotator counts at most once per journey.
+2. Their identical repeated answers collapse into one.
+3. If they combine «I don't know» with a single decision, we keep the decision.
+4. If the same person says both «the same» and «they differ», their vote is undetermined.
+5. Across different people, we keep the disagreement instead of inventing certainty.
 
-Encontramos **123 registros adicionales del mismo anotador-viaje**, con siete parejas anotador-viaje contradictorias. Esto no significa que los demás votos sean verdad objetiva.
+We find **123 additional records for the same annotator-journey pair**, with seven contradictory annotator-journey pairs. This does not mean the remaining votes are objective truth.
 """)
 
 code("""
@@ -123,13 +123,13 @@ display(pd.crosstab(df.split,df.status).rename(columns={'same':'Iguales','differ
 """)
 
 md(r"""
-### 1.1 ¿No hay nulos, o no hay problemas de datos?
+### 1.1 Are there no nulls, or are there no data problems?
 
-Son preguntas distintas. Primero revisamos el archivo original: campos ausentes, valores JSON nulos y contenidos vacíos. Después miramos dentro de las listas de coordenadas. Un campo llamado «ruta» puede existir y, aun así, no contener una trayectoria utilizable.
+Those are different questions. First we check the original file: missing fields, null JSON values and empty contents. Then we look inside the coordinate lists. A field called «route» can exist and still not contain a usable trajectory.
 
-Cada punto debe tener dos números finitos en el orden **[latitud, longitud]**, con latitud entre −90 y 90 y longitud entre −180 y 180. Además, la ruta necesita al menos dos posiciones distintas. Que pase estas comprobaciones no garantiza precisión del GPS ni que siga una carretera.
+Each point must have two finite numbers in the order **[latitude, longitude]**, with latitude between −90 and 90 and longitude between −180 and 180. The route also needs at least two distinct positions. Passing these checks guarantees neither GPS accuracy nor that the trace follows a road.
 
-**Alcance de esta ampliación:** este EDA se incorpora después de haber evaluado los modelos; lo situamos aquí para facilitar la lectura. La calidad estructural se audita en todo el archivo. Las distribuciones que relacionamos con decisiones de modelado se estudian en entrenamiento; la comparación de conjuntos es descriptiva. No se cambian los modelos, etiquetas, filtros ni umbrales a partir de este análisis.
+**Scope of this addition:** this EDA was incorporated after the models had been evaluated; we place it here to make the notebook easier to read. Structural quality is audited across the whole file. The distributions we connect to modelling decisions are studied on training data; the comparison across splits is descriptive. No models, labels, filters or thresholds are changed on the basis of this analysis.
 """)
 
 code("""
@@ -214,23 +214,23 @@ train_features=features.loc[train_ids].join(df[['status','n_unique_annotators','
 """)
 
 md(r"""
-**Lectura:** no encontramos campos ausentes, nulos, rutas vacías ni coordenadas inválidas con estas reglas. Tampoco hay valores ausentes o infinitos en las características calculadas. Por tanto, este archivo **no necesita una imputación numérica**.
+**Reading:** we find no missing fields, nulls, empty routes or invalid coordinates under these rules. Nor are there missing or infinite values in the computed features. So this file **needs no numerical imputation**.
 
-Pero sí hay ausencia de información supervisada: **139 viajes sin voto válido** y **31 empates**. En total, 170 viajes carecen de una mayoría binaria definida. «No sé» es una respuesta humana válida, no un null ni un voto «iguales». No la rellenamos con la clase más frecuente. Más adelante definimos cómo aprovechar los votos disponibles.
+There is, however, missing supervised information: **139 journeys with no valid vote** and **31 ties**. In total, 170 journeys have no defined binary majority. «I don't know» is a valid human answer, not a null and not a «the same» vote. We do not fill it with the most frequent class. Later on we define how to use the votes we do have.
 
-Faltan también variables que el esquema nunca contiene: **tiempos de cada punto, duración observada y una ruta validada contra la carretera**. La ausencia de nulos no crea esa información.
+Variables the schema never contains are missing too: **per-point timestamps, observed duration and a route validated against the road network**. The absence of nulls does not create that information.
 """)
 
 md(r"""
-### 1.2 ¿Qué tamaño tienen los recorridos?
+### 1.2 How large are these trips?
 
-No confundamos la **longitud del recorrido** con el **número de coordenadas**. Calculamos la primera sumando las distancias entre puntos consecutivos de la polilínea:
+Let us not confuse the **length of the trip** with the **number of coordinates**. We compute the first by summing the distances between consecutive points of the polyline:
 
 $$L=\sum_{i=1}^{n-1}\|x_{i+1}-x_i\|.$$
 
-Los $x_i$ están proyectados a metros en un sistema local común a la pareja. Es la longitud del trazado representado, no una garantía de kilómetros realmente conducidos. Un tramo sin observaciones queda unido por una línea y puede ocultar curvas o un recorrido distinto.
+The $x_i$ are projected to metres in a local system shared by the pair. This is the length of the trace as represented, not a guarantee of kilometres actually driven. A stretch with no observations is joined by a straight line and may hide curves or a different path altogether.
 
-En las tablas y gráficas siguientes, cada viaje de entrenamiento pesa una vez. Mostramos la **mediana** y percentiles porque una media puede ocultar la cola de viajes largos. P95 significa que el 95 % de las rutas no supera ese valor.
+In the tables and charts that follow, each training journey counts once. We show the **median** and percentiles because a mean can hide the tail of long trips. P95 means that 95 % of routes do not exceed that value.
 """)
 
 code("""
@@ -283,17 +283,17 @@ display(extremes.style.format({'Estimada · km':'{:.2f}','Real · km':'{:.2f}','
 """)
 
 md(r"""
-Los extremos merecen inspección, no eliminación automática. Un gran desvío puede ser precisamente el ejemplo que debemos reconocer. No aplicamos recortes por percentiles ni borramos viajes largos: antes habría que distinguir un fallo de datos de una ruta válida poco frecuente.
+Extremes deserve inspection, not automatic removal. A large detour may be precisely the example we need to recognise. We apply no percentile trimming and delete no long journeys: doing so would first require telling a data error apart from a valid but uncommon route.
 """)
 
 md(r"""
-### 1.3 ¿Tener más puntos significa tener mejor información?
+### 1.3 Do more points mean better information?
 
-Dos rutas de 10 km pueden contener 100 y 1.000 puntos. Eso no convierte la segunda en diez veces más larga ni justifica que tenga diez veces más peso. Además, algunos puntos consecutivos repiten exactamente la misma coordenada: describen un paso de longitud cero.
+Two 10 km routes can contain 100 and 1,000 points. That does not make the second one ten times longer, nor does it justify giving it ten times the weight. On top of that, some consecutive points repeat exactly the same coordinate: they describe a zero-length step.
 
-Medimos tres cosas distintas: **cantidad de puntos**, **repeticiones consecutivas** y **mayor distancia entre dos observaciones consecutivas**. Esta última detecta tramos representados con poca información. La referencia de 1 km que aparece abajo es solo una marca de inspección; no es una regla validada para detectar errores ni un filtro aplicado.
+We measure three different things: **number of points**, **consecutive repetitions** and **largest distance between two consecutive observations**. The last one flags stretches represented with little information. The 1 km reference shown below is only an inspection marker; it is not a validated rule for detecting errors and no filter is applied with it.
 
-**No es solo un ejemplo teórico:** en 2.376 de los 2.386 viajes —el **99,6 %**— los dos trazados tienen distinto número de puntos. La mediana es 249,5 puntos para la estimada y 198 para la real, en el archivo completo. Que casi nunca coincidan exactamente no significa que todas las diferencias sean grandes: por eso miramos también la magnitud de la proporción entre ambos recuentos.
+**This is not just a theoretical example:** in 2,376 of the 2,386 journeys — **99.6 %** — the two traces have a different number of points. The median is 249.5 points for the estimated route and 198 for the real one, across the whole file. That they almost never match exactly does not mean every difference is large: this is why we also look at the magnitude of the ratio between the two counts.
 """)
 
 code("""
@@ -397,17 +397,17 @@ display(Markdown('**Lo que implica:** no sabemos si este hueco procede de simpli
 """)
 
 md(r"""
-En la geometría implementada eliminamos repeticiones **consecutivas** antes de formar las líneas. Conservamos revisitas posteriores al mismo lugar, que pueden representar un bucle real. Las medias y proporciones se calculan sobre posiciones equiespaciadas por longitud; no sobre los puntos brutos. Esto reduce el peso artificial de zonas con muchos registros, pero **no reconstruye información perdida**.
+In the geometry as implemented we remove **consecutive** repetitions before forming the lines. We keep later revisits to the same place, which may represent a real loop. Means and proportions are computed over positions equally spaced by length, not over the raw points. This reduces the artificial weight of densely recorded areas, but **it does not reconstruct lost information**.
 
-En t2vec también remuestreamos por longitud, con un máximo de 64 posiciones, y colapsamos celdas consecutivas iguales. Ese límite controla el tamaño de la secuencia, aunque puede perder detalle en rutas largas. Sin tiempos no podemos interpretar las repeticiones como minutos parado ni calcular velocidad.
+In t2vec we also resample by length, with a maximum of 64 positions, and collapse identical consecutive cells. That cap controls sequence size, although it can lose detail on long routes. Without timestamps we cannot read the repetitions as minutes spent stationary, nor compute speed.
 """)
 
 md(r"""
-### 1.4 ¿Representamos el mismo problema en todos los conjuntos?
+### 1.4 Are we representing the same problem across all splits?
 
-La muestra mezcla zonas geográficas y grados de certeza humana. Revisamos ambas cosas antes de interpretar una cifra global.
+The sample mixes geographic areas and degrees of human certainty. We check both before interpreting any global figure.
 
-La zona no viene como campo original: es una **aproximación** basada en el comienzo de la ruta real y su cercanía a centros urbanos predefinidos, con un radio máximo de 65 km. No equivale a un municipio validado. Elegimos las cinco zonas más frecuentes en entrenamiento y agrupamos el resto para que la comparación sea legible.
+The area is not an original field: it is an **approximation** based on where the real route starts and how close that is to a set of predefined city centres, with a maximum radius of 65 km. It is not a validated municipality. We pick the five most frequent areas in training and group the rest so the comparison stays readable.
 """)
 
 code("""
@@ -468,20 +468,20 @@ display(length_label[['Con mayoría','% diferentes entre mayorías','Sin mayorí
 """)
 
 md(r"""
-Las proporciones de clases son parecidas porque la partición se estratificó por el estado inicial de las etiquetas. Las zonas frecuentes aparecen en los tres conjuntos, pero eso no elimina dependencia entre recorridos que comparten calles. Además, la mayoría de viajes solo tiene una persona anotadora: una etiqueta 0 o 1 no implica unanimidad de un panel amplio.
+The class proportions are similar because the split was stratified by the initial state of the labels. Frequent areas appear in all three splits, but that does not remove dependence between trips that share streets. Besides, most journeys have only one annotator: a 0 or 1 label does not imply unanimity across a broad panel.
 
-Agrupar por longitud ayuda a detectar si la etiqueta se asocia al tamaño del viaje. No convierte esa asociación en una regla universal ni en un criterio para eliminar observaciones. Lo usaremos como contexto para interpretar las métricas.
+Grouping by length helps detect whether the label is associated with trip size. It does not turn that association into a universal rule or into a criterion for dropping observations. We use it as context when interpreting the metrics.
 """)
 
 md(r"""
-### 1.5 ¿Cuántas personas sostienen cada etiqueta?
+### 1.5 How many people hold up each label?
 
-El apartado anterior contaba **personas que miraron** cada viaje. Aquí contamos **votos decididos**: las abstenciones
-(«no sé») y los anotadores que se contradicen a sí mismos no suman. Es el número que realmente sostiene cada etiqueta.
+The previous subsection counted **people who looked at** each journey. Here we count **decided votes**: abstentions
+(«I don't know») and annotators who contradict themselves do not add up. This is the number that actually holds up each label.
 
-Importa porque la palabra «mayoría» sugiere un panel y aquí casi nunca lo hay. Un viaje con un solo voto tiene una
-etiqueta tan binaria como otro con tres, pero **no podemos saber si una segunda persona habría coincidido**.
-Esa diferencia no aparece en ninguna métrica agregada; la recuperamos en la sección 8.4.
+It matters because the word «majority» suggests a panel and here there almost never is one. A journey with a single vote has a
+label every bit as binary as one with three, but **we cannot know whether a second person would have agreed**.
+That difference shows up in no aggregate metric; we recover it in section 8.4.
 """)
 
 code("""
@@ -527,13 +527,13 @@ display(Markdown(
 """)
 
 md(r"""
-#### ¿Y quién vota? El panel son ocho personas, muy desiguales entre sí
+#### And who votes? The panel is eight people, very unevenly matched
 
-Si una etiqueta la sostiene casi siempre una persona, conviene saber **qué persona**. El panel tiene ocho anotadores,
-pero no reparten el trabajo: el más activo hizo 44 veces más anotaciones que el menos activo.
+If a label is almost always held up by one person, it is worth knowing **which person**. The panel has eight annotators,
+but they do not share the work evenly: the most active one made 44 times as many annotations as the least active.
 
-Dos cosas nos interesan. **Cuánto pesa cada uno** —sobre todo en viajes donde nadie más votó, porque ahí su criterio
-es la etiqueta sin contrapeso— y **cuánto se parecen entre sí** cuando coinciden sobre el mismo viaje.
+Two things interest us. **How much each one weighs** — especially on journeys where nobody else voted, because there their criterion
+is the label with no counterweight — and **how alike they are** when they overlap on the same journey.
 """)
 
 code("""
@@ -613,68 +613,68 @@ display(kappa.style.format({'Acuerdo':'{:.1f} %','Kappa de Cohen':'{:.3f}'}))
 """)
 
 md(r"""
-**El reparto no es equilibrado.** El anotador 2 firma 918 anotaciones —el 30 % del archivo— sobre 856 viajes, y en
-**612 de ellos es la única persona que votó**: su criterio, sin contraste, fija el 26 % de las etiquetas del dataset.
-Sumando los tres más activos (2, 7 y 1) se llega a 1.335 de los 1.897 viajes de anotador único. En el otro extremo,
-el anotador 5 hizo 21 anotaciones.
+**The distribution is not balanced.** Annotator 2 signs 918 annotations — 30 % of the file — across 856 journeys, and on
+**612 of them is the only person who voted**: their criterion, uncontrasted, fixes 26 % of the dataset's labels.
+Adding the three most active (2, 7 and 1) reaches 1,335 of the 1,897 single-annotator journeys. At the other end,
+annotator 5 made 21 annotations.
 
-**Y los criterios personales difieren.** El anotador 1 marca «diferentes» el 65 % de las veces; el 7, el 39,7 %. Son
-25 puntos de diferencia entre dos personas que vieron casi 500 y más de 600 viajes respectivamente. No es una muestra
-pequeña ni una casualidad: es un umbral de tolerancia distinto.
+**And personal criteria differ.** Annotator 1 marks «they differ» 65 % of the time; annotator 7, 39.7 %. That is
+25 points of difference between two people who saw nearly 500 and more than 600 journeys respectively. It is not a small
+sample nor a coincidence: it is a different tolerance threshold.
 
-Esa brecha se confirma al cruzarlos. Entre los pares con suficientes viajes compartidos, **1 y 7 son justo los que
-menos coinciden: 82,6 % sobre 46 viajes**, mientras que otros pares llegan al 94-100 %. Las casillas marcadas con «·»
-tienen menos de 15 viajes en común y no se interpretan; con 4 u 8 comparaciones, un 100 % no significa nada.
+That gap is confirmed when we cross them. Among the pairs with enough shared journeys, **1 and 7 are precisely the ones who
+agree least: 82.6 % over 46 journeys**, while other pairs reach 94-100 %. Cells marked with «·»
+have fewer than 15 journeys in common and are not interpreted; with 4 or 8 comparisons, a 100 % means nothing.
 
-**La consecuencia para el modelo.** El objetivo no es «¿se parecen estas rutas?» sino «¿diría esta persona concreta
-que se parecen?». En el 80 % de los casos esa persona es una sola, y con una probabilidad alta es el anotador 2 o el 7.
-El modelo aprende, en parte, **su** umbral de tolerancia. Si mañana cambia el panel, cambia el objetivo, y la exactitud
-medida aquí no se transfiere automáticamente.
+**The consequence for the model.** The target is not «do these routes look alike?» but «would this particular person say
+they look alike?». In 80 % of cases that person is a single one, and with high probability it is annotator 2 or 7.
+The model learns, in part, **their** tolerance threshold. If the panel changes tomorrow, the target changes, and the accuracy
+measured here does not transfer automatically.
 
-**El porcentaje bruto exagera el acuerdo**, porque dos personas que digan «diferentes» la mayor parte del tiempo
-coincidirán mucho sin compartir criterio. La kappa de Cohen descuenta esa coincidencia esperable y ordena los pares
-de otra forma: 1 y 7 bajan a **0,66**, y 1 y 8 a **0,63**, frente a varios pares por encima de 0,87. Son valores que
-se suelen describir como acuerdo «sustancial», no «casi perfecto»: hay criterio compartido, pero con holgura real.
+**Raw agreement overstates the case**, because two people who say «they differ» most of the time will coincide a lot
+without sharing a criterion. Cohen's kappa discounts that expected coincidence and ranks the pairs
+differently: 1 and 7 drop to **0.66**, and 1 and 8 to **0.63**, against several pairs above 0.87. These are values
+usually described as «substantial» agreement, not «almost perfect»: there is a shared criterion, but with real slack.
 
-Esto refuerza lo que ya decían §1.5 y §8.4 desde otro ángulo: la limitación dominante de este prototipo no es la
-capacidad del modelo, sino **cuántas personas y con qué criterio sostienen cada etiqueta**. La §8.6 cierra la
-pregunta por el otro lado: a qué anotador se parece más el modelo que hemos entrenado.
+This reinforces what §1.5 and §8.4 already said from another angle: the dominant limitation of this prototype is not the
+model's capacity, but **how many people hold up each label and with what criterion**. §8.6 closes the
+question from the other side: which annotator the model we trained resembles most.
 """)
 
 md(r"""
-### 1.6 Entonces, ¿hay que normalizar?
+### 1.6 So, do we need to normalise?
 
-**Sí hay que hacer comparables las distancias y el muestreo; no hay que dividirlo todo por la longitud.** Son operaciones distintas:
+**Yes to making distances and sampling comparable; no to dividing everything by length.** They are different operations:
 
-| Qué queremos resolver | Tratamiento y motivo | Estado del prototipo |
+| What we want to solve | Treatment and reason | Prototype status |
 |---|---|---|
-| Latitud y longitud están en grados | Proyectar ambas rutas a un sistema local común en metros. Un grado de longitud no representa la misma distancia en todas las latitudes. | Implementado para las características geométricas |
-| Las rutas tienen distintas densidades de puntos | Remuestrear por longitud y eliminar duplicados consecutivos al construir la polilínea. Así una zona muy muestreada no pesa más solo por tener más puntos. | Implementado; no rellena huecos con información real |
-| Un desvío puede ser grande en metros o relativo al recorrido | Conservar medidas en metros **y** versiones divididas por una escala común de longitud. | El vector ampliado incluye ambas; la referencia incluye longitudes, distancias absolutas y diferencia relativa de longitud |
-| Variables con unidades muy diferentes entran en una red neuronal | Estandarizar con media y desviación calculadas solo en entrenamiento. Aplicar esos mismos parámetros a validación y test. | Implementado en la cabeza neuronal sobre embeddings; se limita después a [−10, 10] |
-| Variables con unidades diferentes entran en XGBoost | Sus árboles comparan cada variable con umbrales propios; no necesitan z-scores para poner metros y proporciones en una misma escala. | Las entradas geométricas e híbridas no se estandarizan |
-| Proporciones e IoU ya son adimensionales | Conservar sus valores entre 0 y 1; no dividir otra vez por kilómetros. | Implementado |
-| Hay una cola de recorridos largos | Usar ejes logarítmicos para verla. Transformar variables o recortar extremos sería otra decisión, a validar. | El log del EDA es solo visual; no se han cambiado las entradas ni eliminado extremos |
+| Latitude and longitude are in degrees | Project both routes to a shared local system in metres. One degree of longitude is not the same distance at every latitude. | Implemented for the geometric features |
+| Routes have different point densities | Resample by length and remove consecutive duplicates when building the polyline. That way a densely sampled area does not weigh more just for having more points. | Implemented; it does not fill gaps with real information |
+| A detour can be large in metres or relative to the trip | Keep measurements in metres **and** versions divided by a shared length scale. | The extended vector includes both; the baseline includes lengths, absolute distances and relative length difference |
+| Variables with very different units enter a neural network | Standardise using the mean and standard deviation computed on training only. Apply those same parameters to validation and test. | Implemented in the neural head over embeddings; afterwards clipped to [−10, 10] |
+| Variables with different units enter XGBoost | Its trees compare each variable against its own thresholds; they do not need z-scores to put metres and proportions on a common scale. | Geometric and hybrid inputs are not standardised |
+| Proportions and IoU are already dimensionless | Keep their values between 0 and 1; do not divide by kilometres again. | Implemented |
+| There is a tail of long trips | Use logarithmic axes to see it. Transforming variables or trimming extremes would be a separate decision, to be validated. | The log scale in the EDA is purely visual; no inputs were changed and no extremes removed |
 
-La escala común que usamos es
+The common scale we use is
 
 $$s=\max\left(\frac{L_e+L_r}{2},1\text{ m}\right),\qquad
 d_{\mathrm{rel}}=\frac{d}{s},\qquad
 \Delta L_{\mathrm{rel}}=\frac{L_r-L_e}{s}.$$
 
-El mínimo de 1 metro protege la división en casos degenerados; ninguna de las rutas válidas de este archivo se acerca a ese mínimo. El valor $s$ se calcula con las dos rutas del propio viaje, sin aprender de otros viajes ni de sus etiquetas.
+The 1-metre floor protects the division in degenerate cases; none of the valid routes in this file comes close to it. The value $s$ is computed from the two routes of the journey itself, without learning from other journeys or their labels.
 
-Por ejemplo, una separación media de **100 m** equivale al **10 %** de una escala de **1 km**, y al **0,5 %** de una escala de **20 km**. Son lecturas complementarias: la segunda evita tratar igual un desvío proporcionalmente pequeño y uno grande; la primera conserva que 100 metros pueden ser otra calle en ambos casos. **Si guardásemos solo la versión relativa, podríamos ocultar una diferencia que una persona considera importante.**
+For example, a mean separation of **100 m** is **10 %** of a **1 km** scale, and **0.5 %** of a **20 km** scale. These are complementary readings: the second avoids treating a proportionally small detour the same as a large one; the first preserves the fact that 100 metres can be a different street in either case. **If we kept only the relative version, we could hide a difference a person considers important.**
 
-No centramos, rotamos ni ajustamos a tamaño unidad cada ruta por separado: podríamos hacer coincidir recorridos que realmente pasan por lugares diferentes. La proyección común conserva la separación entre las dos.
+We do not centre, rotate or rescale each route separately to unit size: that could make trips that genuinely pass through different places look identical. The shared projection preserves the separation between the two.
 
-Para la cabeza neuronal, en cambio, estandarizar una componente $x_k$ significa
+For the neural head, by contrast, standardising a component $x_k$ means
 
 $$z_k=\frac{x_k-\mu_{k,\mathrm{train}}}{\sigma_{k,\mathrm{train}}}.$$
 
-Es un cambio de escala de las entradas de la red, no una normalización de kilómetros. No se recalculan medias y desviaciones en validación o test, y las componentes constantes se manejan sin dividir por cero. El vocabulario y el encoder también se ajustan exclusivamente dentro del conjunto de entrenamiento.
+This is a rescaling of the network's inputs, not a normalisation of kilometres. Means and standard deviations are not recomputed on validation or test, and constant components are handled without dividing by zero. The vocabulary and the encoder are also fitted exclusively within the training set.
 
-**Qué nos llevamos del EDA:** no hace falta imputar nulos; sí respetar unidades y densidad de muestreo, conservar escalas absolutas y relativas, y recordar que los huecos del trazado y la escasez de votos limitan lo que podemos aprender. Cualquier nueva limpieza o cambio de representación se evaluaría como un experimento nuevo, sin sustituir silenciosamente los resultados que siguen.
+**What we take from the EDA:** no null imputation is needed; units and sampling density do need respecting, absolute and relative scales both need keeping, and we should remember that trace gaps and the scarcity of votes limit what we can learn. Any further cleaning or change of representation would be evaluated as a new experiment, without silently replacing the results that follow.
 """)
 
 code("""
@@ -699,21 +699,21 @@ eda_report={
 """)
 
 md(r"""
-## 2. El objetivo representa el juicio humano, incluida su incertidumbre
+## 2. The target represents human judgement, uncertainty included
 
-Para un viaje $j$, usamos
+For a journey $j$, we use
 
-$$p_j=\frac{\text{anotadores válidos que dicen «diferentes»}}{\text{anotadores válidos que toman una decisión}}.$$
+$$p_j=\frac{\text{valid annotators saying «they differ»}}{\text{valid annotators who make a decision}}.$$
 
-Si dos personas dicen «diferentes» y una dice «iguales», el objetivo es $2/3$. No afirmamos que esa sea la probabilidad física de que las rutas sean distintas: es una estimación del juicio de este panel. Con un único voto también hay incertidumbre, aunque $p_j$ sea 0 o 1.
+If two people say «they differ» and one says «the same», the target is $2/3$. We do not claim this is the physical probability that the routes are different: it is an estimate of this panel's judgement. With a single vote there is uncertainty too, even though $p_j$ is 0 or 1.
 
-Entrenamos con entropía cruzada contra $p_j$, con **igual peso por viaje**. Los empates aportan un objetivo 0,5. Los viajes sin votos válidos no aportan pérdida supervisada; sus rutas de entrenamiento sí pueden participar en el preentrenamiento sin etiquetas.
+We train with cross-entropy against $p_j$, with **equal weight per journey**. Ties contribute a target of 0.5. Journeys with no valid votes contribute no supervised loss; their training routes can still take part in unlabelled pretraining.
 
-Para evaluar clasificación binaria usamos la mayoría definida, $y_j=1[p_j>0,5]$, excluyendo empates y casos sin voto válido. También medimos la pérdida probabilística contra los votos incluyendo los empates.
+To evaluate binary classification we use the defined majority, $y_j=1[p_j>0.5]$, excluding ties and cases with no valid vote. We also measure the probabilistic loss against the votes, ties included.
 
-> El test contiene 477 viajes, pero solo 443 tienen mayoría definida. El rendimiento binario se refiere al **92,9 %** del test. No conocemos la exactitud sobre los otros 34 viajes.
+> The test set contains 477 journeys, but only 443 have a defined majority. Binary performance refers to **92.9 %** of the test set. We do not know the accuracy on the other 34 journeys.
 
-Todas las anotaciones de un viaje permanecen juntas. No hay parejas de geometrías exactamente duplicadas entre identificadores. La partición se congeló antes de evaluar modelos y se mantuvo al depurar los votos. Este es un test aleatorio dentro de la mezcla de ciudades; **no demuestra generalización a una ciudad nueva**.
+All annotations for a journey stay together. There are no exactly duplicated geometry pairs across identifiers. The split was frozen before evaluating models and kept when cleaning the votes. This is a random test within the mix of cities; **it does not demonstrate generalisation to a new city**.
 """)
 
 code("""
@@ -731,29 +731,29 @@ finish(fig,'02_ejemplos_reales','Ejemplos del entrenamiento · coordenadas proye
 """)
 
 md(r"""
-## 3. La primera representación: medir antes de comprimir
+## 3. The first representation: measure before compressing
 
-Las coordenadas se proyectan a metros en un sistema local común a **ambas** rutas. No centramos, rotamos ni escalamos cada una por separado: eso podría convertir calles distintas en formas aparentemente idénticas.
+Coordinates are projected to metres in a local system shared by **both** routes. We do not centre, rotate or scale each one separately: that could turn different streets into apparently identical shapes.
 
-Para una posición $x$ de la ruta $A$ calculamos $d(x,B)=\min_{y\in B}\|x-y\|$. La posición más cercana puede estar **en medio de un segmento**, aunque no haya un punto GPS registrado allí.
+For a position $x$ on route $A$ we compute $d(x,B)=\min_{y\in B}\|x-y\|$. The nearest position may lie **in the middle of a segment**, even if no GPS point was recorded there.
 
-Repetimos en ambos sentidos. Las medias y proporciones se aproximan con posiciones equiespaciadas por longitud (20 metros, mínimo 16 y máximo 1.600). Así cada metro tiene aproximadamente el mismo peso. La precisión de esta aproximación queda limitada en rutas muy largas o con desvíos muy breves.
+We repeat this in both directions. Means and proportions are approximated using positions equally spaced by length (every 20 metres, minimum 16 and maximum 1,600). That way each metre carries roughly the same weight. The precision of this approximation is limited on very long routes or with very short detours.
 
-**Referencia:** ocho variables —longitudes, diferencia relativa, separación de extremos, distancias medias direccionales y Hausdorff discreto— más XGBoost.
+**Baseline:** eight variables — lengths, relative difference, endpoint separation, directional mean distances and discrete Hausdorff — plus XGBoost.
 
-**Tu vector ampliado:** 42 variables. Añade percentiles 95, versiones relativas, proporciones y tramos continuos alejados a 20/50/100 metros, IoU de corredores, rectitud, giros y Fréchet discreto sobre 64 puntos por ruta.
+**The extended vector:** 42 variables. It adds 95th percentiles, relative versions, proportions and continuous stretches further than 20/50/100 metres away, corridor IoU, straightness, turns and discrete Fréchet over 64 points per route.
 
-Tres ejemplos aclaran qué aporta cada medida. **La media** describe la separación habitual; **el máximo de las distancias mínimas en ambos sentidos —Hausdorff—** puede detectar un desvío importante aunque sea breve, pero es sensible a un punto anómalo. **Una proporción de 0,20 a más de 50 metros** significa que aproximadamente un quinto de la longitud de esa ruta queda alejado de la otra, aunque la media sea pequeña.
+Three examples clarify what each measurement adds. **The mean** describes the usual separation; **the maximum of the minimum distances in both directions — Hausdorff —** can detect a significant detour even if brief, but is sensitive to a single anomalous point. **A proportion of 0.20 beyond 50 metres** means roughly a fifth of that route's length lies far from the other, even if the mean is small.
 
-Para la **IoU** dibujamos un corredor alrededor de cada ruta y dividimos el área de intersección entre el área de unión. Cerca de 1 hay mucho solapamiento; cerca de 0, poco. El ancho importa: corredores de 100 metros pueden solaparse aunque los coches pasen por calles distintas. Esta medida no consulta la red de carreteras.
+For **IoU** we draw a corridor around each route and divide the intersection area by the union area. Near 1 there is a lot of overlap; near 0, little. Width matters: 100-metre corridors can overlap even when the cars drive down different streets. This measurement does not consult the road network.
 
-$$\Delta L_{\mathrm{rel}}=\frac{L_{\mathrm{real}}-L_{\mathrm{estimada}}}{(L_{\mathrm{real}}+L_{\mathrm{estimada}})/2}.$$
+$$\Delta L_{\mathrm{rel}}=\frac{L_{\mathrm{real}}-L_{\mathrm{estimated}}}{(L_{\mathrm{real}}+L_{\mathrm{estimated}})/2}.$$
 
-Conservamos valores absolutos y relativos. La IoU ya está normalizada; no la dividimos por la longitud.
+We keep absolute and relative values. IoU is already normalised; we do not divide it by length again.
 
-**¿Dónde aprende XGBoost?** Estas medidas se calculan sin aprender de las etiquetas. Después, el modelo combina árboles de decisión aprendidos con los votos: una separación de 50 metros puede recibir una lectura distinta según la longitud, los extremos y las demás variables. No imponemos a mano una regla única de «si supera 50 metros, son diferentes».
+**Where does XGBoost learn?** These measurements are computed without learning from the labels. Afterwards, the model combines decision trees learned from the votes: a 50-metre separation can be read differently depending on length, endpoints and the other variables. We do not hand-impose a single rule of «if it exceeds 50 metres, they are different».
 
-> Compartir todos los puntos no implica recorrerlos en el mismo orden. Hausdorff e IoU pueden ignorar esa diferencia; Fréchet aporta información de orden. Sus versiones discretas son aproximaciones, no mediciones exactas de una curva continua.
+> Sharing all the points does not imply traversing them in the same order. Hausdorff and IoU can ignore that difference; Fréchet adds ordering information. Their discrete versions are approximations, not exact measurements of a continuous curve.
 """)
 
 code("""
@@ -788,88 +788,88 @@ from graph_notebook_sections import setup_cells, result_cells
 cells.extend(setup_cells())
 
 md(r"""
-## 5. Aprender un vector: qué significa t2vec en este prototipo
+## 5. Learning a vector: what t2vec means in this prototype
 
-### 5.1 El problema de partida: una lista de puntos no tiene tamaño fijo
+### 5.1 The starting problem: a list of points has no fixed size
 
-Una ruta puede tener 100 puntos y otra 300. **Esto sucede en el dataset:** 2.376 de los 2.386 viajes tienen distinto número de puntos entre sus dos trazados. Por ejemplo, el viaje `7f29deb0-5c8c-11ec-8622-eff6f2c898b6` contiene 323 puntos estimados y 97 reales. Más puntos no implica más kilómetros ni otra ruta: también puede significar un muestreo más denso.
+One route can have 100 points and another 300. **This happens in the dataset:** 2,376 of the 2,386 journeys have a different number of points between their two traces. For instance, journey `7f29deb0-5c8c-11ec-8622-eff6f2c898b6` contains 323 estimated points and 97 real ones. More points does not mean more kilometres or a different route: it can simply mean denser sampling.
 
-Queremos una función $f_\theta$ que convierta cualquier secuencia admitida en un vector del mismo tamaño:
+We want a function $f_\theta$ that turns any admissible sequence into a vector of the same size:
 
 $$T=(p_1,\ldots,p_n)\quad\longmapsto\quad z=f_\theta(T)\in\mathbb R^d.$$
 
-Aquí $n$ puede cambiar, mientras que $d$ queda fijado al diseñar la red. El parámetro $\theta$ representa los pesos que aprendemos. Tener el mismo tamaño permite comparar vectores y alimentar un clasificador. **No garantiza que esos vectores conserven las diferencias que interesan al negocio:** eso se debe comprobar.
+Here $n$ can change, while $d$ is fixed when designing the network. The parameter $\theta$ stands for the weights we learn. Having the same size lets us compare vectors and feed a classifier. **It does not guarantee those vectors preserve the differences the business cares about:** that has to be checked.
 
-Hay tres niveles distintos: la coordenada GPS; la celda del mapa a la que asignamos esa coordenada; y el vector aprendido de toda la trayectoria. También existe un vector aprendido por celda, que es la entrada numérica del encoder. No hay que confundir ese vector local con el resumen final del viaje.
+There are three distinct levels: the GPS coordinate; the map cell we assign that coordinate to; and the learned vector for the whole trajectory. There is also a learned vector per cell, which is the encoder's numerical input. That local vector should not be confused with the final summary of the trip.
 
-**Qué hace el encoder al leer:** empieza con una memoria numérica, lee A y la actualiza; después lee C y combina lo que recuerda con C; después hace lo mismo con D. Al terminar devuelve esa memoria. Nuestra GRU realiza la lectura en ambos sentidos y concatena sus resúmenes. No asigna una componente a cada punto: toda la secuencia influye en un vector de tamaño fijo. Una secuencia de 3 celdas y otra de 30 producen ambas 64 números. El límite de 64 puntos del preprocesamiento y las 64 componentes del vector son dos decisiones distintas que aquí coinciden numéricamente.
+**What the encoder does as it reads:** it starts with a numerical memory, reads A and updates it; then reads C and combines what it remembers with C; then does the same with D. When it finishes it returns that memory. Our GRU reads in both directions and concatenates its summaries. It does not assign one component per point: the whole sequence influences a fixed-size vector. A sequence of 3 cells and one of 30 both produce 64 numbers. The 64-point preprocessing cap and the 64 vector components are two separate decisions that happen to coincide numerically here.
 
-Conviene presentar los tres componentes antes de seguir:
+It is worth laying out the three components before going further:
 
-| Componente | Entrada | Salida | Para qué se utiliza |
+| Component | Input | Output | What it is used for |
 |---|---|---|---|
-| Encoder | Una ruta, expresada como secuencia de celdas | Un vector de 64 números | Resumir la ruta |
-| Decoder de reconstrucción | Ese vector y el contexto de celdas anteriores | Predicciones de celdas sucesivas, incluido FIN | Dar una señal para entrenar el encoder |
-| Clasificador de parejas | Los dos vectores y sus comparaciones | Probabilidad de «diferentes» | Resolver la tarea del challenge |
+| Encoder | One route, expressed as a sequence of cells | A vector of 64 numbers | Summarise the route |
+| Reconstruction decoder | That vector and the context of previous cells | Predictions of successive cells, including END | Provide a signal to train the encoder |
+| Pair classifier | The two vectors and their comparisons | Probability of «they differ» | Solve the challenge task |
 
-**El decoder no es el clasificador.** Se entrena en la primera fase y no interviene en la predicción final de la etiqueta.
+**The decoder is not the classifier.** It is trained in the first phase and takes no part in the final label prediction.
 
-### 5.2 La idea original: aprender sin pedir etiquetas humanas
+### 5.2 The original idea: learning without asking for human labels
 
-[Li et al. (2018)](https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf) proponen representar trayectorias mediante un encoder-decoder y un objetivo que tiene en cuenta la proximidad espacial de las celdas. Su tarea original es similitud y búsqueda de trayectorias; aquí añadimos una clasificación basada en anotaciones humanas.
+[Li et al. (2018)](https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf) propose representing trajectories with an encoder-decoder and an objective that accounts for the spatial proximity of cells. Their original task is trajectory similarity and search; here we add a classification based on human annotations.
 
-Pensemos en una secuencia de celdas **A → B → C → D**. Generamos una versión degradada, por ejemplo **A → C → D**, y perturbamos algunas posiciones. El encoder resume esa versión; el decoder intenta reconstruir la secuencia original. Conocemos la respuesta porque conservamos la trayectoria antes de alterarla. Es un aprendizaje **autosupervisado**: la señal de entrenamiento sale de los datos, sin votos de personas.
+Consider a sequence of cells **A → B → C → D**. We generate a degraded version, say **A → C → D**, and perturb some positions. The encoder summarises that version; the decoder tries to reconstruct the original sequence. We know the answer because we kept the trajectory before altering it. This is **self-supervised** learning: the training signal comes from the data, with no human votes.
 
-En nuestro caso se eliminan puntos: no se deja un símbolo `[MASK]` señalando dónde faltan. El objetivo es reconstruir la secuencia completa de celdas original, no solo adivinar el punto eliminado. Si el decoder predice **A → C → C → D**, comparamos esas predicciones con **A → B → C → D** y ajustamos los pesos de ambas redes para reducir la pérdida. Tampoco le pedimos interpolar coordenadas GPS exactas: predecimos las celdas de la representación discretizada.
+In our case points are removed: no `[MASK]` symbol is left marking where they are missing. The objective is to reconstruct the full original cell sequence, not just guess the removed point. If the decoder predicts **A → C → C → D**, we compare those predictions with **A → B → C → D** and adjust the weights of both networks to reduce the loss. Nor do we ask it to interpolate exact GPS coordinates: we predict the cells of the discretised representation.
 
-El reto obliga a conservar patrones útiles pese a ruido y muestreo irregular. No es una garantía de recuperar calles que nunca observamos: si varias rutas explican los puntos conservados, el modelo puede equivocarse. La proximidad entre celdas informa sobre geografía, no sobre puentes, sentidos únicos o conexiones viarias.
+The task forces it to preserve useful patterns despite noise and irregular sampling. It is no guarantee of recovering streets we never observed: if several routes explain the surviving points, the model can get it wrong. Proximity between cells informs about geography, not about bridges, one-way streets or road connections.
 
-### 5.3 Qué significa «penalizar según la distancia»
+### 5.3 What «penalising by distance» means
 
-Imaginemos que el siguiente punto corresponde a la celda B. Predecir una celda adyacente y predecir otra a varios kilómetros no deberían recibir exactamente el mismo tratamiento. En nuestra implementación se reparte el objetivo entre ocho celdas próximas:
+Suppose the next point corresponds to cell B. Predicting an adjacent cell and predicting one several kilometres away should not be treated exactly the same. In our implementation the target is spread across eight nearby cells:
 
 $$q(c\mid B)=\frac{\exp[-d(c,B)/250]}{\sum_{u\in N_8(B)}\exp[-d(u,B)/250]},\qquad c\in N_8(B).$$
 
-Las distancias están en metros y $N_8(B)$ incluye la propia celda. La celda correcta recibe el mayor peso; las próximas, menos. Para no evaluar todas las celdas en cada paso, nuestro prototipo añade 64 celdas negativas muestreadas y calcula una pérdida con ese subconjunto. **Este normalizador muestreado no es el softmax completo ni reproduce exactamente la aproximación NCE del artículo.** No interpretamos su valor como una probabilidad exacta de toda la ruta.
+Distances are in metres and $N_8(B)$ includes the cell itself. The correct cell gets the largest weight; nearby ones get less. To avoid evaluating every cell at each step, our prototype adds 64 sampled negative cells and computes a loss over that subset. **This sampled normaliser is neither the full softmax nor an exact reproduction of the paper's NCE approximation.** We do not read its value as an exact probability over the whole route.
 
-El decoder utiliza *teacher forcing*: al predecir la siguiente celda durante el entrenamiento recibe la celda anterior correcta. Facilita aprender la reconstrucción, pero una reconstrucción autónoma puede acumular errores. Nuestro objetivo final es aprovechar el encoder, no evaluar un generador de trayectorias.
+The decoder uses *teacher forcing*: when predicting the next cell during training it receives the correct previous cell. This makes reconstruction easier to learn, but free-running reconstruction can accumulate errors. Our end goal is to exploit the encoder, not to evaluate a trajectory generator.
 
-### 5.4 Lo implementado: una versión pequeña, con decisiones explícitas
+### 5.4 What was implemented: a small version, with explicit decisions
 
-Implementamos una **adaptación reducida**, no una reproducción exacta de su arquitectura ni una medición del rendimiento del paper:
+We implement a **reduced adaptation**, not an exact reproduction of their architecture nor a measurement of the paper's performance:
 
-1. Discretizamos posiciones en celdas UTM de 250 metros, identificadas también por su zona.
-2. El vocabulario se aprende solo con una fracción del entrenamiento. La validación interna del preentrenamiento contiene viajes distintos.
-3. El encoder GRU bidireccional comprime cada ruta en 64 números.
-4. Un decoder GRU intenta reconstruir la secuencia original desde una versión con puntos eliminados y pequeñas perturbaciones GPS.
-5. La pérdida favorece las celdas verdaderas y sus vecinas espaciales. Utiliza ocho vecinas y 64 negativos por posición, con normalizador muestreado.
-6. Congelamos el encoder y entrenamos un clasificador pequeño con los votos humanos.
+1. We discretise positions into 250-metre UTM cells, identified also by their zone.
+2. The vocabulary is learned from a fraction of the training set only. The internal validation set for pretraining contains different journeys.
+3. The bidirectional GRU encoder compresses each route into 64 numbers.
+4. A GRU decoder tries to reconstruct the original sequence from a version with points removed and small GPS perturbations.
+5. The loss favours the true cells and their spatial neighbours. It uses eight neighbours and 64 negatives per position, with a sampled normaliser.
+6. We freeze the encoder and train a small classifier on the human votes.
 
-El modelo tiene dimensiones menores, una cuadrícula y proyección diferentes, 12 épocas como presupuesto máximo y no incluye el preentrenamiento separado de celdas del artículo. Usa teacher forcing en el decoder. La pérdida de reconstrucción muestreada sirve como diagnóstico, no como log likelihood exacta de todo el vocabulario.
+The model has smaller dimensions, a different grid and projection, 12 epochs as a maximum budget, and does not include the paper's separate cell pretraining. It uses teacher forcing in the decoder. The sampled reconstruction loss serves as a diagnostic, not as an exact log likelihood over the full vocabulary.
 
-**Hay dos salidas diferentes:** el decoder de preentrenamiento reconstruye trayectorias; la cabeza supervisada produce la probabilidad de «diferentes».
+**There are two different outputs:** the pretraining decoder reconstructs trajectories; the supervised head produces the probability of «they differ».
 
-No usamos la ruta estimada y la real como pareja positiva durante el preentrenamiento: podrían ser precisamente distintas.
+We do not use the estimated and real routes as a positive pair during pretraining: they might be precisely the ones that differ.
 
-El vocabulario y los pesos del encoder se aprenden con **2.578 trayectorias de 1.289 viajes de entrenamiento**; otros 143 viajes del entrenamiento sirven para validación interna de esta fase. Cada trazado se limita a 64 puntos antes de discretizarlo. El encoder usa embeddings de celda de 32 componentes y una GRU bidireccional de 32 unidades por sentido: el resultado son 64 componentes por ruta. El artículo incluye un preentrenamiento de celdas que aquí se omite. El [repositorio original](https://github.com/boathit/t2vec) permite distinguir la implementación publicada de esta adaptación.
+The vocabulary and encoder weights are learned from **2,578 trajectories across 1,289 training journeys**; another 143 training journeys serve as internal validation for this phase. Each trace is capped at 64 points before discretising. The encoder uses 32-component cell embeddings and a bidirectional GRU with 32 units per direction: the result is 64 components per route. The paper includes a cell pretraining step that is omitted here. The [original repository](https://github.com/boathit/t2vec) makes it possible to tell the published implementation apart from this adaptation.
 
-Esos 64 números **no son 64 medidas con nombres conocidos**. El modelo decide cómo distribuir la información entre ellos. Por eso no podemos señalar una componente y afirmar que representa «el desvío máximo». Nuestro vector geométrico sí tiene esa interpretabilidad, porque lo hemos definido explícitamente.
+Those 64 numbers **are not 64 measurements with known names**. The model decides how to spread information across them. That is why we cannot point at one component and claim it represents «the maximum detour». Our geometric vector does have that interpretability, because we defined it explicitly.
 
-### 5.5 Del vector de una ruta a una decisión sobre dos rutas
+### 5.5 From one route's vector to a decision about two routes
 
-Para cada pareja construimos $[z_e,z_r,|z_e-z_r|,z_e\odot z_r]$: 256 valores. La cabeza es una red de una capa oculta, dropout y salida sigmoide. También probamos combinar esos 256 valores con las 42 medidas interpretables y usar XGBoost.
+For each pair we build $[z_e,z_r,|z_e-z_r|,z_e\odot z_r]$: 256 values. The head is a network with one hidden layer, dropout and a sigmoid output. We also try combining those 256 values with the 42 interpretable measurements and using XGBoost.
 
-Los primeros 128 valores conservan **los dos vectores completos**. Los siguientes 64 explicitan diferencias por componente; los últimos 64 son productos componente a componente. Estos productos no equivalen por sí solos a una similitud calibrada. Son entradas adicionales que el clasificador puede aprovechar o ignorar.
+The first 128 values keep **both full vectors**. The next 64 make per-component differences explicit; the last 64 are component-wise products. Those products alone are not equivalent to a calibrated similarity. They are additional inputs the classifier can use or ignore.
 
-En esta segunda fase sí usamos los votos humanos. Para un viaje con objetivo $p_j$, el clasificador predice $\hat p_j=\sigma(h_\phi(x_j))$ y minimizamos
+In this second phase we do use the human votes. For a journey with target $p_j$, the classifier predicts $\hat p_j=\sigma(h_\phi(x_j))$ and we minimise
 
 $$\mathcal L_j=-p_j\log\hat p_j-(1-p_j)\log(1-\hat p_j).$$
 
-El encoder permanece congelado: aprendemos $\phi$, los pesos de la cabeza, sin modificar $\theta$. El decoder de reconstrucción ya no interviene. Por tanto, hay dos objetivos sucesivos: **representar una trayectoria** y **aprender cómo juzgan las personas una pareja**. Que el primero se resuelva bien no implica resolver automáticamente el segundo.
+The encoder stays frozen: we learn $\phi$, the head's weights, without modifying $\theta$. The reconstruction decoder no longer takes part. So there are two successive objectives: **representing a trajectory** and **learning how people judge a pair**. Solving the first well does not automatically solve the second.
 
-### 5.6 Qué permite concluir el experimento
+### 5.6 What the experiment allows us to conclude
 
-Nuestra variante obtiene peores métricas que las medidas geométricas. Esto evalúa esta configuración concreta. El tamaño del corpus, la resolución de 250 metros, el presupuesto de entrenamiento y las celdas no vistas son posibles explicaciones, no causas demostradas. Harían falta ablaciones controladas para separarlas. Tampoco se ha comparado «solo concatenación» con «solo diferencias»; nuestra entrada contiene ambas cosas.
+Our variant gets worse metrics than the geometric measurements. This evaluates that specific configuration. Corpus size, the 250-metre resolution, the training budget and unseen cells are possible explanations, not demonstrated causes. Separating them would require controlled ablations. Nor have we compared «concatenation only» against «differences only»; our input contains both.
 """)
 
 code("""
@@ -911,26 +911,26 @@ finish(fig,'05_t2vec_aprendizaje')
 """)
 
 md(r"""
-La media por ruta de puntos en celdas no vistas alcanza aproximadamente el 24 % en validación y el 22 % en test. Se asignan al centroide de entrenamiento más próximo sin ampliar el vocabulario. Esto permite inferencia, pero puede perder detalle espacial. El 2,5 % del entrenamiento incluye el subconjunto interno excluido del ajuste del vocabulario.
+The per-route average of points falling in unseen cells reaches roughly 24 % on validation and 22 % on test. They are assigned to the nearest training centroid without extending the vocabulary. This allows inference but can lose spatial detail. 2.5 % of training includes the internal subset excluded from fitting the vocabulary.
 
-Además, una celda de 250 metros puede ocultar separaciones entre calles próximas. Es una explicación **plausible**, no una causa demostrada, de que el embedding funcione peor. Para identificarla habría que comparar resoluciones con nuevos experimentos de validación.
+Besides, a 250-metre cell can hide separations between nearby streets. This is a **plausible** explanation, not a demonstrated cause, for the embedding performing worse. Identifying it would require comparing resolutions with new validation experiments.
 """)
 
 md(r"""
-### 5.7 La comprobación que faltaba: ¿reconstruye de verdad?
+### 5.7 The check that was missing: does it actually reconstruct?
 
-La pregunta del usuario motivó una auditoría adicional del modelo ya guardado. Usamos las **286 trayectorias de los 143 viajes de validación interna**: no ajustaron los pesos, pero sí participaron en seleccionar el checkpoint. No son un test nuevo. No usamos etiquetas humanas ni modificamos los pesos.
+This question prompted an additional audit of the already-saved model. We use the **286 trajectories from the 143 internal validation journeys**: they did not fit the weights, but they did take part in selecting the checkpoint. They are not a new test set. We use no human labels and modify no weights.
 
-Evaluamos dos situaciones: entrada limpia y entrada con un 20 % de puntos eliminados de forma independiente más ruido gaussiano de 15 metros. Los extremos se conservan al eliminar puntos, aunque también reciben ruido. Generamos celdas escogiendo el mayor score en todo el vocabulario, sin darle al decoder la celda anterior correcta; se detiene al predecir FIN o tras 128 pasos.
+We evaluate two situations: clean input, and input with 20 % of points independently removed plus Gaussian noise of 15 metres. Endpoints are kept when removing points, although they also receive noise. We generate cells by taking the highest score over the full vocabulary, without giving the decoder the correct previous cell; it stops on predicting END or after 128 steps.
 
-Medimos cuatro cosas distintas:
+We measure four different things:
 
-1. **Exactitud por token con ayuda:** porcentaje de posiciones correctas cuando el decoder recibe el token anterior verdadero. Incluye FIN; es una medida exigente porque celdas vecinas también reciben peso en la pérdida.
-2. **Reconstrucción libre vacía:** frecuencia de predecir FIN sin emitir ninguna celda. No puede esconderse excluyendo estas rutas de una media espacial.
-3. **Distancia de edición normalizada:** inserciones, borrados y sustituciones para transformar la secuencia predicha en la original, dividido por la mayor longitud. Va de 0 —coincidencia— a 1 —máxima discrepancia según esta escala—. Excluimos FIN.
-4. **Fréchet discreto espacial:** compara el orden de puntos de la ruta original remuestreada y los centroides reconstruidos, con distancias sobre una esfera terrestre en metros. Si la predicción está vacía, la distancia se deja ausente y se informa ese fallo por separado.
+1. **Per-token accuracy with teacher forcing:** percentage of correct positions when the decoder receives the true previous token. It includes END; it is a demanding measure because neighbouring cells also receive weight in the loss.
+2. **Empty free reconstruction:** how often it predicts END without emitting a single cell. This cannot be hidden by excluding those routes from a spatial average.
+3. **Normalised edit distance:** insertions, deletions and substitutions needed to turn the predicted sequence into the original, divided by the greater length. It runs from 0 — a match — to 1 — maximum discrepancy on this scale. We exclude END.
+4. **Spatial discrete Fréchet:** compares the point ordering of the resampled original route against the reconstructed centroids, with distances over an Earth sphere in metres. If the prediction is empty, the distance is left missing and that failure is reported separately.
 
-Como referencias conservamos los puntos de entrada disponibles y la secuencia objetivo representada mediante centroides del vocabulario. La segunda es un diagnóstico de cuantización y celdas desconocidas, **no una reconstrucción que un modelo pueda obtener sin conocer la respuesta**.
+As references we keep the available input points and the target sequence represented by vocabulary centroids. The second is a diagnostic of quantisation and unknown cells, **not a reconstruction any model could obtain without knowing the answer**.
 """)
 
 code("""
@@ -970,27 +970,27 @@ display(known.groupby('geography').agg(Rutas=('journey_id','size'),
 """)
 
 md(r"""
-**El resultado obliga a corregir la interpretación anterior:** el decoder de esta adaptación no reconstruye adecuadamente. Con entrada alterada, 199 de 286 salidas están vacías —69,6 %—; las 87 restantes presentan un error espacial enorme. La reconstrucción libre falla también con entrada limpia. La reducción de la pérdida de entrenamiento no demostraba que la generación funcionase.
+**The result forces a correction of the earlier interpretation:** the decoder in this adaptation does not reconstruct properly. With altered input, 199 of 286 outputs are empty — 69.6 % — and the remaining 87 show enormous spatial error. Free reconstruction fails with clean input too. The falling training loss did not demonstrate that generation worked.
 
-Además, encontramos un **defecto concreto de la pérdida implementada**: los negativos se muestrean solo entre celdas y nunca incluyen FIN. Así, predecir FIN con un score muy alto en un paso que debería contener una celda no se penaliza en ese objetivo muestreado. Lo verificamos aumentando en 100 el score de FIN: la pérdida de un tramo que no termina permanece exactamente igual. Esto no ocurre en una pérdida normalizada sobre todas las salidas posibles.
+We also found a **concrete defect in the implemented loss**: negatives are sampled only among cells and never include END. So predicting END with a very high score at a step that should contain a cell is not penalised by that sampled objective. We verified it by raising END's score by 100: the loss of a stretch that does not terminate stays exactly the same. This does not happen with a loss normalised over all possible outputs.
 
-Ese defecto ayuda a explicar el final prematuro, pero corregirlo no garantiza por sí solo una buena representación: también quedan la aproximación del normalizador, la escasez de datos, la resolución y las celdas no vistas. **Las métricas supervisadas guardadas describen este ensayo fallido; no son evidencia válida contra el t2vec del artículo.** La geometría y el experimento viario no dependen de este decoder.
+That defect helps explain the premature ending, but fixing it does not by itself guarantee a good representation: the normaliser approximation, data scarcity, resolution and unseen cells all remain. **The saved supervised metrics describe this failed attempt; they are not valid evidence against the t2vec of the paper.** The geometry and the road-network experiment do not depend on this decoder.
 
-Este hallazgo exige corregir el objetivo antes de interpretar la calidad del método. A continuación hacemos ese experimento por separado, manteniendo las particiones y los resultados originales.
+This finding requires correcting the objective before interpreting the quality of the method. We run that experiment separately below, keeping the original splits and results intact.
 """)
 
 md(r"""
-### 5.8 Corregimos el objetivo y repetimos la comprobación
+### 5.8 We correct the objective and repeat the check
 
-La versión nueva normaliza sobre **todas las celdas y FIN**, excluyendo únicamente los símbolos auxiliares de inicio y padding. Si el decoder asigna demasiado score a FIN cuando debería predecir una celda, aumenta el denominador y la pérdida lo penaliza. Lo comprobamos con una prueba de gradientes y con el mismo aumento artificial de score utilizado para detectar el defecto.
+The new version normalises over **all cells and END**, excluding only the auxiliary start and padding symbols. If the decoder assigns too much score to END when it should predict a cell, the denominator grows and the loss penalises it. We checked this with a gradient test and with the same artificial score increase used to detect the defect.
 
-$$\mathcal L_t=\log\sum_{c\in\mathcal V\cup\{\mathrm{FIN}\}}e^{s_t(c)}-\sum_c q_t(c)s_t(c).$$
+$$\mathcal L_t=\log\sum_{c\in\mathcal V\cup\{\mathrm{END}\}}e^{s_t(c)}-\sum_c q_t(c)s_t(c).$$
 
-$s_t(c)$ es el score de salida para cada celda y $q_t$ reparte el objetivo entre vecinas espaciales; para FIN todo el peso recae en FIN. El normalizador ya no está muestreado. Esto cuesta más cálculo, pero elimina la omisión que detectamos.
+$s_t(c)$ is the output score for each cell and $q_t$ spreads the target across spatial neighbours; for END all the weight falls on END. The normaliser is no longer sampled. This costs more compute, but removes the omission we found.
 
-Reentrenamos desde la misma semilla, con la misma arquitectura, vocabulario, viajes y presupuesto máximo de 12 épocas. Elegimos el checkpoint usando entradas alteradas de validación interna, con ruido reproducible. Esto también hace más coherente la tarea de selección con la tarea de entrenamiento; por tanto, no atribuimos todas las diferencias posteriores únicamente a incluir FIN. Después entrenamos la misma familia de clasificadores, seleccionando su tamaño y umbral en validación supervisada.
+We retrain from the same seed, with the same architecture, vocabulary, journeys and maximum budget of 12 epochs. We pick the checkpoint using altered internal-validation inputs, with reproducible noise. This also makes the selection task more consistent with the training task; we therefore do not attribute all subsequent differences solely to including END. We then train the same family of classifiers, selecting their size and threshold on supervised validation.
 
-Los pesos y resultados se guardan en carpetas nuevas. La auditoría utiliza las mismas rutas y alteraciones que antes. **Sigue siendo una adaptación pequeña de t2vec y un experimento exploratorio posterior a inspeccionar el test**, aunque la pérdida ahora esté normalizada correctamente.
+Weights and results are saved to new folders. The audit uses the same routes and alterations as before. **It is still a small adaptation of t2vec and an exploratory experiment run after inspecting the test set**, even though the loss is now correctly normalised.
 """)
 
 code("""
@@ -1031,40 +1031,40 @@ display(Markdown('Estas métricas de clasificación responden a otra pregunta: s
 """)
 
 md(r"""
-**Qué cambió y qué no:** con entradas alteradas, la versión corregida reduce las salidas vacías del 69,6 % al 4,9 %, pero su distancia de edición media sigue cerca de 1 y sus recorridos generados siguen siendo espacialmente incorrectos. Terminar menos veces de inmediato no equivale a reconstruir bien. La exactitud con ayuda sigue siendo baja, así que el problema tampoco se explica únicamente por acumular errores al generar libremente.
+**What changed and what did not:** with altered inputs, the corrected version cuts empty outputs from 69.6 % to 4.9 %, but its mean edit distance stays close to 1 and the routes it generates remain spatially wrong. Terminating immediately less often is not the same as reconstructing well. Accuracy with teacher forcing is still low, so the problem is not explained solely by error accumulation during free generation either.
 
-La clasificación alcanza 77,1 % de balanced accuracy en test frente a 71,8 % del ensayo original, pero permanece lejos del 94,3 % de la referencia geométrica. Es una comparación exploratoria sobre el mismo test inspeccionado. **No elegiríamos esta versión para el prototipo actual.** Antes de seguir necesitaríamos más preentrenamiento y experimentos de arquitectura, resolución y cobertura, comprobando la reconstrucción desde el principio y con datos nuevos para confirmar el resultado final.
+Classification reaches 77.1 % balanced accuracy on test against 71.8 % for the original attempt, but stays far from the 94.3 % of the geometric baseline. This is an exploratory comparison on the same test set we had already inspected. **We would not pick this version for the current prototype.** Before going further we would need more pretraining and experiments on architecture, resolution and coverage, checking reconstruction from the start and with new data to confirm the final result.
 """)
 
 md(r"""
-## 6. El protocolo se decide antes de mirar el test
+## 6. The protocol is decided before looking at the test set
 
-Este apartado describe el experimento original de cuatro modelos. La extensión viaria posterior conserva sus reglas de ajuste, pero su evaluación exploratoria se identifica expresamente en la sección 7.1.
+This section describes the original four-model experiment. The later road-network extension keeps its fitting rules, but its exploratory evaluation is explicitly identified in section 7.1.
 
-**Selección del modelo:** menor entropía cruzada frente a los votos en validación. Es una regla que premia probabilidades coherentes con el desacuerdo humano.
+**Model selection:** lowest cross-entropy against the votes on validation. This rule rewards probabilities consistent with human disagreement.
 
-**Selección del umbral:** máximo acierto equilibrado en validación, explorando 0,10–0,90 en pasos de 0,01; los empates favorecen el umbral más cercano a 0,5. No asumimos que 0,5 sea óptimo ni que los errores tengan costes de negocio conocidos.
+**Threshold selection:** highest balanced accuracy on validation, scanning 0.10–0.90 in steps of 0.01; ties favour the threshold closest to 0.5. We assume neither that 0.5 is optimal nor that the errors have known business costs.
 
-El acierto equilibrado es el promedio de la proporción de «iguales» y «diferentes» correctamente reconocidos. Evita que una clase mayoritaria domine la cifra.
+Balanced accuracy is the average of the proportion of «the same» and «they differ» correctly recognised. It stops a majority class from dominating the figure.
 
-La clase positiva es **«diferentes»**. Conviene separar tres preguntas:
+The positive class is **«they differ»**. It is worth separating three questions:
 
-| Pregunta | Métrica y lectura |
+| Question | Metric and reading |
 |---|---|
-| ¿Cuántas decisiones acertamos con el umbral fijado? | **Accuracy:** fracción de aciertos. **Balanced accuracy:** media del recall de ambas clases. Más alto es mejor. |
-| ¿Cómo se comporta la alerta «diferentes»? | **Precisión:** de las alertas, cuántas coinciden con la mayoría humana. **Recall:** de los viajes diferentes, cuántos detectamos. **F1:** su media armónica. Más alto es mejor. |
-| ¿Ordenamos bien los casos sin fijar un único umbral? | **ROC-AUC:** separación de las clases al recorrer umbrales. **AP:** resumen de precisión y recall para «diferentes»; depende de la prevalencia. Más alto es mejor. |
-| ¿Son razonables las probabilidades? | **Brier:** error cuadrático frente a la mayoría binaria. **Log loss binaria:** penaliza especialmente errores seguros. **Log loss de votos:** usa la proporción de votos, incluidos empates. Más bajo es mejor. |
+| How many decisions do we get right at the fixed threshold? | **Accuracy:** fraction correct. **Balanced accuracy:** mean recall over both classes. Higher is better. |
+| How does the «they differ» alert behave? | **Precision:** of the alerts raised, how many match the human majority. **Recall:** of the genuinely different journeys, how many we catch. **F1:** their harmonic mean. Higher is better. |
+| Do we rank cases well without fixing a single threshold? | **ROC-AUC:** class separation across thresholds. **AP:** a summary of precision and recall for «they differ»; it depends on prevalence. Higher is better. |
+| Are the probabilities reasonable? | **Brier:** squared error against the binary majority. **Binary log loss:** penalises confident errors especially. **Vote log loss:** uses the proportion of votes, ties included. Lower is better. |
 
-Para ver la diferencia entre las dos pérdidas, sea $q_j$ la probabilidad del modelo y $p_j$ la fracción de votos «diferentes»:
+To see the difference between the two losses, let $q_j$ be the model's probability and $p_j$ the fraction of «they differ» votes:
 
-$$\mathrm{LL}_{\text{votos}}=-\frac{1}{N}\sum_j[p_j\log q_j+(1-p_j)\log(1-q_j)].$$
+$$\mathrm{LL}_{\text{votes}}=-\frac{1}{N}\sum_j[p_j\log q_j+(1-p_j)\log(1-q_j)].$$
 
-En la log loss binaria sustituimos $p_j$ por la mayoría $y_j\in\{0,1\}$ y excluimos empates. Un voto 2 a 1 se convierte en 1 en esa segunda evaluación, pero sigue siendo $2/3$ en la primera. **Elegimos con la pérdida de votos; no cambiamos de criterio al ver qué métrica favorece a cada modelo.**
+In binary log loss we replace $p_j$ with the majority $y_j\in\{0,1\}$ and exclude ties. A 2-to-1 vote becomes 1 in that second evaluation, but stays at $2/3$ in the first. **We select using the vote loss; we do not switch criteria once we see which metric favours which model.**
 
-Se prueban tres configuraciones predefinidas de profundidad y regularización por XGBoost, con parada temprana en validación. Para la cabeza neuronal se prueban 32 y 64 unidades ocultas. Los modelos usan el mismo reparto y objetivos. El vocabulario, encoder y escalado nunca se ajustan con test.
+Three predefined configurations of depth and regularisation are tried per XGBoost, with early stopping on validation. For the neural head we try 32 and 64 hidden units. The models use the same split and targets. Vocabulary, encoder and scaling are never fitted using test data.
 
-Una vez elegidos modelos, épocas y umbrales, se guardan las decisiones y se evalúa test. **No se reentrena con validación ni se cambia de ganador después de ver test.** Las cuatro variantes son comparaciones planificadas; posteriores cambios exigirían mantener la distinción entre exploración y una nueva confirmación.
+Once models, epochs and thresholds are chosen, the decisions are saved and test is evaluated. **We do not retrain on validation and we do not change the winner after seeing test.** The four variants are planned comparisons; later changes would require keeping the distinction between exploration and a fresh confirmation.
 """)
 
 code("""
@@ -1112,17 +1112,17 @@ finish(fig,'06_validacion_y_test','Test: 443 viajes con mayoría definida · IC 
 """)
 
 md(r"""
-## 7. El momento clave: más complejo no equivale a mejor demostrado
+## 7. The key moment: more complex does not mean better demonstrated
 
-La regla de validación selecciona **geometría básica + XGBoost**. En test obtiene un 94,3 % de acierto equilibrado.
+The validation rule selects **basic geometry + XGBoost**. On test it gets 94.3 % balanced accuracy.
 
-Tu vector ampliado alcanza el 94,8 %, la adaptación t2vec con clasificador el 71,8 % y la combinación el 95,5 %. El híbrido tiene la cifra puntual más alta en test, pero **no lo elegimos retrospectivamente por esa razón**.
+The extended vector reaches 94.8 %, the t2vec adaptation with a classifier 71.8 %, and the combination 95.5 %. The hybrid has the highest point estimate on test, but **we do not pick it retrospectively for that reason**.
 
-Para comparar, remuestreamos 2.000 veces los mismos viajes de test y calculamos en cada muestra la diferencia entre modelos. Al usar los mismos viajes, el intervalo refleja qué errores comparten.
+To compare, we resample the same test journeys 2,000 times and compute the difference between models in each sample. Using the same journeys, the interval reflects which errors they share.
 
-Las mejoras del vector ampliado y del híbrido respecto a la referencia tienen intervalos que incluyen cero. Eso no prueba igualdad: con esta muestra, la evidencia no permite asegurar que la mejora sea estable.
+The improvements of the extended vector and the hybrid over the baseline have intervals that include zero. That does not prove equality: with this sample, the evidence does not let us claim the improvement is stable.
 
-Los intervalos condicionan en este entrenamiento, esta partición y esta mezcla geográfica. No recogen cambios de semilla, de ciudad, dependencia entre corredores ni la incertidumbre del panel humano. Las comparaciones secundarias son exploratorias y no están corregidas por multiplicidad.
+The intervals are conditional on this training run, this split and this geographic mix. They do not capture changes of seed, of city, dependence between corridors, or the uncertainty of the human panel. The secondary comparisons are exploratory and not corrected for multiplicity.
 """)
 
 code("""
