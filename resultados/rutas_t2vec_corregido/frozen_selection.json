@@ -1,0 +1,4 @@
+{
+  "threshold": 0.4,
+  "val_soft_logloss": 0.583963930606842
+}

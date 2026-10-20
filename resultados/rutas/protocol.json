@@ -1,0 +1,19 @@
+{
+  "primary_selection": "log loss contra fracci\u00f3n de votos, en validaci\u00f3n",
+  "threshold_selection": "m\u00e1xima balanced accuracy en validaci\u00f3n, desempate m\u00e1s pr\u00f3ximo a 0.5",
+  "target": "proporci\u00f3n de votos They differ entre votos que expresan decisi\u00f3n",
+  "unknown_policy": "No se interpreta I do not know como clase ni como voto 0.5; sin votos no hay p\u00e9rdida supervisada.",
+  "tie_policy": "Se usa 0.5 en entrenamiento probabil\u00edstico; se excluye de m\u00e9tricas binarias.",
+  "metric_population": "Viajes con mayor\u00eda definida; cobertura y m\u00e9tricas probabil\u00edsticas se reportan aparte.",
+  "primary_test_metric": "balanced_accuracy",
+  "no_retraining_on_train_plus_val": true,
+  "planned_models": [
+    "geometria_base",
+    "vector_interpretable",
+    "t2vec_decoder_clasificador",
+    "hibrido_vector_t2vec"
+  ],
+  "bootstrap": "2000 remuestreos emparejados por viaje del test; IC percentil 95%; no incluye incertidumbre del entrenamiento",
+  "seed": 20261014,
+  "annotation_policy": "Un voto por anotador y viaje; decisiones contradictorias de una misma persona se consideran abstenci\u00f3n."
+}

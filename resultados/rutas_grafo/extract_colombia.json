@@ -1,0 +1,12 @@
+{
+  "country": "colombia",
+  "selected_ways": 346542,
+  "restriction_relations": 6211,
+  "bytes": 22586195,
+  "seconds": 36.60855295800138,
+  "area_hash": "abd8a950e60559778f3e66c0bd30195c5738eb56fd6137bd6b5d8af21440a7cb",
+  "sha256": "15ccb089f9f0b940583142a0dce075774c74bc313b87aca599a30d44f9c1be97",
+  "margin_degrees": 0.08,
+  "source": "Geofabrik / OpenStreetMap",
+  "method": "V\u00edas cuyo bbox intersecta la uni\u00f3n de bboxes de viajes + margen; referencias completas y relaciones de restricci\u00f3n relacionadas."
+}

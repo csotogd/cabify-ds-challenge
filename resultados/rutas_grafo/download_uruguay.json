@@ -1,0 +1,11 @@
+{
+  "name": "uruguay",
+  "url": "https://download.geofabrik.de/south-america/uruguay-latest.osm.pbf",
+  "bytes": 56158307,
+  "sha256": "2e8050b7fab9a69a577fe10c5596fcbbc8b9cc272946b07dcba34b67b1796c9e",
+  "last_modified": "Tue, 13 Oct 2026 22:25:38 GMT",
+  "etag": "\"358e863-65dc04b4567ce\"",
+  "downloaded_at_utc": "2026-10-14T23:53:56Z",
+  "seconds": 2.229930332978256,
+  "attribution": "\u00a9 OpenStreetMap contributors; ODbL; extracts by Geofabrik"
+}

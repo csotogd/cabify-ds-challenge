@@ -1,0 +1,81 @@
+{
+  "clean": {
+    "n_routes": 286,
+    "n_journeys": 143,
+    "eos_fraction": 0.9335664335664335,
+    "empty_fraction": 0.055944055944055944,
+    "teacher_forced_token_accuracy": {
+      "n": 286,
+      "median": 0.0714285746216774,
+      "mean": 0.09726268267324129
+    },
+    "free_normalized_edit": {
+      "n": 286,
+      "median": 1.0,
+      "mean": 0.9972780975450914
+    },
+    "input_frechet_m": {
+      "n": 286,
+      "median": 0.0,
+      "mean": 0.0
+    },
+    "oracle_quantized_frechet_m": {
+      "n": 286,
+      "median": 340.70321324578055,
+      "mean": 902.7958591936324
+    },
+    "decoded_frechet_m": {
+      "n": 270,
+      "median": 9080929.777941693,
+      "mean": 7837211.400217133
+    },
+    "oov": {
+      "n": 286,
+      "median": 0.09375,
+      "mean": 0.25081902672079537
+    }
+  },
+  "corrupted": {
+    "n_routes": 286,
+    "n_journeys": 143,
+    "eos_fraction": 0.9545454545454546,
+    "empty_fraction": 0.04895104895104895,
+    "teacher_forced_token_accuracy": {
+      "n": 286,
+      "median": 0.06936648115515709,
+      "mean": 0.09763409052096256
+    },
+    "free_normalized_edit": {
+      "n": 286,
+      "median": 1.0,
+      "mean": 0.9980279992026393
+    },
+    "input_frechet_m": {
+      "n": 286,
+      "median": 138.50084906231905,
+      "mean": 188.12572405451738
+    },
+    "oracle_quantized_frechet_m": {
+      "n": 286,
+      "median": 340.70321324578055,
+      "mean": 902.7958591936324
+    },
+    "decoded_frechet_m": {
+      "n": 272,
+      "median": 9158889.22399969,
+      "mean": 7708324.941032773
+    },
+    "oov": {
+      "n": 286,
+      "median": 0.09375,
+      "mean": 0.25081902672079537
+    }
+  },
+  "loss_audit": {
+    "non_end_loss_before": 5.917351245880127,
+    "non_end_loss_after_adding_100_to_eos_score": 100.48102569580078,
+    "defect": null,
+    "interpretation": "Early EOS is now penalized by the complete normalizer; reconstruction quality assessed separately.",
+    "weights_modified_on_disk": false
+  }
+}

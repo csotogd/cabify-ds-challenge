@@ -1,0 +1,11 @@
+{
+  "name": "argentina",
+  "url": "https://download.geofabrik.de/south-america/argentina-latest.osm.pbf",
+  "bytes": 432938389,
+  "sha256": "97d71138d4441a8f55e7db0ca3cfc06beaf32f74f62b37a56c9a06f17abc8ade",
+  "last_modified": "Tue, 13 Oct 2026 22:26:30 GMT",
+  "etag": "\"19ce1d95-65dc04e615393\"",
+  "downloaded_at_utc": "2026-10-14T23:53:30Z",
+  "seconds": 14.342096540960483,
+  "attribution": "\u00a9 OpenStreetMap contributors; ODbL; extracts by Geofabrik"
+}

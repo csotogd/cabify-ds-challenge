@@ -1,0 +1,121 @@
+{
+  "consulted": "2026-10-19",
+  "caveat": "Tarifas públicas de 2026 sobre un archivo de 2021; categoría estándar; sin peajes, dinámica ni promociones; duraciones de OSRM sin tráfico.",
+  "duration_from_osrm": 1398,
+  "n": 2386,
+  "tariffs": [
+    {
+      "Ciudades": "Barcelona, Madrid, Sevilla, Valencia",
+      "currency": "EUR",
+      "per_km_local": 0.76,
+      "per_min_local": 0.12,
+      "eur_per_unit": 1.0,
+      "source": "cabify.com/es/tarifas/madrid · categoría Cabify",
+      "estimated": false,
+      "per_km_eur": 0.76,
+      "per_min_eur": 0.12
+    },
+    {
+      "Ciudades": "Bogotá, Cali, Medellín",
+      "currency": "COP",
+      "per_km_local": 586.2891777954,
+      "per_min_local": 158.8867521224,
+      "eur_per_unit": 3737.38,
+      "source": "cabify.com/co/tarifas/medellin · media geométrica del rango publicado",
+      "estimated": true,
+      "per_km_eur": 0.1568717063,
+      "per_min_eur": 0.0425128705
+    },
+    {
+      "Ciudades": "Buenos Aires, Córdoba, Mendoza",
+      "currency": "ARS",
+      "per_km_local": 434.0,
+      "per_min_local": 81.0,
+      "eur_per_unit": 1705.87,
+      "source": "cabify.com/ar/tarifas/buenos-aires · categoría Cabify",
+      "estimated": false,
+      "per_km_eur": 0.2544156354,
+      "per_min_eur": 0.0474831025
+    },
+    {
+      "Ciudades": "Ciudad de México",
+      "currency": "MXN",
+      "per_km_local": 8.5,
+      "per_min_local": 3.25,
+      "eur_per_unit": 20.6871,
+      "source": "Prensa y agregadores; Cabify no publica tabla única",
+      "estimated": true,
+      "per_km_eur": 0.4108840775,
+      "per_min_eur": 0.1571027355
+    },
+    {
+      "Ciudades": "Lima",
+      "currency": "PEN",
+      "per_km_local": 1.14,
+      "per_min_local": 0.21,
+      "eur_per_unit": 3.85635,
+      "source": "cabify.com/pe/tarifas/lima · categoría Cabify, zona 1",
+      "estimated": false,
+      "per_km_eur": 0.2956163211,
+      "per_min_eur": 0.0544556381
+    },
+    {
+      "Ciudades": "Montevideo",
+      "currency": "UYU",
+      "per_km_local": 19.8,
+      "per_min_local": 6.4,
+      "eur_per_unit": 45.03,
+      "source": "cabify.com/uy/montevideo · categoría Cabify",
+      "estimated": false,
+      "per_km_eur": 0.4397068621,
+      "per_min_eur": 0.1421274706
+    },
+    {
+      "Ciudades": "Quito",
+      "currency": "USD",
+      "per_km_local": 0.347175622,
+      "per_min_local": 0.0657419877,
+      "eur_per_unit": 1.0,
+      "source": "Sin tabla publicada accesible; mediana de las demás ciudades del archivo",
+      "estimated": true,
+      "per_km_eur": 0.347175622,
+      "per_min_eur": 0.0657419877
+    },
+    {
+      "Ciudades": "Santiago",
+      "currency": "CLP",
+      "per_km_local": 440.0,
+      "per_min_local": 85.0,
+      "eur_per_unit": 1103.49,
+      "source": "cabify.com/cl/tarifas/santiago · categoría Cabify",
+      "estimated": false,
+      "per_km_eur": 0.3987349228,
+      "per_min_eur": 0.0770283374
+    }
+  ],
+  "abs_delta_eur": {
+    "count": 2386.0,
+    "mean": 0.31184593270589067,
+    "std": 0.631981566397897,
+    "min": 1.2864956822486382e-05,
+    "50%": 0.1128934708481022,
+    "75%": 0.30794029498852993,
+    "95%": 1.242626231572931,
+    "99%": 3.3087329870578346,
+    "max": 8.709932367236915
+  },
+  "by_label": {
+    "0": {
+      "n": 944,
+      "median_abs_eur": 0.043110409139552136,
+      "p95_abs_eur": 0.4903100224925941,
+      "mean_signed_eur": 0.005187109421416782
+    },
+    "1": {
+      "n": 1272,
+      "median_abs_eur": 0.2043157627003677,
+      "p95_abs_eur": 1.8920928693353152,
+      "mean_signed_eur": -0.012066763384799893
+    }
+  }
+}

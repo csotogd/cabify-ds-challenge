@@ -1,0 +1,4 @@
+{
+  "endpoint": "https://overpass.private.coffee/api/interpreter",
+  "error": "HTTPSConnectionPool(host='overpass.private.coffee', port=443): Read timed out. (read timeout=50)"
+}

@@ -1,0 +1,12 @@
+{
+  "country": "chile",
+  "selected_ways": 274654,
+  "restriction_relations": 7834,
+  "bytes": 17767170,
+  "seconds": 34.31728112499695,
+  "area_hash": "abd8a950e60559778f3e66c0bd30195c5738eb56fd6137bd6b5d8af21440a7cb",
+  "sha256": "57afcda1d354a3356fb63e4a27cd3ff1be71135fab7ac1c0be2a8f0375b90d3f",
+  "margin_degrees": 0.08,
+  "source": "Geofabrik / OpenStreetMap",
+  "method": "V\u00edas cuyo bbox intersecta la uni\u00f3n de bboxes de viajes + margen; referencias completas y relaciones de restricci\u00f3n relacionadas."
+}

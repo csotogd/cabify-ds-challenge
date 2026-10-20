@@ -1,0 +1,11 @@
+{
+  "name": "spain",
+  "url": "https://download.geofabrik.de/europe/spain-latest.osm.pbf",
+  "bytes": 1491115920,
+  "sha256": "b73af56b2fda7ccd5aab14dfc27f83358aa5de9a8e7cf32b32b24d8aa01cab5b",
+  "last_modified": "Tue, 13 Oct 2026 23:33:27 GMT",
+  "etag": "\"58e09f90-65dc13dccc07a\"",
+  "downloaded_at_utc": "2026-10-14T23:53:54Z",
+  "seconds": 64.8442624170566,
+  "attribution": "\u00a9 OpenStreetMap contributors; ODbL; extracts by Geofabrik"
+}

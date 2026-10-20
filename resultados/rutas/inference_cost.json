@@ -1,0 +1,12 @@
+{
+  "pairs_measured": 300,
+  "mean_points_per_pair": 573.5766666666667,
+  "machine": "arm · Darwin",
+  "ms_projection": 0.41856083320453763,
+  "ms_features": 5.751018750015646,
+  "ms_scoring": 0.0008283195008213321,
+  "ms_total": 6.170407902721005,
+  "cpu_hours_per_million": 1.714002195200279,
+  "cores_continuous_per_million_day": 0.07141675813334496,
+  "note": "Un proceso, sin lotes ni paralelismo. Cota superior."
+}

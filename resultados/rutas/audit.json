@@ -1,0 +1,44 @@
+{
+  "sha256": "52b73b39f3cf67f71c4cb8c1a26e2f129aaecbc1d4e1385ea22fef7abdf52733",
+  "n_records": 3027,
+  "n_journeys": 2386,
+  "n_annotators": 8,
+  "annotation_counts": {
+    "Both are the same": 1195,
+    "They differ": 1627,
+    "I don't know": 205
+  },
+  "status_counts": {
+    "different": 1272,
+    "same": 944,
+    "unknown": 139,
+    "tie": 31
+  },
+  "split_counts": {
+    "different": {
+      "test": 255,
+      "train": 763,
+      "val": 254
+    },
+    "same": {
+      "test": 188,
+      "train": 567,
+      "val": 189
+    },
+    "tie": {
+      "test": 7,
+      "train": 18,
+      "val": 6
+    },
+    "unknown": {
+      "test": 27,
+      "train": 84,
+      "val": 28
+    }
+  },
+  "duplicated_journey_annotator_records": 123,
+  "conflicted_journey_annotator_pairs": 7,
+  "seed": 20261014,
+  "split_policy": "60/20/20 por journey_id, estratificado por estado inicial de etiqueta; se conserva tras deduplicar votos, antes de evaluar modelos.",
+  "duplicate_policy": "Un voto por anotador y viaje. Repeticiones id\u00e9nticas colapsan; un voto decidido y una abstenci\u00f3n conservan el decidido; decisiones contradictorias de la misma persona se consideran abstenci\u00f3n."
+}

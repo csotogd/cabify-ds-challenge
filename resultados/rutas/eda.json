@@ -1,0 +1,150 @@
+{
+  "scope": "Calidad: archivo completo. Distribuciones y relación con etiquetas: train. Comparación de splits: descriptiva.",
+  "added_after_model_evaluation": true,
+  "raw_rows": 3027,
+  "unique_journeys": 2386,
+  "missing_fields": {
+    "journey_id": {
+      "Filas revisadas": 3027,
+      "Campo ausente": 0,
+      "Valor null": 0,
+      "Vacío (texto o lista)": 0
+    },
+    "annotator": {
+      "Filas revisadas": 3027,
+      "Campo ausente": 0,
+      "Valor null": 0,
+      "Vacío (texto o lista)": 0
+    },
+    "annotation": {
+      "Filas revisadas": 3027,
+      "Campo ausente": 0,
+      "Valor null": 0,
+      "Vacío (texto o lista)": 0
+    },
+    "estimated_route": {
+      "Filas revisadas": 3027,
+      "Campo ausente": 0,
+      "Valor null": 0,
+      "Vacío (texto o lista)": 0
+    },
+    "real_route": {
+      "Filas revisadas": 3027,
+      "Campo ausente": 0,
+      "Valor null": 0,
+      "Vacío (texto o lista)": 0
+    }
+  },
+  "coordinate_quality": {
+    "Estimada": {
+      "Rutas revisadas": 2386,
+      "Ruta ausente, nula o vacía": 0,
+      "Puntos con estructura inválida": 0,
+      "Componentes de coordenada null": 0,
+      "Puntos no numéricos o no finitos": 0,
+      "Puntos fuera de rango": 0,
+      "Rutas con menos de 2 posiciones distintas": 0,
+      "Puntos (0, 0)": 0
+    },
+    "Real": {
+      "Rutas revisadas": 2386,
+      "Ruta ausente, nula o vacía": 0,
+      "Puntos con estructura inválida": 0,
+      "Componentes de coordenada null": 0,
+      "Puntos no numéricos o no finitos": 0,
+      "Puntos fuera de rango": 0,
+      "Rutas con menos de 2 posiciones distintas": 0,
+      "Puntos (0, 0)": 0
+    }
+  },
+  "derived_quality": {
+    "Viajes sin objetivo probabilístico (sin votos válidos)": 139,
+    "Viajes sin mayoría binaria (sin votos o empate)": 170,
+    "Valores NaN en las 42 variables geométricas": 0,
+    "Valores infinitos en las 42 variables geométricas": 0,
+    "Variables constantes en entrenamiento": 0
+  },
+  "train_length_km": {
+    "Estimada": {
+      "Viajes": 1432,
+      "Mínimo": 0.6352174999677718,
+      "P25": 3.699599396269971,
+      "Mediana": 6.324835373258312,
+      "Media": 8.49256451098928,
+      "P75": 11.212316399255783,
+      "P95": 22.36221771596131,
+      "Máximo": 56.959531141450334
+    },
+    "Real": {
+      "Viajes": 1432,
+      "Mínimo": 0.6598613309010184,
+      "P25": 3.6558223058271024,
+      "Mediana": 6.469695637135193,
+      "Media": 8.451705740847574,
+      "P75": 11.110186121549567,
+      "P95": 22.065826050288354,
+      "Máximo": 41.04505433404751
+    }
+  },
+  "sampling": {
+    "Estimada": {
+      "Puntos por ruta · mediana train": 258.0,
+      "Puntos por km · mediana train": 36.906569084432746,
+      "Pasos de longitud cero · archivo completo": 27156,
+      "% pasos de longitud cero · archivo completo": 3.477258758451137,
+      "Rutas con algún paso >1 km · archivo completo": 2
+    },
+    "Real": {
+      "Puntos por ruta · mediana train": 197.0,
+      "Puntos por km · mediana train": 32.40852396965748,
+      "Pasos de longitud cero · archivo completo": 109431,
+      "% pasos de longitud cero · archivo completo": 19.218111187602737,
+      "Rutas con algún paso >1 km · archivo completo": 133
+    }
+  },
+  "paired_point_counts": {
+    "different": 2376,
+    "total": 2386,
+    "estimated_median": 249.5,
+    "real_median": 198.0,
+    "example_journey_id": "7f29deb0-5c8c-11ec-8622-eff6f2c898b6",
+    "example_estimated_points": 323,
+    "example_real_points": 97
+  },
+  "split_summary": {
+    "Entrenamiento": {
+      "Viajes": 1432,
+      "Longitud real mediana · km": 6.469695637135193,
+      "Longitud real P95 · km": 22.065826050288358,
+      "% con mayoría definida": 92.87709497206704,
+      "% diferentes entre mayorías": 57.36842105263158,
+      "% rutas reales con paso >1 km": 4.888268156424581
+    },
+    "Validación": {
+      "Viajes": 477,
+      "Longitud real mediana · km": 6.375468980016421,
+      "Longitud real P95 · km": 22.081058026365504,
+      "% con mayoría definida": 92.87211740041928,
+      "% diferentes entre mayorías": 57.33634311512416,
+      "% rutas reales con paso >1 km": 6.289308176100629
+    },
+    "Test": {
+      "Viajes": 477,
+      "Longitud real mediana · km": 6.575713114003732,
+      "Longitud real P95 · km": 22.485064821468196,
+      "% con mayoría definida": 92.87211740041928,
+      "% diferentes entre mayorías": 57.56207674943566,
+      "% rutas reales con paso >1 km": 6.918238993710692
+    }
+  },
+  "exact_duplicate_routes": {
+    "Estimada": 0,
+    "Real": 0
+  },
+  "largest_real_train_step": {
+    "journey_id": "c4dba795-5909-11ec-8767-55db3a5da40d",
+    "step_m": 10338.051488431545,
+    "n_points": 728
+  },
+  "transformations_changed": false
+}

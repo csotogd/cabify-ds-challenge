@@ -6,3 +6,8 @@ __pycache__/
 .env
 .env.*
 !.env.example
+data/raw/
+data/cache/
+modelos/
+*.pyc
+.preview/

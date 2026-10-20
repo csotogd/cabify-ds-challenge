@@ -1,0 +1,13 @@
+{
+  "selected_new_variant": "geometria_grafo_xgb",
+  "validation_results": {
+    "grafo_xgb": 0.1925077293415256,
+    "geometria_grafo_xgb": 0.15591597424802092
+  },
+  "thresholds": {
+    "grafo_xgb": 0.4,
+    "geometria_grafo_xgb": 0.8
+  },
+  "original_selection_unchanged": "geometria_base",
+  "test_is_exploratory": true
+}

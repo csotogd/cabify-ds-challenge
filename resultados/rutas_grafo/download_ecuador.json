@@ -1,0 +1,11 @@
+{
+  "name": "ecuador",
+  "url": "https://download.geofabrik.de/south-america/ecuador-latest.osm.pbf",
+  "bytes": 125621666,
+  "sha256": "95f94330a7d9e39ab8812f23c18209f0dee1928739ff9fcab012ff90143fb8aa",
+  "last_modified": "Tue, 13 Oct 2026 22:25:22 GMT",
+  "etag": "\"77cd5a2-65dc04a567b2e\"",
+  "downloaded_at_utc": "2026-10-14T23:53:53Z",
+  "seconds": 4.736886750091799,
+  "attribution": "\u00a9 OpenStreetMap contributors; ODbL; extracts by Geofabrik"
+}

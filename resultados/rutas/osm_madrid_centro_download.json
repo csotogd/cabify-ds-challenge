@@ -1,0 +1,10 @@
+{
+  "status_code": 406,
+  "bbox": [
+    40.38,
+    -3.75,
+    40.47,
+    -3.64
+  ],
+  "query": "[out:json][timeout:30];way[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$\"](40.38,-3.75,40.47,-3.64);out tags geom;"
+}

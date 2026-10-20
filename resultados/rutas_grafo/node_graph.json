@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "nodes": 6959330,
+  "directed_edges": 12839192,
+  "ways": 1549851,
+  "limitations": [
+    "No turn restrictions",
+    "No conditional access",
+    "No ferries",
+    "Current OSM snapshot"
+  ],
+  "distance_limit_m": 10000
+}

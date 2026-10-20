@@ -1,0 +1,23 @@
+{
+  "vector_interpretable": {
+    "delta_balanced_accuracy": 0.005319148936170137,
+    "paired_ci95": [
+      -0.009973563123947312,
+      0.020954257699340742
+    ]
+  },
+  "t2vec_decoder_clasificador": {
+    "delta_balanced_accuracy": -0.22466624947851488,
+    "paired_ci95": [
+      -0.2671183783636757,
+      -0.18315226541669063
+    ]
+  },
+  "hibrido_vector_t2vec": {
+    "delta_balanced_accuracy": 0.0117647058823529,
+    "paired_ci95": [
+      -0.0027115369104823346,
+      0.027193628787127833
+    ]
+  }
+}

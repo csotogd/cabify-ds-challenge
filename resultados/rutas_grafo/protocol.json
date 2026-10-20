@@ -1,0 +1,33 @@
+{
+  "status": "planned_before_graph_results",
+  "exploratory_after_original_test_inspection": true,
+  "splits": "reuse frozen journey split",
+  "models": [
+    "grafo_xgb",
+    "geometria_grafo_xgb"
+  ],
+  "selection": "validation soft log loss",
+  "threshold": "validation balanced accuracy; same search as baseline",
+  "xgb_grid": "same predefined three configurations as original",
+  "road_data": "Geofabrik OSM regional/country extracts, frozen hashes and timestamps",
+  "matching": "local OSRM if available; explicit coverage and match confidence, not observed route truth",
+  "missing_policy": "retain all journeys; missing graph features as NaN plus matching-quality variables",
+  "comparison": "full common val/test population with original models; additionally report matching coverage",
+  "time_features": "model-based durations on fixed road snapshot, never observed historical times",
+  "original_models_unchanged": true,
+  "feature_parameters_before_graph_results": {
+    "matching_max_observed_points": 300,
+    "matching_radius_m": 15,
+    "matching_tidy": false,
+    "matching_timestamps": false,
+    "complete_rule": "one subtrace, >=90% points matched, confidence >=0.5; no filtering",
+    "proximity_graph": "directed OSM nodes, static access, no turn restrictions",
+    "dijkstra_limit_m": 10000,
+    "distance_fraction_thresholds_m": [
+      50,
+      100,
+      500
+    ],
+    "overlap": "unique directed edges, weighted by length"
+  }
+}

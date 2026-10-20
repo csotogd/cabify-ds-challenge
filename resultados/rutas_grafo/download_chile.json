@@ -1,0 +1,11 @@
+{
+  "name": "chile",
+  "url": "https://download.geofabrik.de/south-america/chile-latest.osm.pbf",
+  "bytes": 349495070,
+  "sha256": "a57dcb73d0273aaf712a630033ddbc3161d637d64d79a7121c19f3b1c66c0400",
+  "last_modified": "Tue, 13 Oct 2026 22:26:01 GMT",
+  "etag": "\"14d4df1e-65dc04ca60a11\"",
+  "downloaded_at_utc": "2026-10-14T23:53:41Z",
+  "seconds": 11.716431209002621,
+  "attribution": "\u00a9 OpenStreetMap contributors; ODbL; extracts by Geofabrik"
+}

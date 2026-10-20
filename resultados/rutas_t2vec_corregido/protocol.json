@@ -1,0 +1,9 @@
+{
+  "reason": "EOS omitted from negatives in original loss; use exact full-vocabulary normalizer.",
+  "selection": "12 epochs maximum, checkpoint chosen by corrupted inner-validation spatial loss, patience 4",
+  "architecture": "Unchanged 64D encoder, 250m cells, 8 spatial neighbors; still reduced adaptation",
+  "classifier": "Same two classifier configurations, validation selection and threshold as original",
+  "data": "Identical fit and inner validation journeys, no test fitting",
+  "exploratory_after_test_inspection": true,
+  "original_artifacts_untouched": true
+}

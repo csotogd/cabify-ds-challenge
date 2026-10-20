@@ -1,0 +1,20 @@
+{
+  "nodes": 12296247,
+  "ways": 2657629,
+  "relations": 47271,
+  "duplicates_skipped": 230,
+  "bytes": 167567267,
+  "sha256": "9056d6c7600dcff6690671d6dfa68f36dbc0ad29e5b8f0279828831453195118",
+  "journeys": 2386,
+  "countries": [
+    "spain",
+    "colombia",
+    "argentina",
+    "chile",
+    "peru",
+    "ecuador",
+    "uruguay",
+    "mexico"
+  ],
+  "snapshot_note": "Mapa actual descargado con fecha y hash; no reconstrucci\u00f3n hist\u00f3rica del viaje."
+}

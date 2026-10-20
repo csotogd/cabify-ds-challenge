@@ -1,0 +1,5 @@
+{
+  "url": "https://api.openstreetmap.org/api/0.6/map?bbox=-3.715,40.405,-3.685,40.43",
+  "status_code": 400,
+  "bytes": 95
+}

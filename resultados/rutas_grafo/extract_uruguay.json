@@ -1,0 +1,12 @@
+{
+  "country": "uruguay",
+  "selected_ways": 24115,
+  "restriction_relations": 1141,
+  "bytes": 1794695,
+  "seconds": 3.7278310830006376,
+  "area_hash": "abd8a950e60559778f3e66c0bd30195c5738eb56fd6137bd6b5d8af21440a7cb",
+  "sha256": "3121204d7412f41cdc291fa356500a7b19df1293bcd2f7db2801b3e90417c1e5",
+  "margin_degrees": 0.08,
+  "source": "Geofabrik / OpenStreetMap",
+  "method": "V\u00edas cuyo bbox intersecta la uni\u00f3n de bboxes de viajes + margen; referencias completas y relaciones de restricci\u00f3n relacionadas."
+}

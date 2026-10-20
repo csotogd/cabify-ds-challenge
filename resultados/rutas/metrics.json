@@ -1,0 +1,190 @@
+{
+  "geometria_base": {
+    "n": 443,
+    "accuracy": 0.9367945823927766,
+    "balanced_accuracy": 0.9430016687526075,
+    "f1": 0.9426229508196722,
+    "roc_auc": 0.9934084272006675,
+    "average_precision": 0.9954125172477474,
+    "brier": 0.03206990752402257,
+    "logloss": 0.10900054800925402,
+    "confusion_matrix": [
+      [
+        185,
+        3
+      ],
+      [
+        25,
+        230
+      ]
+    ],
+    "threshold": 0.75,
+    "balanced_accuracy_ci95": [
+      0.9210999889621757,
+      0.9621896654711007
+    ],
+    "soft_logloss_all_decisive_votes": 0.12098194577989893,
+    "selected_on_validation": true,
+    "validation": {
+      "n": 443,
+      "accuracy": 0.9525959367945824,
+      "balanced_accuracy": 0.9559534224888555,
+      "f1": 0.9575757575757575,
+      "roc_auc": 0.9894179894179894,
+      "average_precision": 0.9923179432667659,
+      "brier": 0.03853504665778668,
+      "logloss": 0.1351476050524407,
+      "confusion_matrix": [
+        [
+          185,
+          4
+        ],
+        [
+          17,
+          237
+        ]
+      ]
+    }
+  },
+  "vector_interpretable": {
+    "n": 443,
+    "accuracy": 0.9413092550790068,
+    "balanced_accuracy": 0.9483208176887776,
+    "f1": 0.9465020576131687,
+    "roc_auc": 0.9937838965373383,
+    "average_precision": 0.9956305593833996,
+    "brier": 0.031258473528879414,
+    "logloss": 0.10570515618337903,
+    "confusion_matrix": [
+      [
+        187,
+        1
+      ],
+      [
+        25,
+        230
+      ]
+    ],
+    "threshold": 0.82,
+    "balanced_accuracy_ci95": [
+      0.928012273649945,
+      0.9667039602434806
+    ],
+    "soft_logloss_all_decisive_votes": 0.11676126069596245,
+    "selected_on_validation": false,
+    "validation": {
+      "n": 443,
+      "accuracy": 0.9525959367945824,
+      "balanced_accuracy": 0.954599425071866,
+      "f1": 0.9579158316633266,
+      "roc_auc": 0.9899804191142774,
+      "average_precision": 0.9927010068940685,
+      "brier": 0.04016505901521442,
+      "logloss": 0.142011420024479,
+      "confusion_matrix": [
+        [
+          183,
+          6
+        ],
+        [
+          15,
+          239
+        ]
+      ]
+    }
+  },
+  "t2vec_decoder_clasificador": {
+    "n": 443,
+    "accuracy": 0.744920993227991,
+    "balanced_accuracy": 0.7183354192740926,
+    "f1": 0.8014059753954306,
+    "roc_auc": 0.8204630788485607,
+    "average_precision": 0.8406145630783571,
+    "brier": 0.17306689621828966,
+    "logloss": 0.5256988848475466,
+    "confusion_matrix": [
+      [
+        102,
+        86
+      ],
+      [
+        27,
+        228
+      ]
+    ],
+    "threshold": 0.36,
+    "balanced_accuracy_ci95": [
+      0.6762131181044081,
+      0.7583323167493211
+    ],
+    "soft_logloss_all_decisive_votes": 0.5292413538663338,
+    "selected_on_validation": false,
+    "validation": {
+      "n": 443,
+      "accuracy": 0.7223476297968398,
+      "balanced_accuracy": 0.6935591384410282,
+      "f1": 0.7860869565217391,
+      "roc_auc": 0.7527184101987251,
+      "average_precision": 0.7478544947514829,
+      "brier": 0.20183914207612055,
+      "logloss": 0.6002202895060014,
+      "confusion_matrix": [
+        [
+          94,
+          95
+        ],
+        [
+          28,
+          226
+        ]
+      ]
+    }
+  },
+  "hibrido_vector_t2vec": {
+    "n": 443,
+    "accuracy": 0.9503386004514672,
+    "balanced_accuracy": 0.9547663746349604,
+    "f1": 0.9554655870445344,
+    "roc_auc": 0.992740926157697,
+    "average_precision": 0.9949513108711607,
+    "brier": 0.03459689459385513,
+    "logloss": 0.11303040951713247,
+    "confusion_matrix": [
+      [
+        185,
+        3
+      ],
+      [
+        19,
+        236
+      ]
+    ],
+    "threshold": 0.74,
+    "balanced_accuracy_ci95": [
+      0.9355142155022245,
+      0.9721464019851117
+    ],
+    "soft_logloss_all_decisive_votes": 0.1234617061716401,
+    "selected_on_validation": false,
+    "validation": {
+      "n": 443,
+      "accuracy": 0.9548532731376975,
+      "balanced_accuracy": 0.9558909303003791,
+      "f1": 0.9601593625498008,
+      "roc_auc": 0.9883139607549056,
+      "average_precision": 0.9908048184294646,
+      "brier": 0.03866496956741388,
+      "logloss": 0.1403940650192983,
+      "confusion_matrix": [
+        [
+          182,
+          7
+        ],
+        [
+          13,
+          241
+        ]
+      ]
+    }
+  }
+}

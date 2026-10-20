@@ -1,0 +1,393 @@
+{
+  "selected": "geometria_base",
+  "threshold": 0.75,
+  "model_sha256": "f83f9da50bcec36e56c777ce23fa5216aa25040377d1aa2670080100fcbd160f",
+  "purpose": "Inspección posterior de test, sin ajuste de modelos ni umbral.",
+  "selection_policy": {
+    "correct": "Puntuación central y más próxima al umbral por clase.",
+    "fp": "Todos los falsos positivos, por puntuación descendente.",
+    "fn": "Mínima, central y máxima puntuación entre los falsos negativos."
+  },
+  "confusion_matrix": [
+    [
+      185,
+      3
+    ],
+    [
+      25,
+      230
+    ]
+  ],
+  "cases": [
+    {
+      "case": "TN1",
+      "kind": "TN",
+      "journey_id": "76d605c2-53bd-11ec-85f8-f375d723c6bb",
+      "split": "test",
+      "selection": "Puntuación central entre los aciertos de su clase",
+      "probability": 0.01908351480960846,
+      "prediction": 0,
+      "human_majority": 0,
+      "votes": {
+        "same": 1,
+        "different": 0,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 2056.4721230745877,
+        "length_real": 2009.3266957297017,
+        "relative_length_delta": -0.023191224871648226,
+        "start_gap_m": 15.33717813754975,
+        "end_gap_m": 6.089380162692863,
+        "mean_est_to_real_m": 3.565562672913443,
+        "mean_real_to_est_m": 3.4566553723681386,
+        "hausdorff_discrete_m": 12.9138648712442
+      },
+      "contributions": {
+        "length_est": 0.4733411371707916,
+        "length_real": 0.3537709414958954,
+        "relative_length_delta": -0.07381628453731537,
+        "start_gap_m": -0.03450151905417442,
+        "end_gap_m": 0.026165733113884926,
+        "mean_est_to_real_m": -1.4337148666381836,
+        "mean_real_to_est_m": -3.249622344970703,
+        "hausdorff_discrete_m": -0.2790268361568451
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "TN2",
+      "kind": "TN",
+      "journey_id": "9e9c7861-5b92-11ec-ba48-594a04a8692a",
+      "split": "test",
+      "selection": "Acierto de su clase más próximo al umbral",
+      "probability": 0.6797064542770386,
+      "prediction": 0,
+      "human_majority": 0,
+      "votes": {
+        "same": 1,
+        "different": 0,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 6053.408015157615,
+        "length_real": 6112.361540954767,
+        "relative_length_delta": 0.009691705160982979,
+        "start_gap_m": 5.547382054451306,
+        "end_gap_m": 43.19143491636362,
+        "mean_est_to_real_m": 41.523505110135474,
+        "mean_real_to_est_m": 49.86380292633256,
+        "hausdorff_discrete_m": 484.955502038229
+      },
+      "contributions": {
+        "length_est": 0.20007526874542236,
+        "length_real": 0.25427427887916565,
+        "relative_length_delta": -0.0366530641913414,
+        "start_gap_m": 0.1022961214184761,
+        "end_gap_m": -0.027357131242752075,
+        "mean_est_to_real_m": -0.9533775448799133,
+        "mean_real_to_est_m": 1.1765613555908203,
+        "hausdorff_discrete_m": -0.24113969504833221
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "TP1",
+      "kind": "TP",
+      "journey_id": "2efc122f-550d-11ec-b404-1fa436dc71f9",
+      "split": "test",
+      "selection": "Puntuación central entre los aciertos de su clase",
+      "probability": 0.993985116481781,
+      "prediction": 1,
+      "human_majority": 1,
+      "votes": {
+        "same": 0,
+        "different": 1,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 8173.601598621443,
+        "length_real": 7873.677434154271,
+        "relative_length_delta": -0.03738006472681042,
+        "start_gap_m": 88.15677235822695,
+        "end_gap_m": 93.34382787496232,
+        "mean_est_to_real_m": 677.3169600087052,
+        "mean_real_to_est_m": 562.361849809779,
+        "hausdorff_discrete_m": 2191.5151991509792
+      },
+      "contributions": {
+        "length_est": -0.08242201060056686,
+        "length_real": 0.1552170366048813,
+        "relative_length_delta": -0.0565909706056118,
+        "start_gap_m": -0.08593843132257462,
+        "end_gap_m": -0.023248758167028427,
+        "mean_est_to_real_m": 2.233104944229126,
+        "mean_real_to_est_m": 2.8013179302215576,
+        "hausdorff_discrete_m": -0.11169521510601044
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "TP2",
+      "kind": "TP",
+      "journey_id": "11a5590c-58d4-11ec-acb7-07daec1c071b",
+      "split": "test",
+      "selection": "Acierto de su clase más próximo al umbral",
+      "probability": 0.7546321153640747,
+      "prediction": 1,
+      "human_majority": 1,
+      "votes": {
+        "same": 0,
+        "different": 1,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 7014.717780272052,
+        "length_real": 6929.601583928884,
+        "relative_length_delta": -0.012208010175338558,
+        "start_gap_m": 29.75755562812453,
+        "end_gap_m": 136.00798839046885,
+        "mean_est_to_real_m": 50.043573252278534,
+        "mean_real_to_est_m": 55.89422361556298,
+        "hausdorff_discrete_m": 269.7943846877471
+      },
+      "contributions": {
+        "length_est": -0.19922195374965668,
+        "length_real": 0.11510483175516129,
+        "relative_length_delta": -0.06944786757230759,
+        "start_gap_m": -0.017892180010676384,
+        "end_gap_m": -0.023248758167028427,
+        "mean_est_to_real_m": -0.24611155688762665,
+        "mean_real_to_est_m": 1.0867186784744263,
+        "hausdorff_discrete_m": 0.1998269259929657
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "FP1",
+      "kind": "FP",
+      "journey_id": "d83c424c-5d25-11ec-9d69-8f9c4816515c",
+      "split": "test",
+      "selection": "Todas las falsas alarmas, ordenadas por puntuación",
+      "probability": 0.8161411285400391,
+      "prediction": 1,
+      "human_majority": 0,
+      "votes": {
+        "same": 1,
+        "different": 0,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 12689.884201638299,
+        "length_real": 12475.107823666869,
+        "relative_length_delta": -0.01706945726471575,
+        "start_gap_m": 4.977407469504621,
+        "end_gap_m": 28.854757357315073,
+        "mean_est_to_real_m": 125.92524224784817,
+        "mean_real_to_est_m": 71.54123389485615,
+        "hausdorff_discrete_m": 889.4199125802138
+      },
+      "contributions": {
+        "length_est": -0.6181422472000122,
+        "length_real": -0.643986165523529,
+        "relative_length_delta": -0.06417346000671387,
+        "start_gap_m": 0.0868750736117363,
+        "end_gap_m": -0.023248758167028427,
+        "mean_est_to_real_m": 1.7086050510406494,
+        "mean_real_to_est_m": 0.9564036130905151,
+        "hausdorff_discrete_m": -0.1896580308675766
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "FP2",
+      "kind": "FP",
+      "journey_id": "08dbb70e-544b-11ec-b4f0-59cee9b51d86",
+      "split": "test",
+      "selection": "Todas las falsas alarmas, ordenadas por puntuación",
+      "probability": 0.7838103771209717,
+      "prediction": 1,
+      "human_majority": 0,
+      "votes": {
+        "same": 1,
+        "different": 0,
+        "unknown": 1,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 20480.074806214136,
+        "length_real": 19558.77796997805,
+        "relative_length_delta": -0.046020141555299696,
+        "start_gap_m": 40.65529578229544,
+        "end_gap_m": 48.9328073746847,
+        "mean_est_to_real_m": 125.47604091431309,
+        "mean_real_to_est_m": 63.04592629236091,
+        "hausdorff_discrete_m": 1329.3364271084272
+      },
+      "contributions": {
+        "length_est": -0.6181422472000122,
+        "length_real": -0.7466290593147278,
+        "relative_length_delta": -0.059999171644449234,
+        "start_gap_m": -0.06517449766397476,
+        "end_gap_m": -0.023248758167028427,
+        "mean_est_to_real_m": 1.7121866941452026,
+        "mean_real_to_est_m": 1.003317952156067,
+        "hausdorff_discrete_m": -0.19204390048980713
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "FP3",
+      "kind": "FP",
+      "journey_id": "05dce576-5461-11ec-bf72-6984594a873c",
+      "split": "test",
+      "selection": "Todas las falsas alarmas, ordenadas por puntuación",
+      "probability": 0.7668808698654175,
+      "prediction": 1,
+      "human_majority": 0,
+      "votes": {
+        "same": 1,
+        "different": 0,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 6440.361725035491,
+        "length_real": 6406.019531650259,
+        "relative_length_delta": -0.0053465941418108474,
+        "start_gap_m": 4.093076589179701,
+        "end_gap_m": 134.02470002521915,
+        "mean_est_to_real_m": 55.8883379496861,
+        "mean_real_to_est_m": 40.76765250258725,
+        "hausdorff_discrete_m": 321.6815220515341
+      },
+      "contributions": {
+        "length_est": -0.13292986154556274,
+        "length_real": 0.2205587774515152,
+        "relative_length_delta": -0.07052159309387207,
+        "start_gap_m": 0.12271799147129059,
+        "end_gap_m": -0.023248758167028427,
+        "mean_est_to_real_m": -0.1910836398601532,
+        "mean_real_to_est_m": 0.7877184748649597,
+        "hausdorff_discrete_m": 0.1998269259929657
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "FN1",
+      "kind": "FN",
+      "journey_id": "09313a21-5c76-11ec-b8de-6f7115c12387",
+      "split": "test",
+      "selection": "Menor puntuación entre los falsos negativos",
+      "probability": 0.05842088907957077,
+      "prediction": 0,
+      "human_majority": 1,
+      "votes": {
+        "same": 0,
+        "different": 1,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 15404.375935024831,
+        "length_real": 15311.387702017588,
+        "relative_length_delta": -0.006054756385421708,
+        "start_gap_m": 131.59862199834487,
+        "end_gap_m": 50.701145252787555,
+        "mean_est_to_real_m": 37.884477282923065,
+        "mean_real_to_est_m": 30.16844898844954,
+        "hausdorff_discrete_m": 550.4313126509063
+      },
+      "contributions": {
+        "length_est": -0.6538991332054138,
+        "length_real": -0.6535123586654663,
+        "relative_length_delta": -0.0911431536078453,
+        "start_gap_m": -0.11974194645881653,
+        "end_gap_m": -0.03021601028740406,
+        "mean_est_to_real_m": -0.6677553653717041,
+        "mean_real_to_est_m": -0.5918805599212646,
+        "hausdorff_discrete_m": -0.24947792291641235
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "FN2",
+      "kind": "FN",
+      "journey_id": "e1f245d0-5711-11ec-875a-2f4d7245bfe0",
+      "split": "test",
+      "selection": "Puntuación central entre los falsos negativos",
+      "probability": 0.5051930546760559,
+      "prediction": 0,
+      "human_majority": 1,
+      "votes": {
+        "same": 0,
+        "different": 1,
+        "unknown": 2,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 17171.157400720793,
+        "length_real": 17348.936090142208,
+        "relative_length_delta": 0.010300012047677139,
+        "start_gap_m": 57.31895792603381,
+        "end_gap_m": 12.841622896360178,
+        "mean_est_to_real_m": 84.71663437459199,
+        "mean_real_to_est_m": 92.9280784408103,
+        "hausdorff_discrete_m": 775.8672601934107
+      },
+      "contributions": {
+        "length_est": -0.677122950553894,
+        "length_real": -0.762237012386322,
+        "relative_length_delta": -0.02885556034743786,
+        "start_gap_m": -0.08848457783460617,
+        "end_gap_m": 0.018672900274395943,
+        "mean_est_to_real_m": 0.4719918966293335,
+        "mean_real_to_est_m": 1.0225211381912231,
+        "hausdorff_discrete_m": -0.21345661580562592
+      },
+      "reference": 0.27774322032928467
+    },
+    {
+      "case": "FN3",
+      "kind": "FN",
+      "journey_id": "3370ae46-5763-11ec-844b-9f3957b6aea1",
+      "split": "test",
+      "selection": "Falso negativo más próximo al umbral",
+      "probability": 0.749593198299408,
+      "prediction": 0,
+      "human_majority": 1,
+      "votes": {
+        "same": 0,
+        "different": 1,
+        "unknown": 0,
+        "conflicted": 0
+      },
+      "features": {
+        "length_est": 2822.579140273374,
+        "length_real": 3200.558885532939,
+        "relative_length_delta": 0.1255092424049057,
+        "start_gap_m": 139.47622509880796,
+        "end_gap_m": 37.78438427042655,
+        "mean_est_to_real_m": 16.327799639273547,
+        "mean_real_to_est_m": 38.05508753235281,
+        "hausdorff_discrete_m": 260.0763077489509
+      },
+      "contributions": {
+        "length_est": 0.6171849966049194,
+        "length_real": 0.4790331721305847,
+        "relative_length_delta": 0.10553774237632751,
+        "start_gap_m": -0.10376711189746857,
+        "end_gap_m": -0.022233402356505394,
+        "mean_est_to_real_m": -1.431482195854187,
+        "mean_real_to_est_m": 0.9814592599868774,
+        "hausdorff_discrete_m": 0.19296795129776
+      },
+      "reference": 0.27774322032928467
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "model": "geometria_base",
+  "threshold": 0.75,
+  "purpose": "Reparto descriptivo posterior; no modifica modelos, umbrales ni particiones.",
+  "by_votes": [
+    {
+      "Conjunto": "Validación",
+      "Votos": 1,
+      "Viajes": 366,
+      "Acierto": 94.26229508196722,
+      "Errores": 21,
+      "Acierto equilibrado": 94.63585817154316,
+      "% del conjunto": 82.61851015801355
+    },
+    {
+      "Conjunto": "Validación",
+      "Votos": 2,
+      "Viajes": 72,
+      "Acierto": 100.0,
+      "Errores": 0,
+      "Acierto equilibrado": 100.0,
+      "% del conjunto": 16.252821670428894
+    },
+    {
+      "Conjunto": "Validación",
+      "Votos": 3,
+      "Viajes": 5,
+      "Acierto": 100.0,
+      "Errores": 0,
+      "Acierto equilibrado": 100.0,
+      "% del conjunto": 1.1286681715575622
+    },
+    {
+      "Conjunto": "Test",
+      "Votos": 1,
+      "Viajes": 365,
+      "Acierto": 92.6027397260274,
+      "Errores": 27,
+      "Acierto equilibrado": 93.45653256943581,
+      "% del conjunto": 82.39277652370203
+    },
+    {
+      "Conjunto": "Test",
+      "Votos": 2,
+      "Viajes": 72,
+      "Acierto": 98.61111111111111,
+      "Errores": 1,
+      "Acierto equilibrado": 98.52941176470588,
+      "% del conjunto": 16.252821670428894
+    },
+    {
+      "Conjunto": "Test",
+      "Votos": 3,
+      "Viajes": 6,
+      "Acierto": 100.0,
+      "Errores": 0,
+      "Acierto equilibrado": 100.0,
+      "% del conjunto": 1.3544018058690745
+    }
+  ],
+  "concentration": {
+    "Validación": {
+      "N": 443,
+      "K": 366,
+      "n": 21,
+      "x": 21,
+      "expected": 17.349887133182843,
+      "p_value": 0.01635974187523407
+    },
+    "Test": {
+      "N": 443,
+      "K": 365,
+      "n": 28,
+      "x": 27,
+      "expected": 23.06997742663657,
+      "p_value": 0.027208692617731917
+    }
+  }
+}

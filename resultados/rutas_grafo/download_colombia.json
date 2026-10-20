@@ -1,0 +1,11 @@
+{
+  "name": "colombia",
+  "url": "https://download.geofabrik.de/south-america/colombia-latest.osm.pbf",
+  "bytes": 331850772,
+  "sha256": "02c6f8766f7af74896353c9fb102125581defa0f0a7e072e8ce7aff05dbb7aaf",
+  "last_modified": "Tue, 13 Oct 2026 22:25:50 GMT",
+  "etag": "\"13c7a414-65dc04c038820\"",
+  "downloaded_at_utc": "2026-10-14T23:53:15Z",
+  "seconds": 25.798919084016234,
+  "attribution": "\u00a9 OpenStreetMap contributors; ODbL; extracts by Geofabrik"
+}

@@ -1,0 +1,20 @@
+{
+  "scope": "Post-hoc diagnostic; 143 inner-validation journeys used previously for encoder checkpoint selection, NOT a fresh test",
+  "scenarios": [
+    "clean",
+    "20% independent point dropout + 15m Gaussian noise"
+  ],
+  "decoding": "Greedy full-vocabulary scores; PAD/BOS excluded; EOS termination; maximum128 steps",
+  "metrics": [
+    "teacher-forced exact token accuracy including EOS",
+    "free normalized edit distance excluding EOS",
+    "spherical discrete Frechet to original thinned GPS",
+    "EOS/empty/max-length frequencies"
+  ],
+  "baselines": [
+    "retained input points",
+    "oracle clean quantized target centroids"
+  ],
+  "selection": "No fitting, tuning or model selection from this diagnostic",
+  "seed": 20261325
+}

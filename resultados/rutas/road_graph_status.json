@@ -1,0 +1,26 @@
+{
+  "status": "pilot_only_not_evaluated",
+  "google_maps": "No hay credenciales configuradas; no se han hecho consultas de pago.",
+  "source": "OpenStreetMap contributors, ODbL",
+  "source_url": "https://www.openstreetmap.org/copyright",
+  "bbox": [
+    40.415,
+    -3.705,
+    40.425,
+    -3.695
+  ],
+  "nodes": 920,
+  "edges": 1093,
+  "complete_journeys_in_bbox": [],
+  "reason": "Las consultas amplias de Overpass agotaron tiempo o fueron rechazadas. Solo se obtuvo un extracto peque\u00f1o. No hay cobertura suficiente para comparar un modelo basado en calles y tiempos.",
+  "road_time_status": "Solo demostraci\u00f3n longitud/velocidad. L\u00edmites OSM o valores supuestos por tipo de v\u00eda; no duraci\u00f3n real, tr\u00e1fico hist\u00f3rico ni penalizaciones de giro.",
+  "missing": [
+    "Cobertura de todas las ciudades",
+    "Map matching de ambas rutas con confianza y control de continuidad",
+    "Restricciones de giro y permisos completos",
+    "Tiempos comparables, versionados y validados",
+    "Benchmark de caracter\u00edsticas viarias sobre exactamente los mismos viajes"
+  ],
+  "no_road_features_in_trained_models": true,
+  "fraction_edges_with_imputed_speed": 0.4583714547118024
+}

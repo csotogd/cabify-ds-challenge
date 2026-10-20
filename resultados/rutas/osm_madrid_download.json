@@ -1,0 +1,17 @@
+{
+  "city": "Madrid",
+  "n_journeys": 270,
+  "bbox": [
+    40.248603,
+    -3.96224,
+    40.578121,
+    -3.4707
+  ],
+  "source": "OpenStreetMap contributors / Overpass API",
+  "query": "[out:json][timeout:90];way[\"highway\"~\"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|service|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$\"](40.248603,-3.96224,40.578121,-3.4707);out tags geom;",
+  "errors": [
+    "https://overpass-api.de/api/interpreter: HTTPError: 504 Server Error: Gateway Timeout for url: https://overpass-api.de/api/interpreter",
+    "https://overpass.kumi.systems/api/interpreter: HTTPError: 504 Server Error: Gateway Timeout for url: https://overpass.kumi.systems/api/interpreter"
+  ],
+  "status": "failed"
+}

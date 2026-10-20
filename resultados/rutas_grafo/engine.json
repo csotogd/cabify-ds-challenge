@@ -1,0 +1,11 @@
+{
+  "image": "ghcr.io/project-osrm/osrm-backend@sha256:55dbfd47d984c2cacd64e32901b4321c86b5ec761438e69aa053dc78698a786f",
+  "version": "26.10.0",
+  "profile": "/opt/car.lua",
+  "algorithm": "MLD",
+  "traffic": "none",
+  "host": "127.0.0.1",
+  "port": 5057,
+  "docker_volume": "cabify-challenge-osrm-data",
+  "time_note": "Model-based car-profile durations, not historical trip durations"
+}

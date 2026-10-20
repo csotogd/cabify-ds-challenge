@@ -1,0 +1,11 @@
+{
+  "name": "peru",
+  "url": "https://download.geofabrik.de/south-america/peru-latest.osm.pbf",
+  "bytes": 256503894,
+  "sha256": "9e567f88c10d25da6c6cd478861bbaba602c1e9dd918b2e8149c060af00219d6",
+  "last_modified": "Tue, 13 Oct 2026 22:26:21 GMT",
+  "etag": "\"f49f056-65dc04dd280bd\"",
+  "downloaded_at_utc": "2026-10-14T23:53:49Z",
+  "seconds": 7.505603500059806,
+  "attribution": "\u00a9 OpenStreetMap contributors; ODbL; extracts by Geofabrik"
+}

@@ -1,0 +1,12 @@
+{
+  "country": "spain",
+  "selected_ways": 869429,
+  "restriction_relations": 19518,
+  "bytes": 58162314,
+  "seconds": 223.27718225005083,
+  "area_hash": "abd8a950e60559778f3e66c0bd30195c5738eb56fd6137bd6b5d8af21440a7cb",
+  "sha256": "32f86340e3067a81d3e355b1609dccba0f3c95b9ce67efbf92caa483697a41d6",
+  "margin_degrees": 0.08,
+  "source": "Geofabrik / OpenStreetMap",
+  "method": "V\u00edas cuyo bbox intersecta la uni\u00f3n de bboxes de viajes + margen; referencias completas y relaciones de restricci\u00f3n relacionadas."
+}

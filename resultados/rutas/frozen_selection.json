@@ -1,0 +1,15 @@
+{
+  "selected": "geometria_base",
+  "thresholds": {
+    "geometria_base": 0.75,
+    "vector_interpretable": 0.82,
+    "t2vec_decoder_clasificador": 0.36,
+    "hibrido_vector_t2vec": 0.74
+  },
+  "validation_results": {
+    "geometria_base": 0.14811606804232522,
+    "vector_interpretable": 0.15356727905879827,
+    "t2vec_decoder_clasificador": 0.6017598509788513,
+    "hibrido_vector_t2vec": 0.15224147416027603
+  }
+}

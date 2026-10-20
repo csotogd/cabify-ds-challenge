@@ -1,0 +1,81 @@
+{
+  "clean": {
+    "n_routes": 286,
+    "n_journeys": 143,
+    "eos_fraction": 1.0,
+    "empty_fraction": 0.6923076923076923,
+    "teacher_forced_token_accuracy": {
+      "n": 286,
+      "median": 0.032258063554763794,
+      "mean": 0.04154143181883476
+    },
+    "free_normalized_edit": {
+      "n": 286,
+      "median": 1.0,
+      "mean": 1.0
+    },
+    "input_frechet_m": {
+      "n": 286,
+      "median": 0.0,
+      "mean": 0.0
+    },
+    "oracle_quantized_frechet_m": {
+      "n": 286,
+      "median": 340.70321324578055,
+      "mean": 902.7958591936324
+    },
+    "decoded_frechet_m": {
+      "n": 88,
+      "median": 8634432.59660728,
+      "mean": 7233060.685184806
+    },
+    "oov": {
+      "n": 286,
+      "median": 0.09375,
+      "mean": 0.25081902672079537
+    }
+  },
+  "corrupted": {
+    "n_routes": 286,
+    "n_journeys": 143,
+    "eos_fraction": 1.0,
+    "empty_fraction": 0.6958041958041958,
+    "teacher_forced_token_accuracy": {
+      "n": 286,
+      "median": 0.032258063554763794,
+      "mean": 0.04177458828210935
+    },
+    "free_normalized_edit": {
+      "n": 286,
+      "median": 1.0,
+      "mean": 0.9997310381925766
+    },
+    "input_frechet_m": {
+      "n": 286,
+      "median": 138.50084906231905,
+      "mean": 188.12572405451738
+    },
+    "oracle_quantized_frechet_m": {
+      "n": 286,
+      "median": 340.70321324578055,
+      "mean": 902.7958591936324
+    },
+    "decoded_frechet_m": {
+      "n": 87,
+      "median": 8527965.267514404,
+      "mean": 7351232.672873105
+    },
+    "oov": {
+      "n": 286,
+      "median": 0.09375,
+      "mean": 0.25081902672079537
+    }
+  },
+  "loss_audit": {
+    "non_end_loss_before": 2.8402135372161865,
+    "non_end_loss_after_adding_100_to_eos_score": 2.8402135372161865,
+    "defect": "EOS excluded from all negative draws: sampled loss does not penalize early EOS on non-ending steps.",
+    "interpretation": "Demonstrated defect of this adaptation, not proof that fixing it alone restores reconstruction.",
+    "weights_modified_on_disk": false
+  }
+}

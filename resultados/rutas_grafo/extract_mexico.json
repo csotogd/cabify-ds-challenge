@@ -1,0 +1,12 @@
+{
+  "country": "mexico",
+  "selected_ways": 453725,
+  "restriction_relations": 1815,
+  "bytes": 23994676,
+  "seconds": 112.33286600001156,
+  "area_hash": "abd8a950e60559778f3e66c0bd30195c5738eb56fd6137bd6b5d8af21440a7cb",
+  "sha256": "0163dbfae3b2197be83e7860f4da012bba19176ee6c2b06f101c3cfce37df05d",
+  "margin_degrees": 0.08,
+  "source": "Geofabrik / OpenStreetMap",
+  "method": "V\u00edas cuyo bbox intersecta la uni\u00f3n de bboxes de viajes + margen; referencias completas y relaciones de restricci\u00f3n relacionadas."
+}
