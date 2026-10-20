@@ -4,7 +4,7 @@ from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))
 import numpy as np
 import requests
-from rutas.data import load_data, ROOT
+from routes.data import load_data, ROOT
 
 df,routes=load_data()
 city=sys.argv[1] if len(sys.argv)>1 else 'Madrid'
@@ -33,5 +33,5 @@ for endpoint in ['https://overpass-api.de/api/interpreter','https://overpass.kum
     except Exception as e:
         report['errors'].append(f'{endpoint}: {type(e).__name__}: {e}')
 else: report['status']='failed'
-(ROOT/f'resultados/rutas/osm_{slug}_download.json').write_text(json.dumps(report,indent=2))
+(ROOT/f'results/routes/osm_{slug}_download.json').write_text(json.dumps(report,indent=2))
 print(json.dumps(report,ensure_ascii=False),flush=True)

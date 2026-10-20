@@ -140,7 +140,7 @@ def tariff_table():
 
 if __name__ == '__main__':
     impact = build_impact()
-    out = ROOT/'resultados/rutas_euros'; out.mkdir(parents=True, exist_ok=True)
+    out = ROOT/'results/routes_euros'; out.mkdir(parents=True, exist_ok=True)
     summary = {'consulted': CONSULTED,
         'caveat': 'Tarifas públicas de 2026 sobre un archivo de 2021; categoría estándar; '
                   'sin peajes, dinámica ni promociones; duraciones de OSRM sin tráfico.',

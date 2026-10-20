@@ -9,8 +9,8 @@ from pathlib import Path
 import numpy as np
 from xgboost import XGBRegressor
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))
-from rutas.data import ROOT
-from rutas.features import project_pair,features_xy,BASE_FEATURES
+from routes.data import ROOT
+from routes.features import project_pair,features_xy,BASE_FEATURES
 
 def predict_pair(estimated,real):
     a,b=np.asarray(estimated,dtype=float),np.asarray(real,dtype=float)
@@ -21,10 +21,10 @@ def predict_pair(estimated,real):
             raise ValueError('Latitud o longitud fuera de rango.')
     f=features_xy(*project_pair(a,b))
     model=XGBRegressor(n_jobs=1)
-    model.load_model(ROOT/'modelos/rutas/geometria_base.ubj')
+    model.load_model(ROOT/'models/routes/geometria_base.ubj')
     x=np.asarray([[f[k] for k in BASE_FEATURES]],dtype=np.float32)
     p=float(model.predict(x)[0])
-    frozen=json.loads((ROOT/'resultados/rutas/frozen_selection.json').read_text())
+    frozen=json.loads((ROOT/'results/routes/frozen_selection.json').read_text())
     threshold=frozen['thresholds']['geometria_base']
     return dict(model='geometria_base',probability_different=p,threshold=threshold,
                 prediction='They differ' if p>=threshold else 'Both are the same',

@@ -2,8 +2,8 @@ import unittest
 from types import SimpleNamespace
 import numpy as np
 import torch
-from rutas.t2vec import EncoderDecoder,EOS
-from rutas.t2vec_corrected import full_spatial_loss
+from routes.t2vec import EncoderDecoder,EOS
+from routes.t2vec_corrected import full_spatial_loss
 
 
 class FullSpatialLossTests(unittest.TestCase):

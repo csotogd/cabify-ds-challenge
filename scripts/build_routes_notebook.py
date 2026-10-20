@@ -1,4 +1,4 @@
-"""Construye el relato del experimento; los entrenamientos viven en src/rutas."""
+"""Construye el relato del experimento; los entrenamientos viven en src/routes."""
 from pathlib import Path
 import nbformat as nbf
 
@@ -59,13 +59,13 @@ from IPython.display import display, Markdown
 ROOT = Path.cwd()
 sys.path.insert(0,str(ROOT/'src'))
 os.environ.setdefault('MPLCONFIGDIR','/private/tmp/cabify-mpl')
-from rutas.data import load_data
-from rutas.features import build_features, project_pair, clean_line, sample_line, BASE_FEATURES
-from rutas.road_graph import load_graph
+from routes.data import load_data
+from routes.features import build_features, project_pair, clean_line, sample_line, BASE_FEATURES
+from routes.road_graph import load_graph
 
 # Antes de reproducir las figuras: python scripts/run_routes.py
 # Este notebook lee los resultados congelados; no vuelve a seleccionar con test.
-R = ROOT/'resultados/rutas'
+R = ROOT/'results/routes'
 def read(name):return json.loads((R/name).read_text())
 audit=read('audit.json'); metrics=read('metrics.json'); frozen=read('frozen_selection.json')
 details=read('training_details.json'); encoder=read('t2vec_manifest.json')
@@ -79,7 +79,7 @@ plt.rcParams.update({'figure.facecolor':BG,'axes.facecolor':BG,'savefig.facecolo
  'font.family':'DejaVu Sans','font.size':11,'text.color':INK,'axes.labelcolor':INK,
  'axes.spines.top':False,'axes.spines.right':False,'axes.titleweight':'bold',
  'axes.titlelocation':'left','axes.titlesize':13,'figure.dpi':110,'savefig.dpi':150})
-FIG=ROOT/'figuras/rutas';FIG.mkdir(parents=True,exist_ok=True)
+FIG=ROOT/'figures/routes';FIG.mkdir(parents=True,exist_ok=True)
 def finish(fig,name,note='Dataset del challenge · resultados reproducibles · semilla 20261014'):
     fig.text(.02,.015,note,fontsize=9,color=MUTED)
     fig.tight_layout(rect=(0,.05,1,.95))
@@ -757,7 +757,7 @@ Conservamos valores absolutos y relativos. La IoU ya está normalizada; no la di
 """)
 
 code("""
-from rutas.features import features_xy
+from routes.features import features_xy
 # Comprobación conceptual: dos líneas idénticas pero recorridas al revés.
 a=np.array([[0.,0.],[1000.,0.]])
 demo=features_xy(a,a[::-1])
@@ -934,7 +934,7 @@ Como referencias conservamos los puntos de entrada disponibles y la secuencia ob
 """)
 
 code("""
-recon_dir=ROOT/'resultados/rutas_reconstruccion'
+recon_dir=ROOT/'results/routes_reconstruction'
 recon_metrics=json.loads((recon_dir/'metrics.json').read_text())
 recon_predictions=pd.DataFrame(json.loads((recon_dir/'predictions.json').read_text()))
 recon_rows=[]
@@ -994,8 +994,8 @@ Los pesos y resultados se guardan en carpetas nuevas. La auditoría utiliza las 
 """)
 
 code("""
-corrected_recon=json.loads((ROOT/'resultados/rutas_reconstruccion_corregida/metrics.json').read_text())
-corrected_model=json.loads((ROOT/'resultados/rutas_t2vec_corregido/metrics.json').read_text())
+corrected_recon=json.loads((ROOT/'results/routes_reconstruction_corrected/metrics.json').read_text())
+corrected_model=json.loads((ROOT/'results/routes_t2vec_corrected/metrics.json').read_text())
 comparison_rows=[]
 for label,report in [('Original: pérdida defectuosa',recon_metrics),('Pérdida corregida',corrected_recon)]:
     m=report['corrupted']
@@ -1316,7 +1316,7 @@ from shapely.ops import nearest_points
 from matplotlib.patches import Rectangle
 
 case_ids=cases.journey_id.tolist()
-model_path=ROOT/f'modelos/rutas/{selected}.ubj'
+model_path=ROOT/f'models/routes/{selected}.ubj'
 inspection_path=R/'inspection.json'
 if model_path.exists():
     fitted=XGBRegressor(n_jobs=1);fitted.load_model(model_path)
@@ -1755,7 +1755,7 @@ dividida por la velocidad mediana que OSRM implica en esa misma ciudad.
 """)
 
 code("""
-from rutas.pricing import build_impact, tariff_table, EBITDA_MARGIN
+from routes.pricing import build_impact, tariff_table, EBITDA_MARGIN
 impact=build_impact()
 impact['p']=[predictions.loc[j,'probabilities'][selected] for j in impact.index]
 impact['pred']=(impact.p>m['threshold']).astype(int)
@@ -1986,8 +1986,8 @@ separamos tres y cuatro votos porque con 8 y 2 casos de calibración no alcanzan
 """)
 
 code("""
-from rutas.conformal import run as run_conformal, GROUPS
-conformal_path=ROOT/'resultados/rutas_conformal/conformal.json'
+from routes.conformal import run as run_conformal, GROUPS
+conformal_path=ROOT/'results/routes_conformal/conformal.json'
 if conformal_path.exists():
     stored=json.loads(conformal_path.read_text())
     curve=pd.DataFrame(stored['curve']);residual_q90=stored['residual_q90_by_group']
@@ -2266,17 +2266,17 @@ descriptivo y no modifica modelos, umbrales ni particiones.
 md(r"""
 ## 12. Reproducibilidad y fuentes
 
-El código de extracción, preentrenamiento y clasificación está en **src/rutas/**. El pipeline de los cuatro modelos originales se ejecuta con **python scripts/run_routes.py**, desde la raíz, después de instalar **requirements.txt**. La extensión viaria tiene un pipeline separado, descrito en el README. Las figuras se regeneran ejecutando este notebook con sus cachés disponibles.
+El código de extracción, preentrenamiento y clasificación está en **src/routes/**. El pipeline de los cuatro modelos originales se ejecuta con **python scripts/run_routes.py**, desde la raíz, después de instalar **requirements.txt**. La extensión viaria tiene un pipeline separado, descrito en el README. Las figuras se regeneran ejecutando este notebook con sus cachés disponibles.
 
-Los modelos y los datos brutos permanecen locales en **modelos/** y **data/**. Se guardan la partición, SHA-256 del archivo original, protocolo, hiperparámetros probados, selección congelada, predicciones y métricas en **resultados/rutas/**. Las pruebas comprueban invariancia al muestreo en líneas, distancias conocidas, sensibilidad al orden, separación de conjuntos y probabilidades válidas.
+Los modelos y los datos brutos permanecen locales en **models/** y **data/**. Se guardan la partición, SHA-256 del archivo original, protocolo, hiperparámetros probados, selección congelada, predicciones y métricas en **results/routes/**. Las pruebas comprueban invariancia al muestreo en líneas, distancias conocidas, sensibilidad al orden, separación de conjuntos y probabilidades válidas.
 
-La inspección conserva en **resultados/rutas/inspection.json** los diez identificadores, reglas de selección, votos, predicciones y contribuciones del modelo, junto con el SHA-256 de sus pesos. Se verifica que cada caso pertenezca a test y que las contribuciones reconstruyan las probabilidades guardadas. El notebook no modifica los pesos, umbrales ni métricas del experimento.
+La inspección conserva en **results/routes/inspection.json** los diez identificadores, reglas de selección, votos, predicciones y contribuciones del modelo, junto con el SHA-256 de sus pesos. Se verifica que cada caso pertenezca a test y que las contribuciones reconstruyan las probabilidades guardadas. El notebook no modifica los pesos, umbrales ni métricas del experimento.
 
-El resumen del EDA se exporta a **resultados/rutas/eda.json**: controles de calidad, longitudes, muestreo y comparación descriptiva de conjuntos. Sus figuras distinguen los recuentos del archivo completo de las distribuciones estudiadas solo en entrenamiento.
+El resumen del EDA se exporta a **results/routes/eda.json**: controles de calidad, longitudes, muestreo y comparación descriptiva de conjuntos. Sus figuras distinguen los recuentos del archivo completo de las distribuciones estudiadas solo en entrenamiento.
 
-La reconstrucción se audita con **scripts/audit_t2vec_reconstruction.py** y su opción **--corrected**. El reentrenamiento corregido se ejecuta mediante **python -m rutas.t2vec_corrected**, con `src` en el path. Los informes separados permiten comparar el fallo original, la corrección del objetivo y sus resultados sin modificar los pesos anteriores.
+La reconstrucción se audita con **scripts/audit_t2vec_reconstruction.py** y su opción **--corrected**. El reentrenamiento corregido se ejecuta mediante **python -m routes.t2vec_corrected**, con `src` en el path. Los informes separados permiten comparar el fallo original, la corrección del objetivo y sus resultados sin modificar los pesos anteriores.
 
-La ampliación viaria se reproduce con **scripts/download_geofabrik.py**, **scripts/prepare_road_extract.py**, **scripts/start_local_osrm.py**, **python -m rutas.graph_extension** y **scripts/evaluate_graph_extension.py**. Requiere Docker y varios GB de disco para las fuentes. Los informes están en **resultados/rutas_grafo/**; las cachés grandes y modelos se excluyen de Git. El motor se fija por digest de imagen; cada descarga conserva fecha y SHA-256. Las URLs «latest» pueden cambiar: los hashes detectan esa diferencia, no garantizan que el proveedor conserve el mismo archivo para futuras descargas.
+La ampliación viaria se reproduce con **scripts/download_geofabrik.py**, **scripts/prepare_road_extract.py**, **scripts/start_local_osrm.py**, **python -m routes.graph_extension** y **scripts/evaluate_graph_extension.py**. Requiere Docker y varios GB de disco para las fuentes. Los informes están en **results/routes_graph/**; las cachés grandes y modelos se excluyen de Git. El motor se fija por digest de imagen; cada descarga conserva fecha y SHA-256. Las URLs «latest» pueden cambiar: los hashes detectan esa diferencia, no garantizan que el proveedor conserve el mismo archivo para futuras descargas.
 
 - [Enunciado](https://gist.github.com/jmontess/cd4bacd1b09301edf5f2e99ce07584d3) y [archivo enlazado](https://www.dropbox.com/s/rdm11r99pmi13if/challenge_dataset.json?dl=1).
 - [Li et al., 2018: t2vec](https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf): precedente del encoder-decoder espacial. Nuestra adaptación y evaluación supervisada se distinguen del trabajo original.
@@ -2291,5 +2291,5 @@ La ampliación viaria se reproduce con **scripts/download_geofabrik.py**, **scri
 nb=nbf.v4.new_notebook(cells=cells,metadata={
     'kernelspec':{'display_name':'Python 3','language':'python','name':'python3'},
     'language_info':{'name':'python','version':'3.12'}})
-nbf.write(nb,ROOT/'02_modelado_rutas.ipynb')
+nbf.write(nb,ROOT/'02_route_modelling.ipynb')
 print('Notebook generado:',len(cells),'celdas')

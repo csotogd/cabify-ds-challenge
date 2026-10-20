@@ -17,8 +17,8 @@ import numpy as np
 import shapely
 from xgboost import XGBRegressor
 
-from rutas.data import ROOT, load_data
-from rutas.features import project_pair, clean_line, sample_line, BASE_FEATURES
+from routes.data import ROOT, load_data
+from routes.features import project_pair, clean_line, sample_line, BASE_FEATURES
 
 N_PAIRS = 300
 WARMUP = 5
@@ -41,7 +41,7 @@ def base_features(a, b):
 def measure():
     df, routes = load_data()
     ids = list(routes)[:N_PAIRS]
-    model = XGBRegressor(n_jobs=1); model.load_model(ROOT/'modelos/rutas/geometria_base.ubj')
+    model = XGBRegressor(n_jobs=1); model.load_model(ROOT/'models/routes/geometria_base.ubj')
     for jid in ids[:WARMUP]: base_features(*project_pair(*routes[jid]))
 
     start = time.perf_counter()
@@ -70,6 +70,6 @@ def measure():
 
 if __name__ == '__main__':
     result = measure()
-    out = ROOT/'resultados/rutas'; out.mkdir(parents=True, exist_ok=True)
+    out = ROOT/'results/routes'; out.mkdir(parents=True, exist_ok=True)
     (out/'inference_cost.json').write_text(json.dumps(result, indent=2, ensure_ascii=False))
     print(json.dumps(result, indent=2, ensure_ascii=False))

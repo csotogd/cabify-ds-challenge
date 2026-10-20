@@ -7,8 +7,8 @@ from scipy.spatial import cKDTree
 from numba import njit
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
-from rutas.data import load_data,SEED
-from rutas.t2vec import SpatialVocabulary,EncoderDecoder,thin,ecef,padded,BOS,EOS,PAD,set_seed
+from routes.data import load_data,SEED
+from routes.t2vec import SpatialVocabulary,EncoderDecoder,thin,ecef,padded,BOS,EOS,PAD,set_seed
 
 @njit
 def discrete_frechet(distances):
@@ -40,8 +40,8 @@ def edit_distance(a,b):
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--corrected',action='store_true');args=parser.parse_args()
     set_seed(SEED);df,routes=load_data()
-    manifest=json.loads((ROOT/'resultados/rutas/t2vec_manifest.json').read_text())
-    model_path=ROOT/('modelos/rutas_t2vec_corregido/t2vec.pt' if args.corrected else 'modelos/rutas/t2vec.pt')
+    manifest=json.loads((ROOT/'results/routes/t2vec_manifest.json').read_text())
+    model_path=ROOT/('models/routes_t2vec_corrected/t2vec.pt' if args.corrected else 'models/routes/t2vec.pt')
     state=torch.load(model_path,weights_only=False,map_location='cpu')
     vocab=SpatialVocabulary();vocab.lookup=state['lookup'];vocab.centroids=state['centroids']
     vocab.tree=cKDTree(vocab.centroids);vocab.size=len(vocab.lookup)+3
@@ -49,7 +49,7 @@ def main():
     ids=manifest['inner_validation_journeys']
     assert set(ids).isdisjoint(manifest['pretrained_on_journeys'])
     assert all(df.loc[j,'split']=='train' for j in ids)
-    out=ROOT/('resultados/rutas_reconstruccion_corregida' if args.corrected else 'resultados/rutas_reconstruccion');out.mkdir(exist_ok=True)
+    out=ROOT/('results/routes_reconstruction_corrected' if args.corrected else 'results/routes_reconstruction');out.mkdir(exist_ok=True)
     protocol=dict(scope='Post-hoc diagnostic; 143 inner-validation journeys used previously for encoder checkpoint selection, NOT a fresh test',
         scenarios=['clean','20% independent point dropout + 15m Gaussian noise'],
         decoding='Greedy full-vocabulary scores; PAD/BOS excluded; EOS termination; maximum128 steps',
@@ -123,10 +123,10 @@ def main():
     # An implementation defect, checked directly: EOS cannot be a negative in
     # the original sampled objective, so false early-stop scores are unpenalized.
     if args.corrected:
-        from rutas.t2vec_corrected import full_spatial_loss
+        from routes.t2vec_corrected import full_spatial_loss
         def spatial_loss(model,h,y,vocab,generator):return full_spatial_loss(model,h,y,vocab)
     else:
-        from rutas.t2vec import spatial_loss
+        from routes.t2vec import spatial_loss
     vocab.neighbors=state['neighbors'];vocab.weights=state['weights']
     src,lens=padded([samples[0]['src']]);target=samples[0]['target']
     dec,_=padded([[BOS]+target[:-1]]);y,_=padded([target])

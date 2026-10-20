@@ -6,10 +6,10 @@ import pandas as pd
 from xgboost import XGBRegressor
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
-from rutas.data import load_data,SEED
-from rutas.features import build_features
-from rutas.graph_extension import build_graph_features,REPORT
-from rutas.train import soft_logloss,choose_threshold,metrics
+from routes.data import load_data,SEED
+from routes.features import build_features
+from routes.graph_extension import build_graph_features,REPORT
+from routes.train import soft_logloss,choose_threshold,metrics
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     train=(df.split=='train')&df.target_soft.notna();val=(df.split=='val')&df.target_soft.notna()
     hardval=(df.split=='val')&df.target_hard.notna()
     outputs={};details={};thresholds={}
-    models=ROOT/'modelos/rutas_grafo';models.mkdir(exist_ok=True)
+    models=ROOT/'models/routes_grafo';models.mkdir(exist_ok=True)
     for name,features in [('grafo_xgb',graph),('geometria_grafo_xgb',pd.concat([geo,graph],axis=1))]:
         x=np.ascontiguousarray(features,dtype=np.float32);best=np.inf;chosen=None;trials=[]
         for config in [dict(max_depth=2,min_child_weight=8,reg_lambda=8),
@@ -44,9 +44,9 @@ def main():
     print('Congelado en validación:',selected,flush=True)
     # Only now access test labels/predictions for evaluation of new models.
     test=(df.split=='test')&df.target_hard.notna();softtest=(df.split=='test')&df.target_soft.notna()
-    original=pd.DataFrame(json.loads((ROOT/'resultados/rutas/predictions.json').read_text())).set_index('journey_id').loc[df.index]
+    original=pd.DataFrame(json.loads((ROOT/'results/routes/predictions.json').read_text())).set_index('journey_id').loc[df.index]
     base=original.probabilities.map(lambda p:p['geometria_base']).to_numpy()
-    base_threshold=json.loads((ROOT/'resultados/rutas/frozen_selection.json').read_text())['thresholds']['geometria_base']
+    base_threshold=json.loads((ROOT/'results/routes/frozen_selection.json').read_text())['thresholds']['geometria_base']
     y=df.loc[test,'target_hard'].to_numpy();rng=np.random.default_rng(SEED+17)
     draws=rng.integers(0,len(y),(2000,len(y)))
     def bootstrap(p,t):
@@ -67,7 +67,7 @@ def main():
         (REPORT/filename).write_text(json.dumps(value,indent=2))
     hashes=json.loads((REPORT/'original_artifact_hashes.json').read_text())
     for relative,sha in hashes.items():
-        if relative=='resultados/rutas/eda.json':continue  # Explicitly requested descriptive extension.
+        if relative=='results/routes/eda.json':continue  # Explicitly requested descriptive extension.
         assert hashlib.sha256((ROOT/relative).read_bytes()).hexdigest()==sha,relative+' changed'
     print(json.dumps(result,indent=2),flush=True)
 

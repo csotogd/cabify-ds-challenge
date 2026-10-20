@@ -181,14 +181,14 @@ def train_encoder(df,routes,epochs=12):
     np.savez_compressed(ROOT/'data/cache/t2vec_embeddings.npz',
                         ids=np.array(list(embeddings)),vectors=np.array(list(embeddings.values())))
     torch.save(dict(model=model.state_dict(),lookup=vocab.lookup,centroids=vocab.centroids,
-                    neighbors=vocab.neighbors,weights=vocab.weights),ROOT/'modelos/rutas/t2vec.pt')
+                    neighbors=vocab.neighbors,weights=vocab.weights),ROOT/'models/routes/t2vec.pt')
     manifest=dict(history=history,vocab_size=vocab.size,cell_m=CELL_M,embedding_dim=64,
                   pretrained_on_journeys=fit_ids,inner_validation_journeys=inner_ids,
                   seconds=time.perf_counter()-start,oov_by_split={s:float(np.mean([oov[j] for j in df.index[df.split==s]])) for s in ['train','val','test']},
                   oov_policy='Celda no vista se asocia al centroide train más próximo; no se expande vocabulario.',
                   adaptation='GRU bidireccional 32 por dirección, decoder GRU 64, celdas UTM 250m, K=8 vecinos, 64 negativos por token, pérdida espacial con normalizador muestreado. Sin preentrenamiento separado de celdas. No reproducción exacta del paper.',
                   source='https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf')
-    (ROOT/'resultados/rutas/t2vec_manifest.json').write_text(json.dumps(manifest,indent=2))
+    (ROOT/'results/routes/t2vec_manifest.json').write_text(json.dumps(manifest,indent=2))
     return embeddings
 
 def pair_vectors(embeddings,ids):

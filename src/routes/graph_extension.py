@@ -20,7 +20,7 @@ from .data import ROOT, load_data
 from .road_graph import DRIVABLE
 
 CACHE = ROOT/'data/cache/roads'
-REPORT = ROOT/'resultados/rutas_grafo'
+REPORT = ROOT/'results/routes_graph'
 GEOD = Geod(ellps='WGS84')
 MATCH_CONFIG = dict(max_points=300, radius_m=15, tidy=False, timestamps=False)
 

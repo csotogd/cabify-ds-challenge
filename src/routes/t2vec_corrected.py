@@ -6,8 +6,8 @@ from .data import ROOT,SEED,load_data
 from .t2vec import SpatialVocabulary,EncoderDecoder,set_seed,padded,EOS,BOS,PAD,pair_vectors
 from .train import train_head,choose_threshold,metrics,soft_logloss
 
-OUT=ROOT/'resultados/rutas_t2vec_corregido'
-MODELS=ROOT/'modelos/rutas_t2vec_corregido'
+OUT=ROOT/'results/routes_t2vec_corrected'
+MODELS=ROOT/'models/routes_t2vec_corrected'
 
 
 def full_spatial_loss(model,h,target,vocab):
@@ -23,7 +23,7 @@ def full_spatial_loss(model,h,target,vocab):
 def main():
     OUT.mkdir(exist_ok=True);MODELS.mkdir(exist_ok=True);set_seed(SEED)
     df,routes=load_data()
-    original=json.loads((ROOT/'resultados/rutas/t2vec_manifest.json').read_text())
+    original=json.loads((ROOT/'results/routes/t2vec_manifest.json').read_text())
     fit_ids=original['pretrained_on_journeys'];inner_ids=original['inner_validation_journeys']
     fit_routes=[r for j in fit_ids for r in routes[j]];inner_routes=[r for j in inner_ids for r in routes[j]]
     protocol=dict(reason='EOS omitted from negatives in original loss; use exact full-vocabulary normalizer.',

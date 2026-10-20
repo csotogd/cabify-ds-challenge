@@ -116,7 +116,7 @@ def run(alphas=(.30, .25, .20, .15, .10, .05), evaluate_on='test'):
 
 if __name__ == '__main__':
     table, per_case, (residuals, votes_cal) = run()
-    out = ROOT/'resultados/rutas_conformal'; out.mkdir(parents=True, exist_ok=True)
+    out = ROOT/'results/routes_conformal'; out.mkdir(parents=True, exist_ok=True)
     narrowing = {name: float(np.quantile(residuals[belongs(votes_cal)], .9))
                  for name, belongs in GROUPS.items()}
     payload = {'method': 'CV+ (Barber et al. 2021), Mondrian por número de votos',

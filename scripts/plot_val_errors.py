@@ -14,11 +14,11 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'src'))
-from rutas.data import ROOT, load_data
-from rutas.features import project_pair, clean_line, sample_line
+from routes.data import ROOT, load_data
+from routes.features import project_pair, clean_line, sample_line
 
-R = ROOT/'resultados/rutas'
-FIG = ROOT/'figuras/rutas'; FIG.mkdir(parents=True, exist_ok=True)
+R = ROOT/'results/routes'
+FIG = ROOT/'figures/routes'; FIG.mkdir(parents=True, exist_ok=True)
 INK, TEAL, ORANGE, RED, MUTED, BG = '#193441','#117C83','#E87524','#B74F4F','#637781','#FAF9F5'
 plt.rcParams.update({'figure.facecolor':BG,'axes.facecolor':BG,'savefig.facecolor':BG,
  'font.family':'DejaVu Sans','font.size':10,'text.color':INK,'axes.labelcolor':INK,

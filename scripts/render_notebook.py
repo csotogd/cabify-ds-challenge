@@ -13,7 +13,7 @@ os.chdir(ROOT)
 os.environ['PATH']=str(ROOT/'.venv/bin')+os.pathsep+os.environ['PATH']
 os.environ.setdefault('MPLCONFIGDIR',str(Path(tempfile.gettempdir())/'cabify-mpl'))
 os.environ.setdefault('JUPYTER_RUNTIME_DIR',str(Path(tempfile.gettempdir())/'cabify-jupyter-runtime'))
-path=ROOT/(sys.argv[1] if len(sys.argv)>1 else '02_modelado_rutas.ipynb')
+path=ROOT/(sys.argv[1] if len(sys.argv)>1 else '02_route_modelling.ipynb')
 nb=nbformat.read(path,as_version=4)
 NotebookClient(nb,timeout=300,kernel_name='python3',resources={'metadata':{'path':str(ROOT)}}).execute()
 nbformat.validate(nb);nbformat.write(nb,path)

@@ -1,162 +1,164 @@
 # Cabify · Data Science Challenge
 
-Las dos partes del challenge: el experimento para decidir si Just Eat sigue pagando el servicio de fotografía, y un modelo que dice si dos trazados GPS son la misma ruta.
+Both parts of the challenge: the experiment to decide whether Just Eat keeps funding the photography service, and a model that tells whether two GPS traces are the same route.
 
-## Por dónde empezar
+## Where to start
 
-Hay bastante material. Esto es lo que yo leería según el tiempo disponible.
+There is a fair amount of material here. This is what I would read depending on how much time you have.
 
-| Tienes | Lee |
+| You have | Read |
 |---|---|
-| 5 minutos | Este README hasta «Lo que encontré». |
-| 20 minutos | [02_modelado_rutas.ipynb](02_modelado_rutas.ipynb), el resumen de seis líneas del principio y las secciones 9, 10 y 11. Ahí está lo que de verdad cambia una decisión. |
-| Una hora | Los dos notebooks enteros. El 01 va de causalidad y potencia, el 02 de modelado. |
-| Quiero el código | `src/rutas/` para los modelos, `scripts/` para el pipeline, `tests/` para las 13 pruebas. |
+| 5 minutes | This README down to "What I found". |
+| 20 minutes | [02_route_modelling.ipynb](02_route_modelling.ipynb), the six-line summary at the top and sections 9, 10 and 11. That is where the decision-changing material is. |
+| An hour | Both notebooks. The first one is about causal inference and power; the second about modelling. |
+| I want the code | `src/routes/` for the models, `scripts/` for the pipeline, `tests/` for the 13 tests. |
 
-Los dos notebooks están ejecutados y con salidas. También hay HTML por si prefieres el navegador, aunque las fórmulas cargan MathJax de una CDN y sin red se ven en crudo. El notebook no tiene ese problema.
+Both notebooks are executed with outputs. There is also HTML if you prefer a browser, though the formulas load MathJax from a CDN and render as raw LaTeX without a network connection. The notebook does not have that problem.
 
-## Lo que encontré
+## What I found
 
-Dos encargos sin relación. En los dos, lo que más valor añadió no fue mejorar el método.
+Two unrelated assignments. In both, the thing that added most value was not improving the method.
 
-**Parte 1.** El diseño experimental sale bien: ciudades emparejadas, sorteo de acceso inmediato contra diferido, análisis por asignación inicial. El problema es que nadie había calculado cuánto tendría que crecer el margen para que el programa se pague. Sale 1,25 puntos. El techo que permite la aritmética de dilución es 1 punto. Y detectar 1,25 puntos necesitaría unas 1.010 ciudades. Con esos supuestos el experimento no puede distinguir «se paga» de «no se paga», y eso conviene saberlo antes de gastar meses.
+**Part 1.** The experimental design works out: matched cities, a draw between immediate and deferred access, intention-to-treat analysis. The problem is that nobody had worked out how much the margin would have to grow for the programme to pay for itself. It comes to 1.25 points. The ceiling that the dilution arithmetic allows is 1 point. And detecting 1.25 points would take roughly 1,010 cities. Under those assumptions the experiment cannot tell "it pays" from "it does not pay", and that is worth knowing before spending months on it.
 
-**Parte 2.** Ocho medidas geométricas dan un 94,3 % de acierto equilibrado. Tres alternativas más complejas no mejoran de forma demostrable. Pero el 83 % de las etiquetas las firma una sola persona, y el panel no comparte criterio: uno marca «diferentes» el 65 % de las veces y otro el 39,7 %. El modelo acierta un 98 % con el segundo y un 88 % con el primero. Y al medir el problema en euros en vez de en aciertos, el modelo detecta el 90,2 % de los casos pero recupera el 97,4 % del dinero: falla en los viajes baratos.
+**Part 2.** Eight geometric measurements give 94.3% balanced accuracy. Three more sophisticated alternatives do not improve on that in any defensible way. But 83% of the labels rest on a single person, and the panel does not share a criterion: one annotator marks "they differ" 65% of the time and another 39.7%. The model agrees 98% with the second and 88% with the first. And once the problem is measured in euros instead of in correct calls, the model catches 90.2% of the cases but recovers 97.4% of the money: it fails on the cheap trips.
 
-## Qué hice yo y qué hizo la IA
+## What I did and what the AI did
 
-Esto lo he hecho trabajando con IA, y me parece más útil contar cómo que fingir otra cosa.
+I built this working with AI, and I think it is more useful to explain how than to pretend otherwise.
 
-**El código lo ha escrito la IA.** Todo: los modelos, el pipeline, las figuras, los tests. Yo no he escrito el código a mano. Lo que sí he hecho es leerlo y revisarlo entero, que es distinto de aceptarlo.
+**The tool was Claude (Claude Code).**
 
-**Las ideas van en los dos sentidos.** Algunas las traigo yo y le pido que las desarrolle. Otras se las pido directamente: «¿qué se te ocurre aquí?». Luego evalúo lo que sale, monto experimentos para comprobarlo, me quedo con lo que aguanta y descarto lo demás. Varias cosas que se propusieron no están en el repositorio porque las probé y no se sostenían.
+**The AI wrote the code.** All of it: the models, the pipeline, the figures, the tests. I did not write the code by hand. What I did do was read and review it in full, which is a different thing from accepting it.
 
-**Lo que aparece aquí ha pasado un filtro.** Cuando algo me convence a medias, lo refino prompteando hasta que lo entiendo o hasta que queda claro que no va a funcionar. Cuando una línea se agota, pivoto. Varias de las secciones que más me gustan —el umbral de rentabilidad de la Parte 1, medir el error en euros en la Parte 2— salieron de ese ida y vuelta, no de la primera respuesta.
+**Ideas went both ways.** Some I brought and asked it to develop. Others I asked for outright: "what would you do here?". Then I assessed what came back, set up experiments to check it, kept what held up and dropped the rest. Several proposals are not in this repository because I tried them and they did not stand.
 
-**Las decisiones y las conclusiones son mías.** Qué modelo se elige, qué se recomienda, qué queda fuera y qué límites se declaran. Si algo de aquí está mal, es mío.
+**What is here has passed a filter.** When something only half convinced me, I refined it through prompting until I understood it or until it was clear it would not work. When a line of work ran out, I pivoted. Several of the sections I like most — the break-even threshold in Part 1, measuring the error in euros in Part 2 — came out of that back and forth, not out of a first answer.
 
-Para que esa revisión sea posible y no un acto de fe: el protocolo se congela antes de mirar el test, los resultados y las semillas están guardados en `resultados/`, y hay 13 pruebas. Todo lo de este repositorio se puede volver a ejecutar y comprobar.
+**The decisions and the conclusions are mine.** Which model gets picked, what gets recommended, what is left out and which limitations are declared. If something in here is wrong, it is mine.
 
-## Contenido
+So that this review is something you can check rather than take on trust: the protocol is frozen before looking at the test set, results and seeds are stored in `results/`, and there are 13 tests. Everything in this repository can be re-run and verified.
 
-| Archivo | Qué es |
+## Contents
+
+| File | What it is |
 |---|---|
-| [01_fotografia_evaluacion_retrospectiva.ipynb](01_fotografia_evaluacion_retrospectiva.ipynb) | Parte 1. Retrospectivo como estudio complementario (§1–12), puente (§13), experimento prospectivo (§14–27). |
-| [02_modelado_rutas.ipynb](02_modelado_rutas.ipynb) | Parte 2. EDA, cuatro modelos, inspección de errores, euros, predicción conforme y recomendación. |
-| [enunciado_challenge.md](enunciado_challenge.md) | El enunciado original, por comodidad. |
-| [src/rutas/](src/rutas/) · [scripts/](scripts/) · [tests/](tests/) | Implementación, pipeline y pruebas. |
-| [resultados/](resultados/) | Métricas, predicciones, partición, protocolo y semillas. Todo reproducible. |
-| [figuras/](figuras/) | Las figuras que generan los notebooks. |
-| [requirements.txt](requirements.txt) | Python 3.12 y las versiones exactas que usé. |
+| [01_photography_experiment.ipynb](01_photography_experiment.ipynb) | Part 1. The retrospective study as supporting evidence (§1–12), a bridge (§13), and the prospective experiment (§14–27). |
+| [02_route_modelling.ipynb](02_route_modelling.ipynb) | Part 2. EDA, four models, error inspection, euros, conformal prediction and a recommendation. |
+| [challenge_brief.md](challenge_brief.md) | The original brief, for convenience. |
+| [src/routes/](src/routes/) · [scripts/](scripts/) · [tests/](tests/) | Implementation, pipeline and tests. |
+| [results/](results/) | Metrics, predictions, splits, protocol and seeds. All reproducible. |
+| [figures/](figures/) | The figures the notebooks generate. |
+| [requirements.txt](requirements.txt) | Python 3.12 and the exact versions I used. |
 
 ---
 
-## Parte 1 · El experimento
+## Part 1 · The experiment
 
-Los números de esta parte son **sintéticos**. No tengo registros internos de Just Eat y no pretendo tenerlos. Las cifras públicas dan escala y están fechadas; no son una muestra.
+The numbers in this part are **synthetic**. I do not have internal Just Eat records and I am not pretending to. Public figures give scale and carry a date; they are not a sample.
 
-Primero miro el histórico, porque ya existe. La lista de espera da una comparación candidata: todos pidieron el servicio, unos publicaron y otros esperan. Pero todo depende de por qué unos fueron antes. Si el comercial priorizó a quien iba a lanzar una promoción, mido la promoción. Así que el retrospectivo sirve para estimar variabilidad, elegir métrica y dimensionar plazos. No para concluir.
+I start with the historical data, because it already exists. The waiting list offers a candidate comparison: everyone requested the service, some published and others are still waiting. But everything hinges on why some went first. If the sales rep prioritised whoever was about to launch a promotion, I am measuring the promotion. So the retrospective study is good for estimating variability, choosing a metric and sizing timelines. Not for concluding.
 
-El experimento prospectivo aleatoriza **ciudades**, no restaurantes. Si sorteo restaurantes dentro de una ciudad, el control deja de ser control: el tratamiento le quita pedidos. La unidad tiene que contener a la competencia. Se emparejan ciudades antes del sorteo y dentro de cada pareja una recibe acceso inmediato y la otra diferido con fecha anunciada. No se retira el servicio a nadie. Solicitarlo sigue siendo voluntario y los precios libres, porque lo que se financia es la política, no una versión de laboratorio.
+The prospective experiment randomises **cities**, not restaurants. If I randomise restaurants within a city, the control stops being a control: the treatment is taking orders away from it. The unit has to contain the competition. Cities are matched before the draw, and within each pair one gets immediate access and the other deferred access with an announced date. The service is not withdrawn from anyone. Requesting it stays voluntary and prices stay free, because what is being funded is the policy, not a laboratory version of it.
 
-El resultado es el margen de contribución semanal neto del coste del programa, ponderado por el margen previo de cada ciudad.
+The outcome is the weekly contribution margin net of the programme cost, weighted by each city's prior margin.
 
-### El umbral de rentabilidad (§21.4)
+### The break-even threshold (§21.4)
 
-Esta sección es la que cierra el encargo. El umbral es el coste semanal del programa en una ciudad dividido por su margen semanal previo, lo que lo deja en las mismas unidades que el efecto estimado:
+This is the section that closes the assignment. The threshold is the weekly programme cost in a city divided by its prior weekly margin, which puts it in the same units as the estimated effect:
 
-| | Puntos de crecimiento | Ciudades para detectarlo |
+| | Growth points | Cities needed to detect it |
 |---|---:|---:|
-| Efecto plausible según la dilución | 1,00 | 1.574 |
-| Umbral de rentabilidad | **1,25** | **1.010** |
-| Para lo que estaba dimensionado el diseño | 5,00 | 68 |
+| Plausible effect given dilution | 1.00 | 1,574 |
+| Break-even threshold | **1.25** | **1,010** |
+| What the design was sized for | 5.00 | 68 |
 
-Supuestos: 32 publicaciones por ciudad, 40.000 € de margen semanal, 16 semanas, sesiones a 250 €. El punto de cruce está sobre los 200 € por sesión. Todo hipotético.
+Assumptions: 32 shoots per city, €40,000 weekly margin, 16 weeks, sessions at €250. The crossover sits around €200 per session. All hypothetical.
 
-De ahí salen dos cosas. Una, que con el coste real por sesión y el margen de ciudad —que Finanzas tiene— la tabla se recalcula en una tarde y decide entre lanzar, rediseñar concentrando el servicio donde el margen expuesto es mayor, o recomendar el cierre sin gastar en el ensayo. Dos, que el contraste debería ser contra el umbral y no contra cero. El servicio ya está corriendo: la carga de la prueba es demostrar que se paga, no que hace algo. Con el nulo clásico puedes salir con un resultado significativo, positivo y ruinoso.
+Two things follow. First, with the real cost per session and the city margin — which Finance has — that table can be recomputed in an afternoon, and it decides between launching, redesigning to concentrate the service where the exposed margin is larger, or recommending closure without spending on the trial. Second, the test should be against the threshold rather than against zero. The service is already running: the burden of proof is to show that it pays for itself, not that it does something. Under the classic null you can come out with a result that is significant, positive and still value-destroying.
 
 ---
 
-## Parte 2 · El modelo
+## Part 2 · The model
 
-Esta parte usa el archivo real enlazado en el challenge. 2.386 viajes, 3.027 anotaciones, 8 personas.
+This part uses the real file linked in the brief. 2,386 journeys, 3,027 annotations, 8 people.
 
-Antes de modelar: una fila es una anotación, no un viaje. Hay 123 registros repetidos del mismo anotador sobre el mismo viaje. Un voto por persona y viaje; quien se contradice consigo mismo no vota. Partición 60/20/20 por viaje (1.432 / 477 / 477), estratificada, fijada antes de cualquier ajuste. En test, 443 casos tienen mayoría definida.
+Before modelling: a row is an annotation, not a journey. There are 123 repeated records from the same annotator on the same journey. One vote per person per journey; anyone who contradicts themselves does not vote. A 60/20/20 split by journey (1,432 / 477 / 477), stratified, fixed before any fitting. In the test set, 443 cases have a defined majority.
 
-| Modelo | Acierto equilibrado en test |
+| Model | Balanced accuracy on test |
 |---|---:|
-| Geometría básica + XGBoost | 94,3 % |
-| Vector interpretable (42) + XGBoost | 94,8 % |
-| t2vec reducido + clasificador | 71,8 % |
-| Vector + t2vec + XGBoost | 95,5 % |
+| Basic geometry + XGBoost | 94.3% |
+| Interpretable vector (42) + XGBoost | 94.8% |
+| Reduced t2vec + classifier | 71.8% |
+| Vector + t2vec + XGBoost | 95.5% |
 
-La regla de selección se congeló en validación por log loss blanda y elige geometría básica. Las mejoras del vector ampliado y del híbrido tienen intervalos bootstrap pareados que incluyen cero, así que no se pueden defender.
+The selection rule was frozen on validation using soft log loss and picks basic geometry. The improvements from the extended vector and the hybrid have paired bootstrap intervals that include zero, so they cannot be defended.
 
-**Sobre t2vec.** Mi adaptación no reproduce el artículo. Auditándola después encontré que la reconstrucción libre fallaba y que la pérdida muestreada tenía un defecto: el token de fin nunca participaba como negativo. Reentrené con normalización sobre todo el vocabulario y lo guardé aparte; mejora algunos indicadores y sigue sin reconstruir bien. Conservo el ensayo fallido documentado. Describe mi código, no el método publicado.
+**On t2vec.** My adaptation does not reproduce the paper. Auditing it afterwards I found that free reconstruction was failing and that the sampled loss had a defect: the end-of-sequence token never took part as a negative. I retrained with normalisation over the full vocabulary and stored it separately; it improves some indicators and still does not reconstruct properly. I am keeping the failed attempt documented. It describes my code, not the published method.
 
-### Quién sostiene cada etiqueta
+### Who holds up each label
 
-De los 2.386 viajes, 1.816 tienen un solo voto decidido, 410 tienen dos y 19 tienen tres. Entre los de dos o más, 31 acaban en empate.
+Of the 2,386 journeys, 1,816 have a single decided vote, 410 have two and 19 have three. Among those with two or more, 31 end in a tie.
 
-El panel es muy desigual. El anotador 2 firma 918 anotaciones sobre 856 viajes y es el único votante en 612, el 26 % del archivo. El 5 hizo 21. Y los criterios difieren: el anotador 1 marca «diferentes» el 65 % de las veces y el 7 el 39,7 %, que son justo el par que menos coincide entre los que comparten viajes suficientes (82,6 % de acuerdo, kappa de Cohen 0,66, sobre 46 viajes).
+The panel is very uneven. Annotator 2 signs 918 annotations across 856 journeys and is the only voter on 612 of them, 26% of the file. Annotator 5 did 21. And the criteria differ: annotator 1 marks "they differ" 65% of the time and annotator 7 does so 39.7% of the time, and they are precisely the pair that agrees least among those sharing enough journeys (82.6% raw agreement, Cohen's kappa 0.66, over 46 journeys).
 
-Eso se nota en el modelo. Sobre viajes con un único anotador decidido, el acierto va del 88,2 % con el anotador 1 (n=119) al 98,0 % con el 7 (n=147). Cuanto más exigente la persona, peor coincide. Cautela: cada grupo tiene viajes distintos, así que parte de la brecha puede ser dificultad y no criterio.
+That shows up in the model. On journeys with a single decided annotator, accuracy runs from 88.2% with annotator 1 (n=119) to 98.0% with annotator 7 (n=147). The stricter the person, the worse the model agrees with them. A caveat: each group contains different journeys, so part of the gap may be difficulty rather than criterion.
 
-El rendimiento también se reparte por número de votos. En validación pasa del 94,3 % con un voto al 100 % con dos o tres; en test, del 92,6 % al 98,6 % y 100 %. Los 21 errores de validación y 27 de los 28 de test caen en viajes de un solo voto, algo por encima de lo que explicaría el tamaño del grupo (p = 0,016 y p = 0,027, hipergeométrica, descriptiva y posterior). La comparación no es limpia: un viaje con dos votos y mayoría definida es, por construcción, uno donde dos personas coincidieron. Ruido de etiqueta y dificultad real no se separan con este archivo. Cifras en [errors_by_votes.json](resultados/rutas/errors_by_votes.json).
+Performance also splits by vote count. On validation it goes from 94.3% with one vote to 100% with two or three; on test, from 92.6% to 98.6% and 100%. The 21 validation errors and 27 of the 28 test errors fall on single-vote journeys, somewhat above what the group size alone would explain (p = 0.016 and p = 0.027, hypergeometric, descriptive and after the fact). The comparison is not clean: a journey with two votes and a defined majority is, by construction, one where two people agreed. Label noise and genuine difficulty cannot be separated with this file. Figures in [errors_by_votes.json](results/routes/errors_by_votes.json).
 
-Los 7 empates de test están dibujados. En los siete el cuerpo central del trayecto coincide y la mayor separación cae en el primer o el último cuarto: la discrepancia está en cómo empieza o acaba el viaje. El modelo no reproduce esa duda de forma fiable, y con siete casos la comparación no concluye nada.
+The 7 test ties are plotted. In all seven the central body of the trip coincides and the largest separation falls in the first or last quarter: the disagreement is about how the trip starts or ends. The model does not reproduce that doubt reliably, and with seven cases the comparison concludes nothing.
 
-### En euros (§9)
+### In euros (§9)
 
-La tarifa se fija antes del viaje, así que la base y la mínima se cancelan al comparar las dos rutas y basta con el precio por kilómetro y por minuto:
+The fare is set before the trip, so the base and minimum fares cancel out when comparing the two routes and the per-kilometre and per-minute prices are enough:
 
 ```
 Δ€ = €/km · (km_real − km_est) + €/min · (min_real − min_est)
 ```
 
-Tarifas públicas de Cabify por ciudad, categoría estándar, consultadas el 19 de octubre de 2026. Duraciones de OSRM donde el encaje es fiable (1.398 de 2.386). Esto es una estimación de orden de magnitud, no una auditoría: las tarifas son de 2026 y el archivo de 2021, ignoro peajes, tarifa dinámica y promociones, y Colombia y Ecuador usan valores estimados porque la fuente no publica cifra única. Resultados en `resultados/rutas_euros/`.
+Public Cabify fares by city, standard category, consulted on 19 October 2026. Durations from OSRM where the map match is reliable (1,398 of 2,386). This is an order-of-magnitude estimate, not an audit: the fares are from 2026 and the file from 2021, I ignore tolls, surge pricing and promotions, and Colombia and Ecuador use estimated values because the source does not publish a single figure. Results in `results/routes_euros/`.
 
-La desviación mediana es de 0,11 €, el 3,1 % de una tarifa media de 4,63 €. El neto es −9 € sobre 11.054 € facturados, así que no hay fuga sistemática. Pero la compensación ocurre en el agregado, no en la calle: si el trayecto real sale más largo lo absorben Cabify y el conductor, y si sale más corto el cliente pagó de más y no hay reembolso. Un 8,9 % de clientes pagó más de un 10 % por encima de lo que valía su trayecto.
+The median deviation is €0.11, 3.1% of an average fare of €4.63. The net is −€9 over €11,054 billed, so there is no systematic leak. But that netting happens in the spreadsheet, not on the street: if the real trip runs longer, Cabify and the driver absorb it, and if it runs shorter the customer overpaid with no refund. 8.9% of customers paid more than 10% above what their actual trip was worth.
 
-Frente a un margen EBITDA del grupo del 3,3 % en 2025 (27,2 M€ sobre 833,3 M€), el 48 % de los viajes se desvía más de lo que ese mismo viaje deja de beneficio, y el bruto movido equivale a 2,1 veces el margen. Ese 3,3 % es margen de grupo, no de un trayecto, y la muestra está dominada por ciudades latinoamericanas con tarifas bajas: la comparación da escala, no contabilidad.
+Against a group EBITDA margin of 3.3% in 2025 (€27.2M on €833.3M), 48% of journeys deviate by more than that same journey leaves in profit, and the gross amount moved is equivalent to 2.1 times the margin. That 3.3% is a group margin, not a per-trip one, and the sample is dominated by Latin American cities with low fares: the comparison gives scale, not accounting.
 
-El impacto se concentra: el 10 % de los viajes acumula el 55 %. La correlación de Spearman entre la etiqueta humana y la desviación en euros es 0,45, pero del 10 % de mayor impacto el 93 % está etiquetado «diferentes». Y los errores del modelo caen donde hay poco dinero: las 25 diferencias no detectadas suman el 2,5 % del total. **Detecta el 90,2 % de los casos y recupera el 97,4 % del dinero.** Nadie lo entrenó para eso, es una propiedad de este archivo, y habría que reconfirmarla con datos nuevos.
+The impact is concentrated: 10% of journeys account for 55% of it. The Spearman correlation between the human label and the euro deviation is 0.45, yet among the top 10% by impact, 93% are labelled "they differ". And the model's errors land where there is little money: the 25 undetected differences add up to 2.5% of the total. **It catches 90.2% of the cases and recovers 97.4% of the money.** Nobody trained it for that, it is a property of this file, and it would need re-checking against new data.
 
-### Predicción conforme (§10)
+### Conformal prediction (§10)
 
-CV+ sobre entrenamiento, porque validación ya se gastó eligiendo modelo, iteración y umbral. Calibración Mondrian en dos grupos —un voto (n=1.085) y dos o más (n=263)— porque son regímenes de ruido distintos; los grupos de tres y cuatro votos tienen 8 y 2 casos y no llegan ni al mínimo teórico. El intervalo sobre la proporción de votos se traduce en tres decisiones: iguales, diferentes, o revisión humana.
+CV+ over the training set, because validation was already spent choosing model, iteration and threshold. Mondrian calibration in two groups — one vote (n=1,085) and two or more (n=263) — because they are different noise regimes; the three- and four-vote groups have 8 and 2 cases and do not even reach the theoretical minimum. The interval over the vote proportion translates into three decisions: same, different, or human review.
 
-| α | A revisión | Error en lo automático |
+| α | Sent to review | Error on automated calls |
 |---|---:|---:|
-| hoy, umbral fijo | 0 % | 6,3 % |
-| 0,20 | 4,1 % | 2,8 % |
-| 0,15 | 6,1 % | 1,9 % |
-| 0,10 | 12,9 % | 0,5 % |
+| today, fixed threshold | 0% | 6.3% |
+| 0.20 | 4.1% | 2.8% |
+| 0.15 | 6.1% | 1.9% |
+| 0.10 | 12.9% | 0.5% |
 
-Con α = 0,05 la abstención se va al 84 % y el método deja de servir. El residuo en el percentil 90 es un 30 % menor cuando la etiqueta tiene dos votos, lo que pone cifra a lo que vale una segunda anotación. Implementación en [conformal.py](src/rutas/conformal.py), resultados en `resultados/rutas_conformal/`.
+At α = 0.05 abstention climbs to 84% and the method stops being usable. The 90th-percentile residual is 30% smaller when the label has two votes, which puts a number on what a second annotation is worth. Implementation in [conformal.py](src/routes/conformal.py), results in `results/routes_conformal/`.
 
-### Coste y escala (§10.1)
+### Cost and scale (§10.1)
 
-Decidir una pareja nueva cuesta 6,2 ms, de los que XGBoost consume 0,8 µs. El gasto está en la geometría. Un millón de viajes al día son 1,7 horas de CPU, así que el cómputo no es el problema. La revisión humana sí: ese 12,9 % sobre un millón son 129.000 revisiones diarias.
+Deciding a new pair costs 6.2 ms, of which XGBoost consumes 0.8 µs. The cost is in the geometry. A million journeys a day is 1.7 CPU-hours, so compute is not the problem. Human review is: that 12.9% over a million journeys is 129,000 reviews a day.
 
-La política que se deriva combina las dos secciones: revisar donde el modelo duda **y** hay dinero en juego, ordenando los casos abstenidos por desviación estimada hasta agotar el presupuesto. No la implemento porque hace falta el presupuesto real de revisión y la fórmula de tarificación interna. Medición en [inference_cost.json](resultados/rutas/inference_cost.json).
+The policy that follows combines both sections: review where the model is unsure **and** there is money at stake, ranking the abstained cases by estimated deviation until the budget runs out. I do not implement it because it needs the real review budget and the internal pricing formula. Measurement in [inference_cost.json](results/routes/inference_cost.json).
 
-### Recomendación (§11)
+### Recommendation (§11)
 
-Desplegar geometría básica con predicción conforme a α = 0,15, revisar por impacto económico en lugar de por tasa fija, y gastar la siguiente inversión en una segunda anotación antes que en un modelo mayor. No desplegaría t2vec ni la ampliación viaria: ninguna demuestra mejora y ambas multiplican el coste operativo.
+Deploy basic geometry with conformal prediction at α = 0.15, review by economic impact rather than by a fixed rate, and spend the next investment on a second annotation rather than on a bigger model. I would not deploy t2vec or the road-network extension: neither demonstrates an improvement and both multiply the operational cost.
 
-### Otras cosas que hay dentro
+### Other things inside
 
-- **EDA.** Nulos, estructura de coordenadas, longitudes, puntos repetidos, densidad de muestreo, huecos del trazado, composición geográfica y votos. El archivo está estructuralmente limpio —cero nulos, cero coordenadas inválidas— pero el 19,2 % de los pasos de las rutas reales tiene longitud cero y 133 rutas tienen saltos de más de 1 km. No eliminé ningún viaje ni recorté outliers. Cifras en [eda.json](resultados/rutas/eda.json).
-- **Inspección de errores.** Cuatro aciertos y seis errores de test con rutas completas, ampliación, perfiles de distancia y contribuciones TreeSHAP. Identificadores en [inspection.json](resultados/rutas/inspection.json). No cambia modelos ni umbrales.
-- **`scripts/plot_val_errors.py`** dibuja las discrepancias de validación. Descriptivo: validación intervino en la selección, así que no es una medida de error independiente.
-- **Ampliación viaria.** Extractos de OpenStreetMap vía Geofabrik, OSRM local y un grafo dirigido de distancias. Exploratoria, posterior a inspeccionar el test, con las particiones y modelos anteriores intactos. Duraciones de un perfil fijo sin tráfico; el grafo simplificado no incorpora restricciones de giro. Informes en `resultados/rutas_grafo/`.
+- **EDA.** Nulls, coordinate structure, lengths, repeated points, sampling density, trace gaps, geographic composition and votes. The file is structurally clean — zero nulls, zero invalid coordinates — but 19.2% of the steps in the real routes have zero length and 133 routes have jumps of more than 1 km. I did not drop any journey or trim outliers. Figures in [eda.json](results/routes/eda.json).
+- **Error inspection.** Four correct calls and six test errors with full routes, a zoom, distance profiles and TreeSHAP contributions. Identifiers in [inspection.json](results/routes/inspection.json). It changes no models or thresholds.
+- **`scripts/plot_val_errors.py`** plots the validation disagreements. Descriptive: validation took part in the selection, so it is not an independent error measurement.
+- **Road-network extension.** OpenStreetMap extracts via Geofabrik, a local OSRM engine and a directed distance graph. Exploratory, done after inspecting the test set, with the earlier splits and models left untouched. Durations come from a fixed profile with no traffic; the simplified graph does not encode turn restrictions. Reports in `results/routes_graph/`.
 
 ---
 
-## Reproducir
+## Reproducing
 
-Python 3.12. Desde la raíz del repositorio.
+Python 3.12. From the repository root.
 
 ```sh
 python3.12 -m venv .venv
@@ -164,45 +166,45 @@ source .venv/bin/activate
 python -m pip install -r requirements.txt
 ```
 
-Parte 1:
+Part 1:
 
 ```sh
-jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=900 01_fotografia_evaluacion_retrospectiva.ipynb
+jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.timeout=900 01_photography_experiment.ipynb
 ```
 
-Parte 2, en orden:
+Part 2, in order:
 
 ```sh
 python scripts/run_routes.py
 python scripts/audit_t2vec_reconstruction.py
-PYTHONPATH=src python -m rutas.t2vec_corrected
+PYTHONPATH=src python -m routes.t2vec_corrected
 python scripts/audit_t2vec_reconstruction.py --corrected
 python scripts/download_geofabrik.py
 python scripts/prepare_road_extract.py
 python scripts/start_local_osrm.py
-PYTHONPATH=src python -m rutas.graph_extension
+PYTHONPATH=src python -m routes.graph_extension
 python scripts/evaluate_graph_extension.py
-PYTHONPATH=src python -m rutas.pricing
-PYTHONPATH=src python -m rutas.conformal
+PYTHONPATH=src python -m routes.pricing
+PYTHONPATH=src python -m routes.conformal
 PYTHONPATH=src python scripts/benchmark_inference.py
 python scripts/build_routes_notebook.py
-python scripts/render_notebook.py 02_modelado_rutas.ipynb
+python scripts/render_notebook.py 02_route_modelling.ipynb
 PYTHONPATH=src python -m unittest discover -s tests -v
 docker stop cabify-challenge-osrm
 ```
 
-`scripts/render_notebook.py` acepta cualquiera de los dos notebooks y genera el HTML maquetado.
+`scripts/render_notebook.py` takes either notebook and produces the styled HTML.
 
-Para predecir una pareja nueva: `python scripts/predict_route.py pareja.json`, con los campos `estimated_route` y `real_route`, cada uno una lista de coordenadas `[latitud, longitud]`.
+To predict a new pair: `python scripts/predict_route.py pair.json`, with the fields `estimated_route` and `real_route`, each a list of `[latitude, longitude]` coordinates.
 
-**Notas prácticas.** El pipeline descarga el JSON público si falta. Los datos brutos, cachés y modelos se quedan fuera de Git. La ampliación viaria necesita Docker y varios GB de disco; el motor está fijado por digest en `scripts/start_local_osrm.py` y el servicio solo escucha en 127.0.0.1:5057, así que los trazados no salen de la máquina. Las URLs «latest» de Geofabrik cambian con el tiempo, de modo que conservar las cachés es lo único que garantiza reproducir exactamente esa cartografía. El pipeline original y la ampliación son independientes: `scripts/evaluate_graph_extension.py` comprueba los hashes registrados en `resultados/rutas_grafo/original_artifact_hashes.json` para asegurarse de que no se tocaron los modelos originales.
+**Practical notes.** The pipeline downloads the public JSON if it is missing. Raw data, caches and models stay out of Git. The road-network extension needs Docker and several GB of disk; the engine is pinned by digest in `scripts/start_local_osrm.py` and the service only listens on 127.0.0.1:5057, so traces never leave the machine. Geofabrik's "latest" URLs change over time, so keeping the caches is the only thing that guarantees reproducing that exact cartography. The original pipeline and the extension are independent: `scripts/evaluate_graph_extension.py` checks the hashes recorded in `results/routes_graph/original_artifact_hashes.json` to make sure the original models were left untouched.
 
-Mapas © OpenStreetMap contributors, bajo [ODbL](https://www.openstreetmap.org/copyright), distribuidos por [Geofabrik](https://download.geofabrik.de/).
+Maps © OpenStreetMap contributors, under [ODbL](https://www.openstreetmap.org/copyright), distributed by [Geofabrik](https://download.geofabrik.de/).
 
-## Lo que no está demostrado
+## What is not demonstrated
 
-- Que el modelo transfiera a una ciudad nueva. La partición es aleatoria y los trayectos comparten calles.
-- Que la asimetría favorable en euros se mantenga fuera de este archivo.
-- Que la garantía de la predicción conforme sea exacta. Exige intercambiabilidad y aquí es aproximada.
-- Que las cifras en euros sean las reales. Son tarifas de 2026 sobre viajes de 2021.
-- Nada de la Parte 1. Es un diseño con números hipotéticos, pendiente de validar disponibilidad de mercados, variabilidad histórica, participación e interferencia entre ciudades.
+- That the model transfers to a new city. The split is random and the trips share streets.
+- That the favourable asymmetry in euros holds outside this file.
+- That the conformal guarantee is exact. It requires exchangeability and here that only holds approximately.
+- That the euro figures are the real ones. They are 2026 fares applied to 2021 trips.
+- Anything in Part 1. It is a design with hypothetical numbers, pending validation of market availability, historical variability, participation and cross-city interference.

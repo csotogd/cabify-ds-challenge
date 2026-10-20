@@ -31,7 +31,7 @@ def region_of(route):
 def load_data():
     raw = ROOT/'data/raw/challenge_dataset.json'
     digest=hashlib.sha256(raw.read_bytes()).hexdigest()
-    prior_audit=ROOT/'resultados/rutas/audit.json'
+    prior_audit=ROOT/'results/routes/audit.json'
     if prior_audit.exists():
         expected=json.loads(prior_audit.read_text()).get('sha256')
         if expected and expected!=digest:
@@ -69,7 +69,7 @@ def load_data():
                          n_estimated=len(a), n_real=len(b)))
     df = pd.DataFrame(rows).set_index('journey_id')
     assert df.route_hash.is_unique, 'Duplicados de geometría: agruparlos antes de dividir.'
-    manifest = ROOT/'resultados/rutas/split.json'
+    manifest = ROOT/'results/routes/split.json'
     if manifest.exists():
         split = json.loads(manifest.read_text())
         assert set(split)==set(df.index), 'El dataset ha cambiado: no reutilizar el split.'
@@ -93,5 +93,5 @@ def load_data():
                  conflicted_journey_annotator_pairs=int(df.n_conflicted_annotators.sum()),
                  seed=SEED, split_policy='60/20/20 por journey_id, estratificado por estado inicial de etiqueta; se conserva tras deduplicar votos, antes de evaluar modelos.',
                  duplicate_policy='Un voto por anotador y viaje. Repeticiones idénticas colapsan; un voto decidido y una abstención conservan el decidido; decisiones contradictorias de la misma persona se consideran abstención.')
-    (ROOT/'resultados/rutas/audit.json').write_text(json.dumps(audit,indent=2,default=int))
+    (ROOT/'results/routes/audit.json').write_text(json.dumps(audit,indent=2,default=int))
     return df, routes

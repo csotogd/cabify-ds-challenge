@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from scipy.sparse import csr_matrix
-from rutas.graph_extension import weighted_overlap,to_target_distances,distance_summary,sample_observed,summarize_match
+from routes.graph_extension import weighted_overlap,to_target_distances,distance_summary,sample_observed,summarize_match
 
 
 class GraphMeaningTests(unittest.TestCase):

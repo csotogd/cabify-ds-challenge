@@ -50,7 +50,7 @@ def train_xgb(x,df,name,columns):
         score=soft_logloss(df.loc[val,'target_soft'].values,model.predict(x[val]))
         trials.append(dict(config=cfg,val_soft_logloss=score,best_iteration=int(model.best_iteration)))
         if score<best:best=score;chosen=model
-    chosen.save_model(ROOT/f'modelos/rutas/{name}.ubj')
+    chosen.save_model(ROOT/f'models/routes/{name}.ubj')
     return chosen.predict(x),dict(trials=trials,val_soft_logloss=best,seconds=time.perf_counter()-start,
                                   feature_importance=dict(zip(columns,map(float,chosen.feature_importances_))))
 
@@ -95,14 +95,14 @@ def train_head(x,df,save_path=None):
     best_model.eval()
     with torch.no_grad():pred=torch.sigmoid(best_model(xx)).numpy()
     torch.save(dict(state=best_model.state_dict(),scaler_mean=scaler.mean_,scaler_scale=scaler.scale_),
-               save_path or ROOT/'modelos/rutas/t2vec_head.pt')
+               save_path or ROOT/'models/routes/t2vec_head.pt')
     return pred,dict(trials=trials,val_soft_logloss=best,seconds=time.perf_counter()-start)
 
 def run():
     df,_=load_data();features=build_features().loc[df.index]
     emb_file=ROOT/'data/cache/t2vec_embeddings.npz'
     if not emb_file.exists():raise RuntimeError('Ejecuta primero el preentrenamiento t2vec.')
-    encoder_manifest=json.loads((ROOT/'resultados/rutas/t2vec_manifest.json').read_text())
+    encoder_manifest=json.loads((ROOT/'results/routes/t2vec_manifest.json').read_text())
     encoder_ids=set(encoder_manifest['pretrained_on_journeys'])|set(encoder_manifest['inner_validation_journeys'])
     assert encoder_ids==set(df.index[df.split=='train']), 'El encoder no corresponde a esta partición.'
     emb=np.load(emb_file);embeddings=dict(zip(emb['ids'],emb['vectors']))
@@ -117,7 +117,7 @@ def run():
                   primary_test_metric='balanced_accuracy',no_retraining_on_train_plus_val=True,
                   planned_models=['geometria_base','vector_interpretable','t2vec_decoder_clasificador','hibrido_vector_t2vec'],
                   bootstrap='2000 remuestreos emparejados por viaje del test; IC percentil 95%; no incluye incertidumbre del entrenamiento',seed=SEED)
-    (ROOT/'resultados/rutas/protocol.json').write_text(json.dumps(protocol,indent=2))
+    (ROOT/'results/routes/protocol.json').write_text(json.dumps(protocol,indent=2))
     outputs={};details={}
     for name,cols in [('geometria_base',BASE_FEATURES),('vector_interpretable',list(features))]:
         print('Entrenando',name,flush=True)
@@ -132,7 +132,7 @@ def run():
     thresholds={name:choose_threshold(df.loc[valid,'target_hard'].values,p[valid]) for name,p in outputs.items()}
     selected=min(details,key=lambda n:details[n]['val_soft_logloss'])
     frozen=dict(selected=selected,thresholds=thresholds,validation_results={n:d['val_soft_logloss'] for n,d in details.items()})
-    (ROOT/'resultados/rutas/frozen_selection.json').write_text(json.dumps(frozen,indent=2))
+    (ROOT/'results/routes/frozen_selection.json').write_text(json.dumps(frozen,indent=2))
     # A partir de aquí se abre test. No se reajusta arquitectura, pesos ni umbral.
     print('Selección congelada:',selected,'; se evalúa test una vez.',flush=True)
     test=(df.split=='test')&df.target_hard.notna();y=df.loc[test,'target_hard'].values
@@ -168,7 +168,7 @@ def run():
                                 n_votes=int(row.n_votes),probabilities={n:float(p[i]) for n,p in outputs.items()}))
     for filename,value in [('metrics.json',all_metrics),('training_details.json',details),
                            ('comparisons.json',comparisons),('predictions.json',predictions)]:
-        (ROOT/'resultados/rutas'/filename).write_text(json.dumps(value,indent=2))
+        (ROOT/'results/routes'/filename).write_text(json.dumps(value,indent=2))
     print(json.dumps(all_metrics,indent=2),flush=True)
 
 if __name__=='__main__':run()

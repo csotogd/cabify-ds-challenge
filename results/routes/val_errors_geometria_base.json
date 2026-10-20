@@ -6,7 +6,7 @@
   "n_decisive": 443,
   "n_mismatches": 21,
   "n_false_positives": 4,
-  "figure": "figuras/rutas/12_errores_validacion_geometria_base.png",
+  "figure": "figures/routes/12_errores_validacion_geometria_base.png",
   "cases": [
     {
       "journey_id": "f1a50bdb-54b2-11ec-9a5a-71384aadcdc0",

@@ -9,7 +9,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "data/cache/geofabrik"
-REPORT = ROOT / "resultados/rutas_grafo"
+REPORT = ROOT / "results/routes_graph"
 SOURCES = {
     "madrid": "europe/spain/madrid",
     "spain": "europe/spain",

@@ -100,7 +100,7 @@ def build_features():
     out=pd.DataFrame.from_dict(rows,orient='index')
     assert np.isfinite(out.to_numpy()).all()
     path.write_text(json.dumps(rows))
-    (ROOT/'resultados/rutas/geometry_manifest.json').write_text(json.dumps(dict(
+    (ROOT/'results/routes/geometry_manifest.json').write_text(json.dumps(dict(
         n_features=len(out.columns),features=list(out.columns),baseline=BASE_FEATURES,
         seconds=time.perf_counter()-start,units='metros en proyección azimutal local por pareja',
         mean_sampling='puntos medios equiespaciados en longitud: 20 m, mínimo 16 y máximo 1600',

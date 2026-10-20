@@ -2,8 +2,8 @@ import sys,unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))
 import numpy as np
-from rutas.features import features_xy
-from rutas.data import load_data
+from routes.features import features_xy
+from routes.data import load_data
 
 class GeometryTests(unittest.TestCase):
     def test_identical_and_sampling_invariance(self):
@@ -35,8 +35,8 @@ class GeometryTests(unittest.TestCase):
 
     def test_encoder_training_excludes_validation_and_test(self):
         import json
-        from rutas.data import ROOT
-        path=ROOT/'resultados/rutas/t2vec_manifest.json'
+        from routes.data import ROOT
+        path=ROOT/'results/routes/t2vec_manifest.json'
         if not path.exists():self.skipTest('Preentrenamiento pendiente')
         manifest=json.loads(path.read_text());df,_=load_data()
         fit=set(manifest['pretrained_on_journeys']);inner=set(manifest['inner_validation_journeys'])
@@ -45,8 +45,8 @@ class GeometryTests(unittest.TestCase):
 
     def test_prediction_probabilities_are_valid(self):
         import json
-        from rutas.data import ROOT
-        path=ROOT/'resultados/rutas/predictions.json'
+        from routes.data import ROOT
+        path=ROOT/'results/routes/predictions.json'
         if not path.exists():self.skipTest('Entrenamiento pendiente')
         rows=json.loads(path.read_text());self.assertEqual(len(rows),2386)
         for row in rows:

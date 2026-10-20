@@ -58,7 +58,7 @@ La división compara el sobrecoste relativo; también conservamos los valores in
 
 Esta ampliación se propuso después de inspeccionar el test original. Se congeló un nuevo protocolo antes de obtener sus resultados y se mantuvieron los mismos viajes. Sus métricas de test son **exploratorias**, no una confirmación independiente de una mejora.
 '''),nbf.v4.new_code_cell(r'''
-RG=ROOT/'resultados/rutas_grafo'
+RG=ROOT/'results/routes_graph'
 def read_graph(name):return json.loads((RG/name).read_text())
 graph_manifest=read_graph('feature_manifest.json')
 extract_manifest=read_graph('extract_manifest.json')

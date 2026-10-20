@@ -12,11 +12,11 @@ from shapely.geometry import box
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
-from rutas.data import load_data
+from routes.data import load_data
 
 CACHE=ROOT/'data/cache/geofabrik'
 OUT=ROOT/'data/cache/roads'
-REPORT=ROOT/'resultados/rutas_grafo'
+REPORT=ROOT/'results/routes_graph'
 COUNTRIES=['spain','colombia','argentina','chile','peru','ecuador','uruguay','mexico']
 
 

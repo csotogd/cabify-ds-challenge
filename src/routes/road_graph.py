@@ -62,7 +62,7 @@ def audit_graph():
                 no_road_features_in_trained_models=True)
     if g:
         report['fraction_edges_with_imputed_speed']=float(np.mean([d['imputed_speed'] for _,_,d in g.edges(data=True)]))
-    (ROOT/'resultados/rutas/road_graph_status.json').write_text(json.dumps(report,indent=2))
+    (ROOT/'results/routes/road_graph_status.json').write_text(json.dumps(report,indent=2))
     print(json.dumps(report,indent=2))
     return g,report
 
