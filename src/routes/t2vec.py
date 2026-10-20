@@ -1,7 +1,7 @@
-"""t2vec reducido: celdas espaciales, GRU y decoder con pérdida espacial muestreada.
+"""Reduced t2vec: spatial cells, GRU and a decoder with a sampled spatial loss.
 
-Adaptación explícita de Li et al. (ICDE 2018), no reproducción exacta de sus
-hiperparámetros/resultados. No usa etiquetas humanas durante el preentrenamiento.
+An explicit adaptation of Li et al. (ICDE 2018), not an exact reproduction of their
+hyperparameters or results. It uses no human labels during pretraining.
 """
 import copy
 import json
@@ -125,12 +125,12 @@ def train_encoder(df,routes,epochs=12):
     ids=list(df.index[df.split=='train'])
     rng=np.random.default_rng(SEED)
     rng.shuffle(ids)
-    # Validación del preentrenamiento interna a train; se agrupa por viaje.
+    # Pretraining validation lives inside train; grouped by journey.
     n_inner=max(1,round(.1*len(ids)))
     fit_ids,inner_ids=ids[n_inner:],ids[:n_inner]
     train_routes=[r for j in fit_ids for r in routes[j]]
     inner_routes=[r for j in inner_ids for r in routes[j]]
-    # Incluso el vocabulario se aprende únicamente en el subconjunto de ajuste.
+    # Even the vocabulary is learned only on the fitting subset.
     vocab=SpatialVocabulary().fit(train_routes)
     model=EncoderDecoder(vocab.size)
     optimizer=torch.optim.AdamW(model.parameters(),lr=.002,weight_decay=1e-4)
@@ -160,7 +160,7 @@ def train_encoder(df,routes,epochs=12):
         model.train();loss=batches(train_routes,targets,True,epoch)
         model.eval();valid=batches(inner_routes,inner_targets,False,epoch)
         history.append(dict(epoch=epoch+1,train_loss=loss,inner_validation_loss=valid))
-        print(f't2vec época {epoch+1}: {loss:.3f} / {valid:.3f}',flush=True)
+        print(f't2vec epoch {epoch+1}: {loss:.3f} / {valid:.3f}',flush=True)
         if valid<best-1e-4:
             best=valid;best_state=copy.deepcopy(model.state_dict());stale=0
         else:stale+=1
@@ -185,8 +185,8 @@ def train_encoder(df,routes,epochs=12):
     manifest=dict(history=history,vocab_size=vocab.size,cell_m=CELL_M,embedding_dim=64,
                   pretrained_on_journeys=fit_ids,inner_validation_journeys=inner_ids,
                   seconds=time.perf_counter()-start,oov_by_split={s:float(np.mean([oov[j] for j in df.index[df.split==s]])) for s in ['train','val','test']},
-                  oov_policy='Celda no vista se asocia al centroide train más próximo; no se expande vocabulario.',
-                  adaptation='GRU bidireccional 32 por dirección, decoder GRU 64, celdas UTM 250m, K=8 vecinos, 64 negativos por token, pérdida espacial con normalizador muestreado. Sin preentrenamiento separado de celdas. No reproducción exacta del paper.',
+                  oov_policy='An unseen cell is mapped to the nearest training centroid; the vocabulary is not expanded.',
+                  adaptation='Bidirectional GRU, 32 per direction; GRU decoder 64; 250 m UTM cells; K=8 neighbours; 64 negatives per token; spatial loss with a sampled normaliser. No separate cell pretraining. Not an exact reproduction of the paper.',
                   source='https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf')
     (ROOT/'results/routes/t2vec_manifest.json').write_text(json.dumps(manifest,indent=2))
     return embeddings

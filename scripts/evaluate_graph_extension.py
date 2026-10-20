@@ -41,7 +41,7 @@ def main():
     (REPORT/'frozen_selection.json').write_text(json.dumps(dict(selected_new_variant=selected,
         validation_results={k:v['val_soft_logloss'] for k,v in details.items()},thresholds=thresholds,
         original_selection_unchanged='geometria_base',test_is_exploratory=True),indent=2))
-    print('Congelado en validación:',selected,flush=True)
+    print('Frozen on validation:',selected,flush=True)
     # Only now access test labels/predictions for evaluation of new models.
     test=(df.split=='test')&df.target_hard.notna();softtest=(df.split=='test')&df.target_soft.notna()
     original=pd.DataFrame(json.loads((ROOT/'results/routes/predictions.json').read_text())).set_index('journey_id').loc[df.index]

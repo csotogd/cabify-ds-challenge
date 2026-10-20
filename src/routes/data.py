@@ -35,7 +35,7 @@ def load_data():
     if prior_audit.exists():
         expected=json.loads(prior_audit.read_text()).get('sha256')
         if expected and expected!=digest:
-            raise ValueError('El dataset ha cambiado. No reutilizar particiones, cachés o modelos del benchmark anterior.')
+            raise ValueError('The dataset has changed. Do not reuse splits, caches or models from the previous benchmark.')
     records = json.loads(raw.read_text())
     grouped = defaultdict(list)
     for row in records:
@@ -46,7 +46,7 @@ def load_data():
         for r in annotations:
             assert r['estimated_route'] == first['estimated_route']
             assert r['real_route'] == first['real_route']
-        # Una persona tiene un voto por viaje, aunque figure varias veces.
+        # One person gets one vote per journey, even if they appear several times.
         by_annotator=defaultdict(set)
         for r in annotations: by_annotator[r['annotator']].add(r['annotation'])
         votes=[];conflicted=0
@@ -68,13 +68,13 @@ def load_data():
                          status=status, region=region_of(b), route_hash=route_hash,
                          n_estimated=len(a), n_real=len(b)))
     df = pd.DataFrame(rows).set_index('journey_id')
-    assert df.route_hash.is_unique, 'Duplicados de geometría: agruparlos antes de dividir.'
+    assert df.route_hash.is_unique, 'Duplicate geometries: group them before splitting.'
     manifest = ROOT/'results/routes/split.json'
     if manifest.exists():
         split = json.loads(manifest.read_text())
         assert set(split)==set(df.index), 'El dataset ha cambiado: no reutilizar el split.'
     else:
-        # Exactamente 1.432 / 477 / 477 para el archivo disponible.
+        # Exactly 1,432 / 477 / 477 for the available file.
         n_holdout = round(.2*len(df))
         train, rest = train_test_split(df.index, test_size=2*n_holdout, random_state=SEED,
                                       stratify=df.status)
@@ -92,6 +92,6 @@ def load_data():
                  duplicated_journey_annotator_records=len(records)-int(df.n_unique_annotators.sum()),
                  conflicted_journey_annotator_pairs=int(df.n_conflicted_annotators.sum()),
                  seed=SEED, split_policy='60/20/20 por journey_id, estratificado por estado inicial de etiqueta; se conserva tras deduplicar votos, antes de evaluar modelos.',
-                 duplicate_policy='Un voto por anotador y viaje. Repeticiones idénticas colapsan; un voto decidido y una abstención conservan el decidido; decisiones contradictorias de la misma persona se consideran abstención.')
+                 duplicate_policy='One vote per annotator and journey. Identical repeats collapse; a decided vote plus an abstention keeps the decision; contradictory decisions from the same person count as an abstention.')
     (ROOT/'results/routes/audit.json').write_text(json.dumps(audit,indent=2,default=int))
     return df, routes

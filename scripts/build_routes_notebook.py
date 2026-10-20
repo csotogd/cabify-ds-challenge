@@ -16,7 +16,7 @@ md(r"""
 > ### In six lines
 >
 > 1. **Simple geometry is enough.** Eight measurements and an XGBoost give 94.3 % balanced accuracy on test. A 42-variable vector, a t2vec adaptation and a hybrid do not improve on that in any defensible way: their paired confidence intervals include zero.
-> 2. **The limit is not the model, it is the label.** 83 % of journeys are judged by a single person, and the panel is eight annotators with different criteria: one marks «they differ» 65 % of the time and another 40 %. The model agrees 98 % with the lenient annotator and 88 % with the strict one. It has learned a particular threshold, not a truth.
+> 2. **The limit is not the model, it is the label.** 83 % of journeys are judged by a single person, and the panel is eight annotators with different criteria: one marks "they differ" 65 % of the time and another 40 %. The model agrees 98 % with the lenient annotator and 88 % with the strict one. It has learned a particular threshold, not a truth.
 > 3. **Translated into money, the median deviation is 11 cents** on an average fare of €4.63. That sounds small until you compare it with the margin: Cabify closed 2025 with 3.3 % EBITDA, so **almost half of all journeys deviate by more than that journey leaves in profit**.
 > 4. **The model catches 90.2 % of the cases but recovers 97.4 % of the money:** it fails on the cheap trips. Accuracy understates what it does.
 > 5. **The error can be turned into a lever.** With conformal prediction, sending 6 % of journeys to human review brings the automated error down from 6.3 % to 1.9 %; 13 % brings it to 0.5 %. The business picks the point.
@@ -39,7 +39,7 @@ The path of the analysis is: understand the votes → build representations → 
 | Reduced t2vec with corrected loss + classifier | The same architecture and vector comparison, retrained with a fully normalised objective | Fix the handling of the end-of-sequence token and evaluate reconstruction and classification separately | It still needs data and adequate resolution; documented as a new experiment |
 | Road graph and travel times + XGBoost, alone and with geometry | Street variables, connectivity, estimated times and map-match quality | Separate geometric closeness from connectivity and cost of driving | Current map, approximations and uncertain matches; exploratory comparison made after the original test |
 
-**These are not just difference vectors.** The baseline already keeps the individual lengths; t2vec keeps both full embeddings in addition to their comparison. We have not run an ablation of «concatenation only» against «differences only»: answering that would require testing it on validation.
+**These are not just difference vectors.** The baseline already keeps the individual lengths; t2vec keeps both full embeddings in addition to their comparison. We have not run an ablation of "concatenation only" against "differences only": answering that would require testing it on validation.
 
 > The results that follow come from the real challenge file. They are not simulations. The estimates for the photography experiment belong to the previous notebook.
 
@@ -98,8 +98,8 @@ We apply a rule that predates training:
 
 1. An annotator counts at most once per journey.
 2. Their identical repeated answers collapse into one.
-3. If they combine «I don't know» with a single decision, we keep the decision.
-4. If the same person says both «the same» and «they differ», their vote is undetermined.
+3. If they combine "I don't know" with a single decision, we keep the decision.
+4. If the same person says both "the same" and "they differ", their vote is undetermined.
 5. Across different people, we keep the disagreement instead of inventing certainty.
 
 We find **123 additional records for the same annotator-journey pair**, with seven contradictory annotator-journey pairs. This does not mean the remaining votes are objective truth.
@@ -125,7 +125,7 @@ display(pd.crosstab(df.split,df.status).rename(columns={'same':'The same','diffe
 md(r"""
 ### 1.1 Are there no nulls, or are there no data problems?
 
-Those are different questions. First we check the original file: missing fields, null JSON values and empty contents. Then we look inside the coordinate lists. A field called «route» can exist and still not contain a usable trajectory.
+Those are different questions. First we check the original file: missing fields, null JSON values and empty contents. Then we look inside the coordinate lists. A field called "route" can exist and still not contain a usable trajectory.
 
 Each point must have two finite numbers in the order **[latitude, longitude]**, with latitude between −90 and 90 and longitude between −180 and 180. The route also needs at least two distinct positions. Passing these checks guarantees neither GPS accuracy nor that the trace follows a road.
 
@@ -216,7 +216,7 @@ train_features=features.loc[train_ids].join(df[['status','n_unique_annotators','
 md(r"""
 **Reading:** we find no missing fields, nulls, empty routes or invalid coordinates under these rules. Nor are there missing or infinite values in the computed features. So this file **needs no numerical imputation**.
 
-There is, however, missing supervised information: **139 journeys with no valid vote** and **31 ties**. In total, 170 journeys have no defined binary majority. «I don't know» is a valid human answer, not a null and not a «the same» vote. We do not fill it with the most frequent class. Later on we define how to use the votes we do have.
+There is, however, missing supervised information: **139 journeys with no valid vote** and **31 ties**. In total, 170 journeys have no defined binary majority. "I don't know" is a valid human answer, not a null and not a "the same" vote. We do not fill it with the most frequent class. Later on we define how to use the votes we do have.
 
 Variables the schema never contains are missing too: **per-point timestamps, observed duration and a route validated against the road network**. The absence of nulls does not create that information.
 """)
@@ -477,9 +477,9 @@ md(r"""
 ### 1.5 How many people hold up each label?
 
 The previous subsection counted **people who looked at** each journey. Here we count **decided votes**: abstentions
-(«I don't know») and annotators who contradict themselves do not add up. This is the number that actually holds up each label.
+("I don't know") and annotators who contradict themselves do not add up. This is the number that actually holds up each label.
 
-It matters because the word «majority» suggests a panel and here there almost never is one. A journey with a single vote has a
+It matters because the word "majority" suggests a panel and here there almost never is one. A journey with a single vote has a
 label every bit as binary as one with three, but **we cannot know whether a second person would have agreed**.
 That difference shows up in no aggregate metric; we recover it in section 8.4.
 """)
@@ -495,7 +495,7 @@ for i,v in enumerate(votes_total.values):
     axs[0].text(i,v*.5 if v>200 else v+150,f'{v/len(df):.0%}',ha='center',fontsize=9,
                 color='white' if v>200 else MUTED)
 axs[0].set_ylim(0,votes_total.max()*1.18)
-axs[0].set(xlabel='Decided votes per journey · excluding «unsure» answers and contradictions',ylabel='Journeys')
+axs[0].set(xlabel='Decided votes per journey · excluding "unsure" answers and contradictions',ylabel='Journeys')
 axs[0].set_title('Three in four labels rest on one person')
 rows=votes_status.loc[[1,2,3]] if 3 in votes_status.index else votes_status
 share=rows.div(rows.sum(axis=1),axis=0)*100
@@ -521,7 +521,7 @@ display(Markdown(
     f'agreement between people is **unobservable**. Among the {miles(multi)} with two or more, {ties} end in a tie '
     f'({ties/multi:.1%}), y {int(df.n_conflicted_annotators.sum())} anotadores se contradicen sobre un mismo viaje. '
     f'There are also {miles(int(df.n_unknown.sum()))} abstentions spread over {miles(int((df.n_unknown>0).sum()))} journeys. '
-    'The brief explicitly asks for an assessment «according to their own perception»: there is no fixed criterion for '
+    'The brief explicitly asks for an assessment "according to their own perception": there is no fixed criterion for '
     'how many metres of detour make two routes different. The disagreement is a property of the problem, '
     'not a defect of the data.'))
 """)
@@ -552,8 +552,8 @@ for ann in sorted({row['annotator'] for row in raw_records}):
     counts=Counter(row['annotation'] for row in mine)
     annotator_rows.append({'Anotador':ann,'Annotations':len(mine),'Journeys':len(journeys),
         'Only annotator':sole,'Alongside others':len(journeys)-sole,
-        '% «they differ»':100*counts['They differ']/len(mine),
-        '% «unsure»':100*counts["I don't know"]/len(mine),
+        '% "they differ"':100*counts['They differ']/len(mine),
+        '% "unsure"':100*counts["I don't know"]/len(mine),
         'Self-contradictions':conflicted})
 panel=pd.DataFrame(annotator_rows).set_index('Anotador')
 
@@ -600,14 +600,14 @@ for i in range(len(people)):
         else: axs[1].text(j,i,f'{matrix[i,j]:.0f}',ha='center',va='center',fontsize=9,
                           color='white' if matrix[i,j]>92 else INK)
 axs[1].set(xlabel='Anotador',ylabel='Anotador')
-axs[1].set_title(f'Agreement when they overlap · % · «·» = fewer than {MIN_PAIRS} journeys')
+axs[1].set_title(f'Agreement when they overlap · % · "·" = fewer than {MIN_PAIRS} journeys')
 fig.colorbar(im,ax=axs[1],fraction=.046,label='Acuerdo · %')
 finish(fig,'eda_06_panel_anotadores',
        'Whole file · agreement computed only over journeys both voted on decisively')
 
-display(panel[['Annotations','Journeys','Only annotator','% «they differ»','% «unsure»','Self-contradictions']]
-        .style.format({'% «they differ»':'{:.1f} %','% «unsure»':'{:.1f} %'}))
-display(Markdown('**Agreement discounting chance.** Two people who say «they differ» most of the time will agree a lot '
+display(panel[['Annotations','Journeys','Only annotator','% "they differ"','% "unsure"','Self-contradictions']]
+        .style.format({'% "they differ"':'{:.1f} %','% "unsure"':'{:.1f} %'}))
+display(Markdown('**Agreement discounting chance.** Two people who say "they differ" most of the time will agree a lot '
  'without sharing a criterion. Kappa corrects for that: 1 is perfect agreement, 0 is what chance would give.'))
 display(kappa.style.format({'Acuerdo':'{:.1f} %','Kappa de Cohen':'{:.3f}'}))
 """)
@@ -618,23 +618,23 @@ md(r"""
 Adding the three most active (2, 7 and 1) reaches 1,335 of the 1,897 single-annotator journeys. At the other end,
 annotator 5 made 21 annotations.
 
-**And personal criteria differ.** Annotator 1 marks «they differ» 65 % of the time; annotator 7, 39.7 %. That is
+**And personal criteria differ.** Annotator 1 marks "they differ" 65 % of the time; annotator 7, 39.7 %. That is
 25 points of difference between two people who saw nearly 500 and more than 600 journeys respectively. It is not a small
 sample nor a coincidence: it is a different tolerance threshold.
 
 That gap is confirmed when we cross them. Among the pairs with enough shared journeys, **1 and 7 are precisely the ones who
-agree least: 82.6 % over 46 journeys**, while other pairs reach 94-100 %. Cells marked with «·»
+agree least: 82.6 % over 46 journeys**, while other pairs reach 94-100 %. Cells marked with "·"
 have fewer than 15 journeys in common and are not interpreted; with 4 or 8 comparisons, a 100 % means nothing.
 
-**The consequence for the model.** The target is not «do these routes look alike?» but «would this particular person say
-they look alike?». In 80 % of cases that person is a single one, and with high probability it is annotator 2 or 7.
+**The consequence for the model.** The target is not "do these routes look alike?" but "would this particular person say
+they look alike?". In 80 % of cases that person is a single one, and with high probability it is annotator 2 or 7.
 The model learns, in part, **their** tolerance threshold. If the panel changes tomorrow, the target changes, and the accuracy
 measured here does not transfer automatically.
 
-**Raw agreement overstates the case**, because two people who say «they differ» most of the time will coincide a lot
+**Raw agreement overstates the case**, because two people who say "they differ" most of the time will coincide a lot
 without sharing a criterion. Cohen's kappa discounts that expected coincidence and ranks the pairs
 differently: 1 and 7 drop to **0.66**, and 1 and 8 to **0.63**, against several pairs above 0.87. These are values
-usually described as «substantial» agreement, not «almost perfect»: there is a shared criterion, but with real slack.
+usually described as "substantial" agreement, not "almost perfect": there is a shared criterion, but with real slack.
 
 This reinforces what §1.5 and §8.4 already said from another angle: the dominant limitation of this prototype is not the
 model's capacity, but **how many people hold up each label and with what criterion**. §8.6 closes the
@@ -703,9 +703,9 @@ md(r"""
 
 For a journey $j$, we use
 
-$$p_j=\frac{\text{valid annotators saying «they differ»}}{\text{valid annotators who make a decision}}.$$
+$$p_j=\frac{\text{valid annotators saying "they differ"}}{\text{valid annotators who make a decision}}.$$
 
-If two people say «they differ» and one says «the same», the target is $2/3$. We do not claim this is the physical probability that the routes are different: it is an estimate of this panel's judgement. With a single vote there is uncertainty too, even though $p_j$ is 0 or 1.
+If two people say "they differ" and one says "the same", the target is $2/3$. We do not claim this is the physical probability that the routes are different: it is an estimate of this panel's judgement. With a single vote there is uncertainty too, even though $p_j$ is 0 or 1.
 
 We train with cross-entropy against $p_j$, with **equal weight per journey**. Ties contribute a target of 0.5. Journeys with no valid votes contribute no supervised loss; their training routes can still take part in unlabelled pretraining.
 
@@ -751,7 +751,7 @@ $$\Delta L_{\mathrm{rel}}=\frac{L_{\mathrm{real}}-L_{\mathrm{estimated}}}{(L_{\m
 
 We keep absolute and relative values. IoU is already normalised; we do not divide it by length again.
 
-**Where does XGBoost learn?** These measurements are computed without learning from the labels. Afterwards, the model combines decision trees learned from the votes: a 50-metre separation can be read differently depending on length, endpoints and the other variables. We do not hand-impose a single rule of «if it exceeds 50 metres, they are different».
+**Where does XGBoost learn?** These measurements are computed without learning from the labels. Afterwards, the model combines decision trees learned from the votes: a 50-metre separation can be read differently depending on length, endpoints and the other variables. We do not hand-impose a single rule of "if it exceeds 50 metres, they are different".
 
 > Sharing all the points does not imply traversing them in the same order. Hausdorff and IoU can ignore that difference; Fréchet adds ordering information. Their discrete versions are approximations, not exact measurements of a continuous curve.
 """)
@@ -810,7 +810,7 @@ It is worth laying out the three components before going further:
 |---|---|---|---|
 | Encoder | One route, expressed as a sequence of cells | A vector of 64 numbers | Summarise the route |
 | Reconstruction decoder | That vector and the context of previous cells | Predictions of successive cells, including END | Provide a signal to train the encoder |
-| Pair classifier | The two vectors and their comparisons | Probability of «they differ» | Solve the challenge task |
+| Pair classifier | The two vectors and their comparisons | Probability of "they differ" | Solve the challenge task |
 
 **The decoder is not the classifier.** It is trained in the first phase and takes no part in the final label prediction.
 
@@ -824,7 +824,7 @@ In our case points are removed: no `[MASK]` symbol is left marking where they ar
 
 The task forces it to preserve useful patterns despite noise and irregular sampling. It is no guarantee of recovering streets we never observed: if several routes explain the surviving points, the model can get it wrong. Proximity between cells informs about geography, not about bridges, one-way streets or road connections.
 
-### 5.3 What «penalising by distance» means
+### 5.3 What "penalising by distance" means
 
 Suppose the next point corresponds to cell B. Predicting an adjacent cell and predicting one several kilometres away should not be treated exactly the same. In our implementation the target is spread across eight nearby cells:
 
@@ -847,13 +847,13 @@ We implement a **reduced adaptation**, not an exact reproduction of their archit
 
 The model has smaller dimensions, a different grid and projection, 12 epochs as a maximum budget, and does not include the paper's separate cell pretraining. It uses teacher forcing in the decoder. The sampled reconstruction loss serves as a diagnostic, not as an exact log likelihood over the full vocabulary.
 
-**There are two different outputs:** the pretraining decoder reconstructs trajectories; the supervised head produces the probability of «they differ».
+**There are two different outputs:** the pretraining decoder reconstructs trajectories; the supervised head produces the probability of "they differ".
 
 We do not use the estimated and real routes as a positive pair during pretraining: they might be precisely the ones that differ.
 
 The vocabulary and encoder weights are learned from **2,578 trajectories across 1,289 training journeys**; another 143 training journeys serve as internal validation for this phase. Each trace is capped at 64 points before discretising. The encoder uses 32-component cell embeddings and a bidirectional GRU with 32 units per direction: the result is 64 components per route. The paper includes a cell pretraining step that is omitted here. The [original repository](https://github.com/boathit/t2vec) makes it possible to tell the published implementation apart from this adaptation.
 
-Those 64 numbers **are not 64 measurements with known names**. The model decides how to spread information across them. That is why we cannot point at one component and claim it represents «the maximum detour». Our geometric vector does have that interpretability, because we defined it explicitly.
+Those 64 numbers **are not 64 measurements with known names**. The model decides how to spread information across them. That is why we cannot point at one component and claim it represents "the maximum detour". Our geometric vector does have that interpretability, because we defined it explicitly.
 
 ### 5.5 From one route's vector to a decision about two routes
 
@@ -869,7 +869,7 @@ The encoder stays frozen: we learn $\phi$, the head's weights, without modifying
 
 ### 5.6 What the experiment allows us to conclude
 
-Our variant gets worse metrics than the geometric measurements. This evaluates that specific configuration. Corpus size, the 250-metre resolution, the training budget and unseen cells are possible explanations, not demonstrated causes. Separating them would require controlled ablations. Nor have we compared «concatenation only» against «differences only»; our input contains both.
+Our variant gets worse metrics than the geometric measurements. This evaluates that specific configuration. Corpus size, the 250-metre resolution, the training budget and unseen cells are possible explanations, not demonstrated causes. Separating them would require controlled ablations. Nor have we compared "concatenation only" against "differences only"; our input contains both.
 """)
 
 code("""
@@ -1045,18 +1045,18 @@ This section describes the original four-model experiment. The later road-networ
 
 **Threshold selection:** highest balanced accuracy on validation, scanning 0.10–0.90 in steps of 0.01; ties favour the threshold closest to 0.5. We assume neither that 0.5 is optimal nor that the errors have known business costs.
 
-Balanced accuracy is the average of the proportion of «the same» and «they differ» correctly recognised. It stops a majority class from dominating the figure.
+Balanced accuracy is the average of the proportion of "the same" and "they differ" correctly recognised. It stops a majority class from dominating the figure.
 
-The positive class is **«they differ»**. It is worth separating three questions:
+The positive class is **"they differ"**. It is worth separating three questions:
 
 | Question | Metric and reading |
 |---|---|
 | How many decisions do we get right at the fixed threshold? | **Accuracy:** fraction correct. **Balanced accuracy:** mean recall over both classes. Higher is better. |
-| How does the «they differ» alert behave? | **Precision:** of the alerts raised, how many match the human majority. **Recall:** of the genuinely different journeys, how many we catch. **F1:** their harmonic mean. Higher is better. |
-| Do we rank cases well without fixing a single threshold? | **ROC-AUC:** class separation across thresholds. **AP:** a summary of precision and recall for «they differ»; it depends on prevalence. Higher is better. |
+| How does the "they differ" alert behave? | **Precision:** of the alerts raised, how many match the human majority. **Recall:** of the genuinely different journeys, how many we catch. **F1:** their harmonic mean. Higher is better. |
+| Do we rank cases well without fixing a single threshold? | **ROC-AUC:** class separation across thresholds. **AP:** a summary of precision and recall for "they differ"; it depends on prevalence. Higher is better. |
 | Are the probabilities reasonable? | **Brier:** squared error against the binary majority. **Binary log loss:** penalises confident errors especially. **Vote log loss:** uses the proportion of votes, ties included. Lower is better. |
 
-To see the difference between the two losses, let $q_j$ be the model's probability and $p_j$ the fraction of «they differ» votes:
+To see the difference between the two losses, let $q_j$ be the model's probability and $p_j$ the fraction of "they differ" votes:
 
 $$\mathrm{LL}_{\text{votes}}=-\frac{1}{N}\sum_j[p_j\log q_j+(1-p_j)\log(1-q_j)].$$
 
@@ -1148,12 +1148,12 @@ These figures depend on the chosen human target. The probabilities are not objec
 
 From here on, every route we inspect is from **test** and every prediction comes from **basic geometry + XGBoost**, at threshold **0.75**. The earlier training examples were there to explain the measurements; these are here to audit the final result.
 
-| | The model says «the same» | The model says «they differ» |
+| | The model says "the same" | The model says "they differ" |
 |---|---|---|
-| The majority says «the same» | **185 correct — TN** | **3 false alarms — FP** |
-| The majority says «they differ» | **25 missed differences — FN** | **230 correct — TP** |
+| The majority says "the same" | **185 correct — TN** | **3 false alarms — FP** |
+| The majority says "they differ" | **25 missed differences — FN** | **230 correct — TP** |
 
-«Error» means disagreement with the available majority, which is often **a single person**. It does not mean we have demonstrated the trip is objectively the same or different. Telling a model error apart from a debatable label would require additional review.
+"Error" means disagreement with the available majority, which is often **a single person**. It does not mean we have demonstrated the trip is objectively the same or different. Telling a model error apart from a debatable label would require additional review.
 """)
 
 code("""
@@ -1176,7 +1176,7 @@ axs[1].plot([0,1],[0,1],ls='--',color=MUTED);axs[1].plot(xs,ys,'o-',color=TEAL)
 for a,b,n in zip(xs,ys,ns):
     offset=(-18,-18) if a>.9 else (5,9)
     axs[1].annotate(f'n={n}',(a,b),xytext=offset,textcoords='offset points',fontsize=9)
-axs[1].set_xlabel('Probabilidad media predicha');axs[1].set_ylabel('Fraction of «they differ» majorities')
+axs[1].set_xlabel('Probabilidad media predicha');axs[1].set_ylabel('Fraction of "they differ" majorities')
 axs[1].set_title('Descriptive calibration · bins of 0.2')
 finish(fig,'08_errores_y_calibracion')
 """)
@@ -1202,7 +1202,7 @@ A metrics curve does not let you see whether the model recognises two almost-ove
 
 The dark line is the estimated route; the dashed orange one is the real route. Axes are in kilometres, with the same horizontal and vertical scale within each panel. Panels adapt to each journey: they do not all span the same area. Circles mark starts and squares mark ends.
 
-When reading «0.74», remember: it is a probabilistic score for «they differ», but the chosen rule requires **at least 0.75** to emit that label. It is not a percentage of differing metres.
+When reading "0.74", remember: it is a probabilistic score for "they differ", but the chosen rule requires **at least 0.75** to emit that label. It is not a percentage of differing metres.
 """)
 
 code("""
@@ -1296,14 +1296,14 @@ Each figure answers four questions:
 1. **Full view:** do the routes look alike overall?
 2. **Zoom:** is there a stretch the trip's scale was hiding? We centre the window on the largest separation found when sampling 800 positions per route.
 3. **Distance profile:** is the difference brief or persistent? We measure from each position to the opposite polyline. The percentage refers to the length of **each route**, not to time or to synchronised positions.
-4. **Model contributions:** which variables push this prediction towards «the same» or «they differ»?
+4. **Model contributions:** which variables push this prediction towards "the same" or "they differ"?
 
 For the last panel we use [XGBoost's TreeSHAP contributions](https://xgboost.readthedocs.io/en/stable/prediction.html). They decompose the trained model's score before the sigmoid:
 
 $$\log\frac{q}{1-q}=\phi_0+\sum_{k=1}^{8}\phi_k,\qquad
 q=\frac{1}{1+\exp[-(\phi_0+\sum_k\phi_k)]}.$$
 
-$\phi_0$ is the trees' implicit baseline; each $\phi_k$ is a contribution in **log-odds**, not in percentage points. Orange raises the «they differ» score and green lowers it. We use the trained model's internal baseline, without adding test as a background set. We keep exactly the trees of the iteration chosen on validation and check that the sum reconstructs the frozen prediction.
+$\phi_0$ is the trees' implicit baseline; each $\phi_k$ is a contribution in **log-odds**, not in percentage points. Orange raises the "they differ" score and green lowers it. We use the trained model's internal baseline, without adding test as a background set. We keep exactly the trees of the iteration chosen on validation and check that the sum reconstructs the frozen prediction.
 
 This explains **how the model scores this input**, not why a person drove that way or why the annotator voted that way. The variables are related to each other; their contributions are not causal effects.
 """)
@@ -1424,7 +1424,7 @@ for case,meta in cases[~cases.kind.isin(['TN','TP'])].iterrows():
                      f'the total sum is {contributions.loc[jid].sum():.3f}; '
                      f'the sigmoid recovers **{row.p:.4f}**, against the threshold **{m["threshold"]:.2f}**.'))
     if meta.kind=='FP':
-        interpretation=('**Reading:** there is geometric separation, but the only valid vote says «the same». '
+        interpretation=('**Reading:** there is geometric separation, but the only valid vote says "the same". '
             'The model crosses the threshold; the annotator may have tolerated that change when judging the whole trip. '
             'This is a hypothesis to check with more people, not proof the label is wrong. '
             'Nor do we know whether the trace reflects the real trip accurately: we have no independent validation of the GPS.')
@@ -1435,8 +1435,8 @@ for case,meta in cases[~cases.kind.isin(['TN','TP'])].iterrows():
             'Lowering the threshold slightly is not enough: the score is very low. The only valid annotator considered it different; '
             'the importance of that stretch and the consistency of that judgement would need reviewing.')
     elif case=='FN2':
-        interpretation=('**Reading:** the means push towards «they differ», but the lengths push towards «the same». '
-            'The score sits near 0.5 and does not reach 0.75. There is one «they differ» vote and two «unsure»: '
+        interpretation=('**Reading:** the means push towards "they differ", but the lengths push towards "the same". '
+            'The score sits near 0.5 and does not reach 0.75. There is one "they differ" vote and two "unsure": '
             'this is not a three-person consensus. This case shows uncertainty in the label as well as the trade-off made by the model.')
     else:
         interpretation=('**Reading:** 0.749593 sits just below 0.750000. This error is right on the decision boundary: '
@@ -1449,7 +1449,7 @@ for case,meta in cases[~cases.kind.isin(['TN','TP'])].iterrows():
 md(r"""
 ### 8.3 What the inspection taught us
 
-The same «error» label can hide different problems. A localised detour can be diluted in the averages of a long trip; two geometric signals can push in opposite directions; and a score almost identical to the threshold can flip the decision by ten-thousandths.
+The same "error" label can hide different problems. A localised detour can be diluted in the averages of a long trip; two geometric signals can push in opposite directions; and a score almost identical to the threshold can flip the decision by ten-thousandths.
 
 The human reference matters too. All three false alarms have a single decided vote per journey. The central false negative has one decision and two abstentions. **More model complexity will not, on its own, settle which similarity criterion we want to reproduce.**
 
@@ -1535,7 +1535,7 @@ just: we would expect 17.3 of 21 on validation and 23.1 of 28 on test.
 
 **Second reading, the one that stops us celebrating the first: the groups are not comparable.** A journey with two votes and
 a defined majority is, *by construction*, a journey where two people agreed — had they disagreed it would be a
-tie and carry no label. The «two or more votes» group is not «the same difficulty, measured better»: it is **the subset
+tie and carry no label. The "two or more votes" group is not "the same difficulty, measured better": it is **the subset
 of cases that turned out visually unambiguous**. Put another way, we compared the hard cases with the
 easy ones and discovered the hard ones are harder.
 
@@ -1543,7 +1543,7 @@ The two explanations are indistinguishable with this file:
 
 | Explanation | What it implies | How it would be told apart |
 |---|---|---|
-| **Label noise** · some of those 21 and 27 «errors» are individual opinions another person would not share | Our real accuracy is underestimated; the ceiling is not 100 % | Re-annotate those cases with several people and measure how many majorities change |
+| **Label noise** · some of those 21 and 27 "errors" are individual opinions another person would not share | Our real accuracy is underestimated; the ceiling is not 100 % | Re-annotate those cases with several people and measure how many majorities change |
 | **Genuine difficulty** · cases that are ambiguous for people are ambiguous for geometry too | The model has room to improve where it is hardest | Re-annotate and check the majority holds despite the disagreement |
 
 That 72 two-vote journeys give 100 % and 98.6 % is not reassuring in itself either: at those sizes, a 95 %
@@ -1552,7 +1552,7 @@ model is infallible on the clear cases; we have observed that it did not fail on
 
 **The actionable part.** If the aim were to raise measured performance, the shortest path is not a bigger model: it is
 **getting a second annotation for the single-vote journeys**, which are 83 % of the decisive cases and in practice all
-of the errors. That would turn part of today's «error» into documented human disagreement and would give, for the first
+of the errors. That would turn part of today's "error" into documented human disagreement and would give, for the first
 time, a reference against which to compare the model on the cases genuinely in dispute. Before that it is worth
 fixing in the instructions what counts as different — a threshold in metres, in time or in detour — because today the
 brief leaves the criterion to each annotator's perception.
@@ -1583,7 +1583,7 @@ for ax,jid,prob in zip(axs.flat,tie_ids,tie_p):
     a,b=project_pair(*routes[jid])
     plot_routes(ax,a,b,legend=False)
     ax.set_title(f'p(differ)={prob:.3f} · model says '
-                 f'«{"they differ" if prob>m["threshold"] else "the same"}»',fontsize=10)
+                 f'"{"they differ" if prob>m["threshold"] else "the same"}"',fontsize=10)
     ax.text(.02,.02,f'ID {jid[:8]} · 1 igual / 1 diferente',transform=ax.transAxes,fontsize=8,
             bbox=dict(facecolor=BG,alpha=.9,edgecolor='none'))
     ax.tick_params(labelsize=8);ax.set_xlabel('Este local · km',fontsize=8)
@@ -1632,9 +1632,9 @@ nor a total divergence, but they also share a structure: **in all seven, the cen
 coincides and the discrepancy concentrates at one end** — the largest separation always falls in the first or last
 quarter of the trip. Between 6 % and 22 % of the route lies more than 50 m from the other; the rest overlaps.
 
-That suggests the tie does not come from «two different paths», but from **how the trip starts or ends**: the actual
+That suggests the tie does not come from "two different paths", but from **how the trip starts or ends**: the actual
 pickup point against the predicted one, the last few metres to the destination, an approach manoeuvre. And there the question
-«are these the same route?» has no obvious visual answer: one person may consider the trip the same
+"are these the same route?" has no obvious visual answer: one person may consider the trip the same
 with a shifted pickup, and another that the route is already different. The disagreement describes a genuine ambiguity in the
 problem, not carelessness, and supports treating the tie as an absent label rather than forcing a 0 or a 1.
 
@@ -1657,7 +1657,7 @@ measuring that overlap with useful precision.
 md(r"""
 ### 8.6 Who does the model agree with?
 
-If 80 % of the labels are signed by a single person, «being right» means *agreeing with that person*. That raises
+If 80 % of the labels are signed by a single person, "being right" means *agreeing with that person*. That raises
 a question the global metrics do not answer: **is it equally accurate with every annotator?**
 
 We take the validation and test journeys where there was **a single annotator with a decided vote**, group them by who
@@ -1675,8 +1675,8 @@ for ann in sorted(panel.index):
     truth=np.array([predictions.loc[j,'target_hard'] for j in ids],dtype=int)
     pred=(prob>m['threshold']).astype(int)
     judge_rows.append({'Anotador':ann,'Journeys':len(ids),'Acierto':100*(truth==pred).mean(),
-        '% who labelled «they differ»':100*truth.mean(),
-        '% «they differ» across the whole file':float(panel.loc[ann,'% «they differ»'])})
+        '% who labelled "they differ"':100*truth.mean(),
+        '% "they differ" across the whole file':float(panel.loc[ann,'% "they differ"'])})
 judges=pd.DataFrame(judge_rows).set_index('Anotador')
 enough=judges[judges.Journeys>=40]
 
@@ -1689,19 +1689,19 @@ for i,(a,row) in enumerate(enough.iterrows()):
 axs[0].set_ylim(85,101);axs[0].set(xlabel='Anotador',ylabel='Model accuracy · %')
 axs[0].set_title('The model agrees more with some than with others')
 axs[0].grid(axis='y',alpha=.12)
-axs[1].scatter(enough['% «they differ» across the whole file'],enough['Acierto'],
+axs[1].scatter(enough['% "they differ" across the whole file'],enough['Acierto'],
                s=enough['Journeys']*1.1,color=TEAL,alpha=.75,zorder=3)
 for a,row in enough.iterrows():
-    axs[1].annotate(str(a),(row['% «they differ» across the whole file'],row['Acierto']),
+    axs[1].annotate(str(a),(row['% "they differ" across the whole file'],row['Acierto']),
                     xytext=(8,-4),textcoords='offset points',fontsize=10,weight='bold')
-axs[1].set(xlabel='How often that person says «they differ» · %',ylabel='Model accuracy · %')
+axs[1].set(xlabel='How often that person says "they differ" · %',ylabel='Model accuracy · %')
 axs[1].set_title('The stricter the person, the worse the agreement')
 axs[1].grid(alpha=.12)
 finish(fig,'14_acuerdo_por_anotador',
        'Validation and test · only journeys with a single decided annotator · point size ∝ number of journeys')
 
-display(judges.style.format({'Acierto':'{:.1f} %','% who labelled «they differ»':'{:.1f} %',
-                             '% «they differ» across the whole file':'{:.1f} %'}))
+display(judges.style.format({'Acierto':'{:.1f} %','% who labelled "they differ"':'{:.1f} %',
+                             '% "they differ" across the whole file':'{:.1f} %'}))
 """)
 
 md(r"""
@@ -1709,11 +1709,11 @@ md(r"""
 runs from **88.2 % with annotator 1** (119 journeys) to **98.0 % with annotator 7** (147 journeys). Almost ten
 points of difference on the same model, the same threshold and the same metric.
 
-**And the direction is not accidental.** The right-hand panel orders it: the more often a person says «they differ», the worse
-the model agrees with them. Annotator 1 is the strictest on the panel — marking «they differ» 65 % of the time — and
+**And the direction is not accidental.** The right-hand panel orders it: the more often a person says "they differ", the worse
+the model agrees with them. Annotator 1 is the strictest on the panel — marking "they differ" 65 % of the time — and
 is the one it agrees with least; annotator 7 is the most lenient — 39.7 % — and is the one it agrees with most. Put plainly: the model
 has learned **a tolerance threshold closer to annotator 7's than to annotator 1's**, and that is consistent with its
-errors being mostly missed differences: 17 of 21 on validation, 25 of 28 on test. It fails towards «the same»,
+errors being mostly missed differences: 17 of 21 on validation, 25 of 28 on test. It fails towards "the same",
 just like the most lenient annotator.
 
 **Three cautions before taking this too far.** Each group contains different journeys, so part of the
@@ -1721,7 +1721,7 @@ gap may be difficulty rather than criterion. Small groups are omitted from the c
 twenty cases a percentage point means nothing. And this is a descriptive breakdown of an already-inspected test set, not
 an independent measurement.
 
-**What it does make clear.** There is no such thing as «the» target: there is the target of a particular panel, dominated by a few
+**What it does make clear.** There is no such thing as "the" target: there is the target of a particular panel, dominated by a few
 people with thresholds that differ from each other. Before putting this into production we would have to decide **what criterion
 the company wants** — how many metres of detour matter for pricing — and re-annotate with that instruction, rather than implicitly inheriting
 the bar set by whichever annotator looked at the most journeys.
@@ -1759,7 +1759,7 @@ from routes.pricing import build_impact, tariff_table, EBITDA_MARGIN
 impact=build_impact()
 impact['p']=[predictions.loc[j,'probabilities'][selected] for j in impact.index]
 impact['pred']=(impact.p>m['threshold']).astype(int)
-display(Markdown('**Fares used.** «Estimated» marks those not taken from a single published figure.'))
+display(Markdown('**Fares used.** "Estimated" marks those not taken from a single published figure.'))
 display(tariff_table()[['Ciudades','currency','per_km_local','per_min_local','per_km_eur','per_min_eur','estimated']]
         .rename(columns={'currency':'Moneda','per_km_local':'Por km (local)','per_min_local':'Por min (local)',
                          'per_km_eur':'Por km (€)','per_min_eur':'Por min (€)','estimated':'Estimated'})
@@ -1803,7 +1803,7 @@ display(Markdown(
  f'**{impact.delta_eur.mean():+.4f} €**: the deviations offset each other and there is no systematic leak in one direction. '
  f'The Spearman correlation between the human label and |Δ€| is **{rho_label:.2f}** — there is signal, but far from being '
  f'the same question. And yet, among the 10 % of journeys with the largest impact, '
- f'**{100*top.target_hard.mean():.0f} %** is labelled «they differ», against '
+ f'**{100*top.target_hard.mean():.0f} %** is labelled "they differ", against '
  f'{100*decided.drop(top.index).target_hard.mean():.0f} % for the rest: **human judgement gets it right exactly where the most '
  'money is**, and becomes ambiguous in the tail of small deviations.'))
 """)
@@ -1938,7 +1938,7 @@ file does not represent the business.
 
 **Third, and this is the one that most changes the verdict on the model: it fails on the cheap trips and gets the expensive ones right.**
 It was reasonable to fear the opposite. The model inherited the most lenient annotator's criterion (§8.6) and almost
-always errs towards «the same»: 25 of its 28 test errors are differences it does not detect. If those cases were the ones with the
+always errs towards "the same": 25 of its 28 test errors are differences it does not detect. If those cases were the ones with the
 largest deviation, the system would be letting through precisely what it was meant to catch.
 
 The data say the opposite. The 25 undetected differences have a median deviation of €0.06, **lower than
@@ -1946,8 +1946,8 @@ that of the correct calls** (€0.19), and add up to €3 of the €113 at stake
 
 > **The model catches 90.2 % of the cases, but recovers 97.4 % of the money.**
 
-That seven-point gap is the value accuracy does not see. A report saying «90 % accuracy» describes the
-system worse than one saying «it captures 97 of every 100 euros deviated». And it was not predictable from the
+That seven-point gap is the value accuracy does not see. A report saying "90 % accuracy" describes the
+system worse than one saying "it captures 97 of every 100 euros deviated". And it was not predictable from the
 classification metrics: it took putting a price on each case to find out. It should not be read as a deliberate virtue of the
 model — nobody trained it for this — but as a fortunate property of this file, which would need re-checking
 against new data before relying on it.
@@ -1962,12 +1962,12 @@ of the experiment remain the ones frozen on validation.
 md(r"""
 ## 10. Deciding under uncertainty: conformal prediction
 
-The model returns a probability, and that **is not a measure of uncertainty**. A value of 0.52 does not mean «I am unsure»:
+The model returns a probability, and that **is not a measure of uncertainty**. A value of 0.52 does not mean "I am unsure":
 it means the trees averaged out there. When the system decides with a fixed threshold, it fails on 6.3 % of the
 test cases and **we do not know which ones**. That is the operational limitation, not the accuracy.
 
 Conformal prediction changes the contract. Instead of a forced label, it produces an interval over the proportion
-of «they differ» votes and turns it into a three-valued decision:
+of "they differ" votes and turns it into a three-valued decision:
 
 | The interval… | Decision |
 |---|---|
@@ -2060,7 +2060,7 @@ md(r"""
 ### What this gives operations
 
 **A contract, not a report metric.** Today the 0.75 threshold was chosen by an `argmax` of balanced accuracy and the
-result is «we fail 6.3 % of the time and we do not know where». With the curve on the left, the conversation changes direction:
+result is "we fail 6.3 % of the time and we do not know where". With the curve on the left, the conversation changes direction:
 the business sets the error it tolerates and the system answers with the review volume needed.
 
 | If you want… | You send to review | Error on automated calls |
@@ -2076,8 +2076,8 @@ in people and in cost.
 
 **And it puts a price on annotation.** The interval is 30 % narrower when the label has two votes instead of
 one, which at α = 0.10 means going from 14.5 % to 5.1 % review. Getting a second annotation for the
-single-vote journeys — 83 % of the file — would cut the review volume to about a third. That turns «we should
-annotate more» into a proposal with two figures facing each other: what annotating costs against what reviewing costs.
+single-vote journeys — 83 % of the file — would cut the review volume to about a third. That turns "we should
+annotate more" into a proposal with two figures facing each other: what annotating costs against what reviewing costs.
 """)
 
 md(r"""
@@ -2167,9 +2167,9 @@ That is the conservative behaviour expected of CV+, not a sign the method works 
 random and the trips share streets and corridors. Empirical coverage on test supports it, but does not
 demonstrate it for a new city.
 
-**And the interval is over the opinion, not over the money.** It covers the proportion of «they differ» votes, which is the
+**And the interval is over the opinion, not over the money.** It covers the proportion of "they differ" votes, which is the
 target we have. Section 9 argues that the quantity that really matters is euros. An interval over
-euros — «this trip deviated by between €2 and €7, with 90 % confidence» — would be directly actionable for a
+euros — "this trip deviated by between €2 and €7, with 90 % confidence" — would be directly actionable for a
 refund decision, and is the natural continuation of this work once the economic label exists.
 """)
 
@@ -2222,7 +2222,7 @@ person's perception, which is why the 31 ties exist.
 **2 · Label with euros instead of with opinions.** Section 9 shows that human judgement and economic
 impact correlate at only 0.45. With the internal pricing formula — which Cabify has and we do not — the
 target stops depending on eight people and becomes a measurable quantity, with a loss weighted by
-impact and a threshold the business sets: «we act above €X». The 42 variables already built still apply,
+impact and a threshold the business sets: "we act above €X". The 42 variables already built still apply,
 and a conformal interval over euros would be directly actionable for a refund.
 
 **3 · Validate by city before promising geographic coverage.** The random split allows the same
@@ -2239,8 +2239,8 @@ annotator 2's criterion better.
 cartography, an OSRM service and map matches that fail on 41 % of the pairs. The operational cost is not justified
 by the current evidence.
 
-**I would not present balanced accuracy as the system's metric.** It describes the behaviour worse than «it recovers
-97 of every 100 euros deviated», and it points effort at the cheap tail.
+**I would not present balanced accuracy as the system's metric.** It describes the behaviour worse than "it recovers
+97 of every 100 euros deviated", and it points effort at the cheap tail.
 
 ### Known outstanding work
 
@@ -2254,7 +2254,7 @@ by the current evidence.
 - Evaluate GPS noise, incomplete traces, map changes and new routes. More accuracy on this file does not
   guarantee operational robustness.
 - Add variables to the vector that describe the trace gaps — largest jump, number of jumps, proportion
-  covered — rather than imputing them: filling a gap with a plausible route would push the pair towards «the same» and
+  covered — rather than imputing them: filling a gap with a plausible route would push the pair towards "the same" and
   would alter the label the annotators saw.
 
 The original selection stays documented and untouched: the geometric baseline, with the threshold frozen on
@@ -2275,7 +2275,7 @@ The EDA summary is exported to **results/routes/eda.json**: quality checks, leng
 
 Reconstruction is audited with **scripts/audit_t2vec_reconstruction.py** and its **--corrected** option. The corrected retraining runs via **python -m routes.t2vec_corrected**, with `src` on the path. The separate reports make it possible to compare the original failure, the corrected objective and its results without modifying the earlier weights.
 
-The road-network extension is reproduced with **scripts/download_geofabrik.py**, **scripts/prepare_road_extract.py**, **scripts/start_local_osrm.py**, **python -m routes.graph_extension** and **scripts/evaluate_graph_extension.py**. It needs Docker and several GB of disk for the sources. The reports are in **results/routes_graph/**; large caches and models are excluded from Git. The engine is pinned by image digest; each download keeps its date and SHA-256. The «latest» URLs can change: the hashes detect that difference, they do not guarantee the provider keeps the same file for future downloads.
+The road-network extension is reproduced with **scripts/download_geofabrik.py**, **scripts/prepare_road_extract.py**, **scripts/start_local_osrm.py**, **python -m routes.graph_extension** and **scripts/evaluate_graph_extension.py**. It needs Docker and several GB of disk for the sources. The reports are in **results/routes_graph/**; large caches and models are excluded from Git. The engine is pinned by image digest; each download keeps its date and SHA-256. The "latest" URLs can change: the hashes detect that difference, they do not guarantee the provider keeps the same file for future downloads.
 
 - [Challenge brief](https://gist.github.com/jmontess/cd4bacd1b09301edf5f2e99ce07584d3) and [linked file](https://www.dropbox.com/s/rdm11r99pmi13if/challenge_dataset.json?dl=1).
 - [Li et al., 2018: t2vec](https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf): the precedent for the spatial encoder-decoder. Our adaptation and supervised evaluation are distinct from the original work.

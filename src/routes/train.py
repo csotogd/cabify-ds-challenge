@@ -1,4 +1,4 @@
-"""Selección exclusivamente en validación; test se abre tras congelar modelos."""
+"""Selection happens on validation only; test is opened after the models are frozen."""
 import copy
 import json
 import time
@@ -104,16 +104,16 @@ def run():
     if not emb_file.exists():raise RuntimeError('Ejecuta primero el preentrenamiento t2vec.')
     encoder_manifest=json.loads((ROOT/'results/routes/t2vec_manifest.json').read_text())
     encoder_ids=set(encoder_manifest['pretrained_on_journeys'])|set(encoder_manifest['inner_validation_journeys'])
-    assert encoder_ids==set(df.index[df.split=='train']), 'El encoder no corresponde a esta partición.'
+    assert encoder_ids==set(df.index[df.split=='train']), 'The encoder does not correspond to this split.'
     emb=np.load(emb_file);embeddings=dict(zip(emb['ids'],emb['vectors']))
     pair=pair_vectors(embeddings,df.index)
-    protocol=dict(primary_selection='log loss contra fracción de votos, en validación',
-                  threshold_selection='máxima balanced accuracy en validación, desempate más próximo a 0.5',
-                  target='proporción de votos They differ entre votos que expresan decisión',
-                  unknown_policy='No se interpreta I do not know como clase ni como voto 0.5; sin votos no hay pérdida supervisada.',
-                  annotation_policy='Un voto por anotador y viaje; decisiones contradictorias de una misma persona se consideran abstención.',
-                  tie_policy='Se usa 0.5 en entrenamiento probabilístico; se excluye de métricas binarias.',
-                  metric_population='Viajes con mayoría definida; cobertura y métricas probabilísticas se reportan aparte.',
+    protocol=dict(primary_selection='log loss against the vote fraction, on validation',
+                  threshold_selection='maximum balanced accuracy on validation, ties broken towards 0.5',
+                  target='proportion of They differ votes among votes expressing a decision',
+                  unknown_policy='I do not know is read neither as a class nor as a 0.5 vote; with no votes there is no supervised loss.',
+                  annotation_policy='One vote per annotator and journey; contradictory decisions from the same person count as an abstention.',
+                  tie_policy='0.5 is used in probabilistic training; excluded from binary metrics.',
+                  metric_population='Journeys with a defined majority; coverage and probabilistic metrics are reported separately.',
                   primary_test_metric='balanced_accuracy',no_retraining_on_train_plus_val=True,
                   planned_models=['geometria_base','vector_interpretable','t2vec_decoder_clasificador','hibrido_vector_t2vec'],
                   bootstrap='2000 remuestreos emparejados por viaje del test; IC percentil 95%; no incluye incertidumbre del entrenamiento',seed=SEED)
@@ -133,8 +133,8 @@ def run():
     selected=min(details,key=lambda n:details[n]['val_soft_logloss'])
     frozen=dict(selected=selected,thresholds=thresholds,validation_results={n:d['val_soft_logloss'] for n,d in details.items()})
     (ROOT/'results/routes/frozen_selection.json').write_text(json.dumps(frozen,indent=2))
-    # A partir de aquí se abre test. No se reajusta arquitectura, pesos ni umbral.
-    print('Selección congelada:',selected,'; se evalúa test una vez.',flush=True)
+    # From here the test set is opened. No architecture, weights or threshold are refitted.
+    print('Frozen selection:',selected,'; test is evaluated once.',flush=True)
     test=(df.split=='test')&df.target_hard.notna();y=df.loc[test,'target_hard'].values
     test_soft=(df.split=='test')&df.target_soft.notna()
     all_metrics={}

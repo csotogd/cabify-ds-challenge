@@ -1,4 +1,4 @@
-"""Características geométricas: metros, longitudes y comparación en ambos sentidos."""
+"""Geometric features: metres, lengths and comparison in both directions."""
 import json
 import time
 import numpy as np
@@ -22,7 +22,7 @@ def project_pair(a,b):
 def clean_line(points):
     keep=np.r_[True,np.linalg.norm(np.diff(points,axis=0),axis=1)>1e-6]
     p=points[keep]
-    if len(p)<2: raise ValueError('Ruta degenerada sin longitud espacial')
+    if len(p)<2: raise ValueError('Degenerate route with no spatial length')
     return LineString(p)
 
 def sample_line(line, n=64, midpoints=False):
@@ -96,17 +96,17 @@ def build_features():
     rows={}; start=time.perf_counter()
     for k,(jid,(a,b)) in enumerate(routes.items()):
         rows[jid]=features_xy(*project_pair(a,b))
-        if (k+1)%300==0:print(f'Geometría: {k+1}/{len(routes)} viajes',flush=True)
+        if (k+1)%300==0:print(f'Geometry: {k+1}/{len(routes)} journeys',flush=True)
     out=pd.DataFrame.from_dict(rows,orient='index')
     assert np.isfinite(out.to_numpy()).all()
     path.write_text(json.dumps(rows))
     (ROOT/'results/routes/geometry_manifest.json').write_text(json.dumps(dict(
         n_features=len(out.columns),features=list(out.columns),baseline=BASE_FEATURES,
-        seconds=time.perf_counter()-start,units='metros en proyección azimutal local por pareja',
-        mean_sampling='puntos medios equiespaciados en longitud: 20 m, mínimo 16 y máximo 1600',
-        frechet='Fréchet discreto sobre 64 puntos por ruta; aproximación a la curva continua',
-        hausdorff='Hausdorff discreto con densificación 0.25',
-        iou='corredores geométricos; no red viaria ni orden'),indent=2))
+        seconds=time.perf_counter()-start,units='metres in a per-pair local azimuthal projection',
+        mean_sampling='midpoints equally spaced by length: 20 m, minimum 16 and maximum 1600',
+        frechet='Discrete Frechet over 64 points per route; an approximation to the continuous curve',
+        hausdorff='Discrete Hausdorff with densification 0.25',
+        iou='geometric corridors; no road network and no ordering'),indent=2))
     return out
 
 if __name__=='__main__': build_features()

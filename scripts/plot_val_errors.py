@@ -1,7 +1,7 @@
-"""Rutas de validación donde la predicción del modelo elegido no coincide con la mayoría humana.
+"""Validation routes where the chosen model disagrees with the human majority.
 
-Inspección descriptiva posterior. No ajusta modelos, umbrales ni particiones. Validación
-intervino en elegir modelo, iteración y umbral: estos casos no son una medida de error limpia.
+A descriptive, post-hoc inspection. It fits no models, thresholds or splits. Validation
+took part in choosing model, iteration and threshold: these cases are not a clean error measure.
 """
 import json
 import sys
@@ -29,8 +29,8 @@ model = sys.argv[1] if len(sys.argv) > 1 else None
 frozen = json.loads((R/'frozen_selection.json').read_text())
 model = model or frozen['selected']
 threshold = frozen['thresholds'][model]
-names = {'geometria_base':'Geometría básica','vector_interpretable':'Vector interpretable',
-         't2vec_decoder_clasificador':'t2vec + clasificador','hibrido_vector_t2vec':'Vector + t2vec'}
+names = {'geometria_base':'Basic geometry','vector_interpretable':'Interpretable vector',
+         't2vec_decoder_clasificador':'t2vec + classifier','hibrido_vector_t2vec':'Vector + t2vec'}
 
 predictions = json.loads((R/'predictions.json').read_text())
 df, routes = load_data()
@@ -52,10 +52,10 @@ for r in predictions:
                      conflicted=int(meta.n_conflicted_annotators)))
 # Falsas alarmas primero, y dentro de cada clase por distancia al umbral.
 rows.sort(key=lambda r: (r['kind'] != 'FP', -abs(r['p']-threshold)))
-assert rows, 'Sin discrepancias en validación con este modelo y umbral.'
+assert rows, 'No disagreements on validation with this model and threshold.'
 
 def separation(a, b):
-    """Mayor separación y proporción a más de 50 m, muestreando 400 posiciones por ruta."""
+    """Largest separation and proportion beyond 50 m, sampling 400 positions per route."""
     la, lb = clean_line(a), clean_line(b)
     sa, sb = sample_line(la, 400, midpoints=True), sample_line(lb, 400, midpoints=True)
     da = shapely.distance(shapely.points(sa), lb)
@@ -80,12 +80,12 @@ for ax, row in zip(axs.flat, rows):
     human = 'iguales' if row['truth'] == 0 else 'diferentes'
     predicted = 'iguales' if row['pred'] == 0 else 'diferentes'
     votes = f"{row['same']} ig. / {row['different']} dif."
-    if row['unknown']: votes += f" / {row['unknown']} no sé"
+    if row['unknown']: votes += f" / {row['unknown']} unsure"
     if row['conflicted']: votes += f" / {row['conflicted']} contr."
     ax.set_title(f"{row['kind']} · Humano: {human} | Modelo: {predicted}\n"
                  f"p(dif.)={row['p']:.3f} · {row['region']}", fontsize=10,
                  color=RED if row['kind'] == 'FP' else INK)
-    ax.text(.02, .02, f"ID {row['journey_id'][:8]} · {votes}\nSeparación máx. {gap:,.0f} m".replace(',','.'),
+    ax.text(.02, .02, f"ID {row['journey_id'][:8]} · {votes}\nMax separation {gap:,.0f} m".replace(',','.'),
             transform=ax.transAxes, fontsize=7.5,
             bbox=dict(facecolor=BG, alpha=.9, edgecolor='none'))
     report.append({**row, 'max_separation_m': round(gap, 1),
@@ -96,19 +96,19 @@ for ax in list(axs.flat)[len(rows):]:
 handles, labels = axs.flat[0].get_legend_handles_labels()
 n_fp = sum(r['kind'] == 'FP' for r in rows)
 fig.legend(handles, labels, loc='upper right', fontsize=10, ncol=2, frameon=False)
-fig.suptitle(f'Validación · {len(rows)} discrepancias entre modelo y mayoría humana\n'
+fig.suptitle(f'Validation · {len(rows)} disagreements between model and human majority\n'
              f"{names.get(model, model)} · umbral {str(round(threshold,4)).replace('.',',')} · "
-             f'{n_fp} falsas alarmas y {len(rows)-n_fp} diferencias no detectadas, de 443 casos con mayoría',
+             f'{n_fp} false alarms and {len(rows)-n_fp} missed differences, out of 443 cases with a majority',
              x=.02, ha='left', fontsize=14, weight='bold', y=.998)
-fig.text(.02, .004, 'Escalas propias por viaje · sin mapa base · validación intervino en la selección: '
-                    'no es una medida de error independiente', fontsize=9, color=MUTED)
+fig.text(.02, .004, 'Own scale per journey · no base map · validation took part in the selection: '
+                    'this is not an independent error measure', fontsize=9, color=MUTED)
 fig.tight_layout(rect=(0, .018, 1, .978))
 out = FIG/f'12_errores_validacion_{model}.png'
 fig.savefig(out, bbox_inches='tight'); plt.close(fig)
 
 path = R/f'val_errors_{model}.json'
 path.write_text(json.dumps({'model': model, 'threshold': threshold, 'split': 'val',
-    'purpose': 'Inspección descriptiva; no modifica modelos, umbrales ni particiones.',
+    'purpose': 'Descriptive inspection; it modifies no models, thresholds or splits.',
     'n_decisive': 443, 'n_mismatches': len(rows), 'n_false_positives': n_fp,
     'figure': str(out.relative_to(ROOT)), 'cases': report}, indent=2, ensure_ascii=False))
 print(f'{out}\n{path}\n{len(rows)} discrepancias · {n_fp} FP · {len(rows)-n_fp} FN')

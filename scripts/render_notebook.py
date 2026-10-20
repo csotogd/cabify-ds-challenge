@@ -1,4 +1,4 @@
-"""Ejecuta un notebook y exporta HTML con código plegable."""
+"""Execute a notebook and export HTML with collapsible code."""
 import os
 import sys
 import tempfile
@@ -44,8 +44,8 @@ for cell in soup.select('.jp-CodeCell'):
     wrapper=cell.select_one('.jp-Cell-inputWrapper')
     if wrapper:
         details=soup.new_tag('details',attrs={'class':'code-panel'})
-        summary=soup.new_tag('summary');summary.string='Ver código reproducible'
+        summary=soup.new_tag('summary');summary.string='Show reproducible code'
         details.append(summary);wrapper.replace_with(details);details.append(wrapper)
-if soup.title:soup.title.string='¿Han seguido la misma ruta? · Modelado y comparación'
+if soup.title:soup.title.string='Did they follow the same route? · Modelling and comparison'
 path.with_suffix('.html').write_text(str(soup),encoding='utf-8')
-print(f'Ejecutado y exportado: {path.name}; {len(nb.cells)} celdas, {len(soup.select("img"))} imágenes.')
+print(f'Executed and exported: {path.name}; {len(nb.cells)} cells, {len(soup.select("img"))} images.')

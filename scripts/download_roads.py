@@ -1,4 +1,4 @@
-"""Descarga opcional de red OSM para un piloto geográfico; no usa etiquetas."""
+"""Optional OSM network download for a geographic pilot; it uses no labels."""
 import sys,json,time
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'src'))

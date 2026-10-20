@@ -1,4 +1,4 @@
-"""Predice una pareja nueva con la referencia elegida en validación.
+"""Predict a new pair with the baseline chosen on validation.
 
 Uso: python scripts/predict_route.py pareja.json
 El JSON contiene estimated_route y real_route, ambas listas de [lat, lon].
@@ -16,7 +16,7 @@ def predict_pair(estimated,real):
     a,b=np.asarray(estimated,dtype=float),np.asarray(real,dtype=float)
     for p in [a,b]:
         if p.ndim!=2 or p.shape[1]!=2 or len(p)<2 or not np.isfinite(p).all():
-            raise ValueError('Cada ruta debe contener al menos dos coordenadas válidas [lat, lon].')
+            raise ValueError('Each route must contain at least two valid [lat, lon] coordinates.')
         if (np.abs(p[:,0])>90).any() or (np.abs(p[:,1])>180).any():
             raise ValueError('Latitud o longitud fuera de rango.')
     f=features_xy(*project_pair(a,b))
@@ -29,7 +29,7 @@ def predict_pair(estimated,real):
     return dict(model='geometria_base',probability_different=p,threshold=threshold,
                 prediction='They differ' if p>=threshold else 'Both are the same',
                 features={k:f[k] for k in BASE_FEATURES},
-                interpretation='Predicción del juicio humano; no duración ni precio reales.')
+                interpretation='Prediction of the human judgement; not real duration or price.')
 
 if __name__=='__main__':
     if len(sys.argv)!=2:raise SystemExit(__doc__)

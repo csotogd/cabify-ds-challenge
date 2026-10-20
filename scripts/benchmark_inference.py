@@ -1,13 +1,13 @@
-"""Coste de calcular una decisión para una pareja nueva.
+"""Cost of computing one decision for a new pair.
 
-El enunciado justifica automatizar porque Cabify sirve millones de trayectos. Esa frase
-plantea una pregunta que las métricas de acierto no responden: ¿cabe el modelo elegido en
-el volumen real? Medimos el camino completo de producción para una pareja: proyectar a
-metros, calcular las ocho variables y puntuar con XGBoost.
+The brief justifies automating because Cabify serves millions of trips. That sentence
+raises a question accuracy metrics do not answer: does the chosen model fit the real
+volume? We measure the full production path for one pair: project to metres, compute the
+eight variables and score with XGBoost.
 
-Medición de un solo proceso en la máquina de desarrollo, sin paralelizar ni vectorizar por
-lotes. Es una cota superior razonable, no una cifra de producción: un despliegue real
-repartiría el trabajo y reutilizaría cachés.
+Single-process measurement on the development machine, without parallelism or batch
+vectorisation. It is a reasonable upper bound, not a production figure: a real deployment
+would spread the work and reuse caches.
 """
 import json
 import platform

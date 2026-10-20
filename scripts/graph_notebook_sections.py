@@ -20,7 +20,7 @@ The engine runs locally with a pinned version and the `car.lua` profile, which e
 
 To limit computation we keep up to 300 **observed** points, chosen by cumulative distance, endpoints included. We invent no intermediate observations. We assume a GPS accuracy of 15 metres to generate candidates; the file does not provide that accuracy. This choice can influence the result and deserves a sensitivity analysis. Without timestamps, we impose no observed speeds between points.
 
-OSRM's confidence is not a calibrated probability for this dataset. We call a route a «complete match under our rule» when it has a single sub-trace, at least 90 % of selected points accepted and confidence ≥ 0.5. It is an explicit diagnostic rule, not a guarantee of truth. **No journey is removed from the benchmark for failing it**: we keep quality indicators and missing values where appropriate.
+OSRM's confidence is not a calibrated probability for this dataset. We call a route a "complete match under our rule" when it has a single sub-trace, at least 90 % of selected points accepted and confidence ≥ 0.5. It is an explicit diagnostic rule, not a guarantee of truth. **No journey is removed from the benchmark for failing it**: we keep quality indicators and missing values where appropriate.
 
 ### 4.3 What we measure on the graph and what each number means
 
@@ -52,7 +52,7 @@ Finally we keep estimated lengths and durations of the **matched portions** and 
 
 $$\Delta T_{\mathrm{rel}}=\frac{\hat T_r-\hat T_e}{\max[(\hat T_r+\hat T_e)/2,1\text{ s}]}.$$
 
-The division compares the relative overrun; we also keep the individual values. IoU and the proportions are already normalised. **The label is still the human judgement about similarity**, not «it takes longer»: the model has to learn whether these variables help predict that judgement.
+The division compares the relative overrun; we also keep the individual values. IoU and the proportions are already normalised. **The label is still the human judgement about similarity**, not "it takes longer": the model has to learn whether these variables help predict that judgement.
 
 ### 4.4 Coverage is a result that has to be shown
 

@@ -1,4 +1,4 @@
-"""Descargas públicas reproducibles; sin consultas a APIs con las rutas privadas."""
+"""Reproducible public downloads; no API queries carrying the private routes."""
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 import argparse
@@ -32,7 +32,7 @@ def download(name):
         info = json.loads(manifest.read_text())
         actual = hashlib.file_digest(target.open("rb"), "sha256").hexdigest()
         if actual == info.get("sha256"):
-            print(f"{name}: caché verificada, {target.stat().st_size / 1e6:.1f} MB", flush=True)
+            print(f"{name}: cache verified, {target.stat().st_size / 1e6:.1f} MB", flush=True)
             return info
         raise ValueError(f"El hash de {name} no coincide; no reutilizar.")
     url = f"https://download.geofabrik.de/{SOURCES[name]}-latest.osm.pbf"

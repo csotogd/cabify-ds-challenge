@@ -111,7 +111,7 @@ def main():
                     decoded_frechet_m=spatial_distance(original,vocab.centroids[np.array(pred,dtype=int)-3]),
                     target_tokens=target,predicted_tokens=pred)
                 rows.append(row)
-            print('Reconstrucción',min(begin+32,len(samples)),'/',len(samples),flush=True)
+            print('Reconstruction',min(begin+32,len(samples)),'/',len(samples),flush=True)
     summary={}
     for scenario in ['clean','corrupted']:
         sub=[r for r in rows if r['scenario']==scenario]

@@ -29,11 +29,11 @@ def crop_country(name,area):
         if info.get('area_hash')==hashlib.sha256(area.wkb).hexdigest():
             print(name, 'extracto existente',flush=True)
             return target
-        raise ValueError('La cobertura ha cambiado; no mezclar cachés.')
+        raise ValueError('Coverage has changed; do not mix caches.')
     if not source.exists():
         raise FileNotFoundError(source)
     start=time.monotonic();selected=set();restrictions=0
-    print(name,'seleccionando vías',flush=True)
+    print(name,'selecting ways',flush=True)
     # Pyosmium ejecuta los filtros de entidades/tags en C++.
     with osmium.BackReferenceWriter(target,source,remove_tags=False) as writer:
         processor=(osmium.FileProcessor(source).with_locations()
@@ -48,7 +48,7 @@ def crop_country(name,area):
             if not area.intersects(box(min(x),min(y),max(x),max(y))):
                 continue
             writer.add_way(way);selected.add(way.id)
-        print(name,len(selected),'vías; añadiendo restricciones',flush=True)
+        print(name,len(selected),'ways; adding restrictions',flush=True)
         for rel in osmium.FileProcessor(source,entities=osmium.osm.RELATION):
             if rel.tags.get('type')!='restriction':continue
             if any(m.type=='w' and m.ref in selected for m in rel.members):
@@ -59,7 +59,7 @@ def crop_country(name,area):
               area_hash=hashlib.sha256(area.wkb).hexdigest(),
               sha256=hashlib.file_digest(target.open('rb'),'sha256').hexdigest(),
               margin_degrees=.08,source='Geofabrik / OpenStreetMap',
-              method='Vías cuyo bbox intersecta la unión de bboxes de viajes + margen; referencias completas y relaciones de restricción relacionadas.')
+              method='Ways whose bbox intersects the union of journey bboxes plus a margin; complete references and related restriction relations.')
     report_path.write_text(json.dumps(info,indent=2))
     print(name,'listo',round(info['bytes']/1e6,1),'MB',flush=True)
     return target
@@ -98,7 +98,7 @@ def main():
                   bytes=merged.stat().st_size,
                   sha256=hashlib.file_digest(merged.open('rb'),'sha256').hexdigest(),
                   journeys=len(df),countries=COUNTRIES,
-                  snapshot_note='Mapa actual descargado con fecha y hash; no reconstrucción histórica del viaje.')
+                  snapshot_note='Current map downloaded with date and hash; not a historical reconstruction of the trip.')
         (REPORT/'extract_manifest.json').write_text(json.dumps(info,indent=2))
         print(json.dumps(info),flush=True)
 

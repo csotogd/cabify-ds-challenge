@@ -1,27 +1,27 @@
-"""Estimación del impacto económico de la desviación entre ruta estimada y real.
+"""Estimating the economic impact of the gap between the estimated and the real route.
 
-El precio de Cabify se fija ANTES del viaje con la ruta estimada. Si el recorrido real
-difiere, la diferencia entre lo cobrado y lo que ese recorrido habría costado es el
-error de tarificación. La tarifa base y la mínima son idénticas en ambos cálculos y se
-cancelan al restar, así que solo hacen falta los precios por kilómetro y por minuto.
+Cabify sets the fare BEFORE the trip using the estimated route. If the actual trip
+differs, the gap between what was charged and what that trip would have cost is the
+pricing error. The base fare and the minimum fare are identical in both calculations and
+cancel out when subtracting, so only the per-kilometre and per-minute prices are needed.
 
-    Δ€ = €/km · (km_real − km_estimado) + €/min · (min_real − min_estimado)
+    delta_eur = eur_per_km * (km_real - km_est) + eur_per_min * (min_real - min_est)
 
-Δ€ > 0: el trayecto real valía más de lo cobrado.
-Δ€ < 0: el cliente pagó por encima de lo que costaba su trayecto real.
+delta_eur > 0: the real trip was worth more than what was charged.
+delta_eur < 0: the customer paid more than their real trip cost.
 
-LIMITACIONES, que son grandes y deliberadamente explícitas:
+LIMITATIONS, which are large and deliberately explicit:
 
-1. Las tarifas son públicas y actuales (octubre de 2026); el archivo es de diciembre de
-   2021. No reconstruyen lo que se cobró entonces. Sirven para dimensionar la exposición
-   con precios de hoy, no para auditar cobros pasados. En Argentina, con la inflación del
-   periodo, la cifra histórica sería incomparable.
-2. Se usa la categoría estándar. No conocemos la categoría real de cada viaje.
-3. Se ignoran peajes, suplementos, tarifa dinámica, esperas y promociones.
-4. Las duraciones salen de OSRM con un perfil fijo de coche, sin tráfico histórico.
-5. Colombia y Ecuador usan estimaciones; la fuente oficial no publica un valor único.
+1. The fares are public and current (October 2026); the file is from December
+   2021. They do not reconstruct what was charged then. They serve to size the exposure
+   at today's prices, not to audit past charges. In Argentina, with the inflation of the
+   period, the historical figure would not be comparable.
+2. The standard category is used. We do not know the real category of each trip.
+3. Tolls, surcharges, surge pricing, waiting time and promotions are ignored.
+4. Durations come from OSRM with a fixed car profile, with no historical traffic.
+5. Colombia and Ecuador use estimates; the official source publishes no single value.
 
-Es una aproximación de orden de magnitud para priorizar, no una cifra contable.
+This is an order-of-magnitude approximation for prioritising, not an accounting figure.
 """
 import json
 from dataclasses import dataclass, asdict
@@ -34,24 +34,24 @@ from .features import build_features
 
 CONSULTED = '2026-10-19'
 
-# Margen EBITDA del grupo Cabify en 2025: 27,2 M€ sobre 833,3 M€ de ingresos.
-# Fuente: resultados publicados en prensa económica (Forbes España, El Economista), junio de 2026.
-# Es un margen de grupo, no el margen unitario de un viaje concreto: lo usamos solo para
-# dimensionar la desviación frente a la rentabilidad típica, no como contabilidad por trayecto.
+# Cabify group EBITDA margin in 2025: EUR 27.2M on EUR 833.3M of revenue.
+# Source: results published in the financial press (Forbes Espana, El Economista), June 2026.
+# This is a group margin, not the unit margin of a particular trip: we use it only to
+# size the deviation against typical profitability, not as per-trip accounting.
 EBITDA_MARGIN = 27.2/833.3
 
-# Tarifa estándar de Cabify por ciudad, en moneda local, y tipo de cambio a euros.
-# Fuentes: páginas oficiales cabify.com/<pais>/tarifas/<ciudad>, consultadas en CONSULTED.
+# Cabify standard fare per city, in local currency, plus the exchange rate to euros.
+# Sources: official pages cabify.com/<country>/tarifas/<city>, consulted on CONSULTED.
 @dataclass(frozen=True)
 class Tariff:
     currency: str
     per_km_local: float
     per_min_local: float
-    eur_per_unit: float       # unidades de moneda local por 1 EUR
+    eur_per_unit: float       # units of local currency per 1 EUR
     source: str
-    base_local: float = 0.    # tarifa base: se cancela en Δ€, pero cuenta en el precio del viaje
-    min_local: float = 0.     # tarifa mínima aplicable
-    estimated: bool = False   # True si no procede de una cifra única publicada
+    base_local: float = 0.    # base fare: cancels in delta_eur, but counts in the trip price
+    min_local: float = 0.     # applicable minimum fare
+    estimated: bool = False   # True when not taken from a single published figure
 
     @property
     def per_km_eur(self): return self.per_km_local/self.eur_per_unit
@@ -62,22 +62,22 @@ class Tariff:
     @property
     def min_eur(self): return self.min_local/self.eur_per_unit
 
-SPAIN = Tariff('EUR', .76, .12, 1., 'cabify.com/es/tarifas/madrid · categoría Cabify', 1.25, 4.33)
-ARGENTINA = Tariff('ARS', 434., 81., 1705.87, 'cabify.com/ar/tarifas/buenos-aires · categoría Cabify', 1325., 3569.)
-CHILE = Tariff('CLP', 440., 85., 1103.49, 'cabify.com/cl/tarifas/santiago · categoría Cabify', 550., 1450.)
-PERU = Tariff('PEN', 1.14, .21, 3.85635, 'cabify.com/pe/tarifas/lima · categoría Cabify, zona 1', 4.48, 7.00)
-MEXICO = Tariff('MXN', 8.50, 3.25, 20.6871, 'Prensa y agregadores; Cabify no publica tabla única', 25., 45., estimated=True)
-URUGUAY = Tariff('UYU', 19.80, 6.40, 45.03, 'cabify.com/uy/montevideo · categoría Cabify', 86., 190.)
-# Colombia publica rangos dependientes de demanda (Medellín: 245–1.403 $/km, 51–495 $/min).
-# Tomamos la media geométrica del rango, que cae entre Argentina y Perú en euros por km.
+SPAIN = Tariff('EUR', .76, .12, 1., 'cabify.com/es/tarifas/madrid · Cabify category', 1.25, 4.33)
+ARGENTINA = Tariff('ARS', 434., 81., 1705.87, 'cabify.com/ar/tarifas/buenos-aires · Cabify category', 1325., 3569.)
+CHILE = Tariff('CLP', 440., 85., 1103.49, 'cabify.com/cl/tarifas/santiago · Cabify category', 550., 1450.)
+PERU = Tariff('PEN', 1.14, .21, 3.85635, 'cabify.com/pe/tarifas/lima · Cabify category, zone 1', 4.48, 7.00)
+MEXICO = Tariff('MXN', 8.50, 3.25, 20.6871, 'Press and aggregators; Cabify publishes no single table', 25., 45., estimated=True)
+URUGUAY = Tariff('UYU', 19.80, 6.40, 45.03, 'cabify.com/uy/montevideo · Cabify category', 86., 190.)
+# Colombia publishes demand-dependent ranges (Medellin: 245-1,403 $/km, 51-495 $/min).
+# We take the geometric mean of the range, which falls between Argentina and Peru in euros per km.
 COLOMBIA = Tariff('COP', float(np.sqrt(245*1403)), float(np.sqrt(51*495)), 3737.38,
-                  'cabify.com/co/tarifas/medellin · media geométrica del rango publicado',
+                  'cabify.com/co/tarifas/medellin · geometric mean of the published range',
                   float(np.sqrt(1023*8250)), float(np.sqrt(2000*9075)), estimated=True)
-# Ecuador está dolarizado y no publica tabla accesible: usamos la mediana latinoamericana.
+# Ecuador is dollarised and publishes no accessible table: we use the Latin American median.
 _LATAM = [ARGENTINA, CHILE, PERU, MEXICO, URUGUAY, COLOMBIA]
 ECUADOR = Tariff('USD', float(np.median([t.per_km_eur for t in _LATAM])),
                  float(np.median([t.per_min_eur for t in _LATAM])), 1.,
-                 'Sin tabla publicada accesible; mediana de las demás ciudades del archivo',
+                 'No accessible published table; median of the other cities in the file',
                  float(np.median([t.base_eur for t in _LATAM])),
                  float(np.median([t.min_eur for t in _LATAM])), estimated=True)
 
@@ -88,19 +88,19 @@ CITY_TARIFF = {
     'Santiago': CHILE, 'Lima': PERU, 'Quito': ECUADOR,
     'Ciudad de México': MEXICO, 'Montevideo': URUGUAY,
 }
-FALLBACK = ECUADOR   # 'Otras zonas': misma mediana latinoamericana
+FALLBACK = ECUADOR   # 'Otras zonas': same Latin American median
 
 def tariff_of(region): return CITY_TARIFF.get(region, FALLBACK)
 
 def build_impact():
-    """Un DataFrame por viaje con la desviación de distancia, duración y euros."""
+    """One DataFrame row per journey with the distance, duration and euro deviation."""
     df, _ = load_data()
     geom = build_features().loc[df.index]
     graph = pd.read_json(ROOT/'data/cache/roads/graph_features.json', orient='index').loc[df.index]
 
     km_est, km_real = geom.length_est/1000, geom.length_real/1000
     reliable = graph.both_reliable.astype(bool)
-    # Velocidad implícita de OSRM, por ciudad, para los viajes sin encaje fiable.
+    # OSRM implied speed, per city, for journeys without a reliable map match.
     speed = (graph.est_partial_length_m/1000)/(graph.est_partial_duration_s/3600)
     city_speed = speed[reliable].groupby(df.region).median()
     overall_speed = float(speed[reliable].median())
@@ -112,8 +112,8 @@ def build_impact():
     per_km = df.region.map(lambda r: tariff_of(r).per_km_eur)
     per_min = df.region.map(lambda r: tariff_of(r).per_min_eur)
     delta_eur = per_km*(km_real-km_est) + per_min*(min_real-min_est)
-    # Precio de referencia del viaje tal y como se habría cobrado con la estimación.
-    # Precio efectivamente cobrado: base + parte variable, nunca por debajo de la mínima.
+    # Reference trip price as it would have been charged using the estimate.
+    # Price actually charged: base + variable part, never below the minimum fare.
     base = df.region.map(lambda r: tariff_of(r).base_eur)
     minimum = df.region.map(lambda r: tariff_of(r).min_eur)
     charged = np.maximum(base + per_km*km_est + per_min*min_est, minimum)
@@ -142,8 +142,8 @@ if __name__ == '__main__':
     impact = build_impact()
     out = ROOT/'results/routes_euros'; out.mkdir(parents=True, exist_ok=True)
     summary = {'consulted': CONSULTED,
-        'caveat': 'Tarifas públicas de 2026 sobre un archivo de 2021; categoría estándar; '
-                  'sin peajes, dinámica ni promociones; duraciones de OSRM sin tráfico.',
+        'caveat': 'Public 2026 fares applied to a 2021 file; standard category; '
+                  'no tolls, surge pricing or promotions; OSRM durations with no traffic.',
         'duration_from_osrm': int(impact.duration_from_osrm.sum()), 'n': len(impact),
         'tariffs': json.loads(tariff_table().to_json(orient='records')),
         'abs_delta_eur': {k: float(v) for k, v in

@@ -1,26 +1,26 @@
-"""Predicción conforme sobre el objetivo blando, con abstención explícita.
+"""Conformal prediction over the soft target, with explicit abstention.
 
-El modelo elegido es un regresor sobre `target_soft`, la proporción de votos «diferentes».
-La clasificación es un umbral aplicado después. Aquí producimos un intervalo alrededor de
-esa proporción y convertimos el intervalo en una decisión de tres valores:
+The chosen model is a regressor over `target_soft`, the proportion of "they differ" votes.
+Classification is a threshold applied afterwards. Here we produce an interval around
+that proportion and turn the interval into a three-valued decision:
 
-    intervalo entero por debajo de 0,5  → iguales
-    intervalo entero por encima de 0,5  → diferentes
-    el intervalo contiene 0,5           → sin decisión, a revisión humana
+    interval entirely below 0.5   -> the same
+    interval entirely above 0.5   -> they differ
+    interval contains 0.5         -> no decision, send to human review
 
-Usamos CV+ (Barber et al., 2021) sobre entrenamiento, no split conformal: validación ya
-intervino en elegir modelo, iteración y umbral, y reservar un fold de calibración dejaría
-~50 casos en el grupo de dos o más votos. CV+ usa los 1.348 viajes de entrenamiento como
-calibración mediante residuos fuera de fold, y garantiza cobertura al menos 1 − 2α.
+We use CV+ (Barber et al., 2021) over the training set rather than split conformal: validation
+already took part in choosing model, iteration and threshold, and holding out a calibration fold
+would leave ~50 cases in the two-or-more votes group. CV+ uses the 1,348 training journeys as
+calibration via out-of-fold residuals, and guarantees coverage of at least 1 - 2*alpha.
 
-La calibración es de tipo Mondrian con dos grupos: viajes con **un voto** y viajes con
-**dos o más**. Son dos regímenes de ruido distintos —un viaje con dos votos y mayoría
-definida es, por construcción, uno donde las personas coincidieron— y una única anchura
-promedio mentiría en ambos a la vez. No se separan tres y cuatro votos: con 8 y 2 casos
-de calibración no alcanzan el mínimo n ≥ 1/α − 1.
+Calibration is Mondrian with two groups: journeys with **one vote** and journeys with
+**two or more**. These are two different noise regimes -- a journey with two votes and a defined
+majority is, by construction, one where the people agreed -- and a single average width
+would misstate both at once. Three and four votes are not separated: with 8 and 2 calibration
+cases they do not reach the minimum n >= 1/alpha - 1.
 
-Advertencia de validez: la partición es aleatoria y los trayectos comparten calles, así
-que el intercambio exacto entre calibración y test es aproximado.
+Validity warning: the split is random and the trips share streets, so exact
+exchangeability between calibration and test only holds approximately.
 """
 import json
 
@@ -34,7 +34,7 @@ from .features import build_features, BASE_FEATURES
 
 N_FOLDS = 10
 CHOSEN = dict(max_depth=2, min_child_weight=8, reg_lambda=8)
-N_ROUNDS = 268          # iteración elegida en validación (best_iteration 267, inclusive)
+N_ROUNDS = 268          # iteration chosen on validation (best_iteration 267, inclusive)
 GROUPS = {'1 vote': lambda v: v == 1, '2 or more votes': lambda v: v >= 2}
 
 def _fit(x, y):
@@ -46,7 +46,7 @@ def _fit(x, y):
     return model
 
 def out_of_fold(x_train, y_train):
-    """Residuos fuera de fold y el modelo de cada fold, para la construcción CV+."""
+    """Out-of-fold residuals and each fold's model, for the CV+ construction."""
     folds = KFold(N_FOLDS, shuffle=True, random_state=SEED)
     residuals = np.empty(len(y_train))
     models, assignment = [], np.empty(len(y_train), dtype=int)
@@ -58,7 +58,7 @@ def out_of_fold(x_train, y_train):
     return residuals, models, assignment
 
 def cv_plus_interval(x_new, models, assignment, residuals, alpha):
-    """Intervalo CV+: cuantiles de {pred_{-k(i)}(x) ∓ R_i} sobre la calibración."""
+    """CV+ interval: quantiles of {pred_{-k(i)}(x) -/+ R_i} over the calibration set."""
     preds = np.column_stack([model.predict(x_new) for model in models])   # (n_new, K)
     per_point = preds[:, assignment]                                      # (n_new, n_cal)
     lower = np.quantile(per_point-residuals, alpha, axis=1, method='lower')
@@ -66,7 +66,7 @@ def cv_plus_interval(x_new, models, assignment, residuals, alpha):
     return np.clip(lower, 0, 1), np.clip(upper, 0, 1)
 
 def decide(lower, upper, boundary=.5):
-    """0 iguales · 1 diferentes · -1 sin decisión."""
+    """0 the same · 1 they differ · -1 no decision."""
     out = np.full(len(lower), -1)
     out[upper < boundary] = 0
     out[lower > boundary] = 1
@@ -119,9 +119,9 @@ if __name__ == '__main__':
     out = ROOT/'results/routes_conformal'; out.mkdir(parents=True, exist_ok=True)
     narrowing = {name: float(np.quantile(residuals[belongs(votes_cal)], .9))
                  for name, belongs in GROUPS.items()}
-    payload = {'method': 'CV+ (Barber et al. 2021), Mondrian por número de votos',
+    payload = {'method': 'CV+ (Barber et al. 2021), Mondrian by vote count',
         'folds': N_FOLDS, 'config': CHOSEN, 'n_rounds': N_ROUNDS,
-        'guarantee': 'cobertura >= 1 - 2*alpha sobre target_soft; aproximada por solapamiento de calles',
+        'guarantee': 'coverage >= 1 - 2*alpha over target_soft; approximate because of street overlap',
         'calibration_sizes': {name: int(belongs(votes_cal).sum()) for name, belongs in GROUPS.items()},
         'residual_q90_by_group': narrowing,
         'curve': json.loads(table.to_json(orient='records'))}
@@ -130,4 +130,4 @@ if __name__ == '__main__':
         frame.to_json(out/f'cases_alpha_{alpha:.2f}.json', orient='index', indent=1)
     print(table[['alpha','nominal_coverage','empirical_coverage','abstention_rate',
                  'error_rate_answered','mean_width']].to_string(index=False))
-    print('\nResiduo P90 por grupo:', {k: round(v,4) for k,v in narrowing.items()})
+    print('\nP90 residual by group:', {k: round(v,4) for k,v in narrowing.items()})

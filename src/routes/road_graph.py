@@ -1,4 +1,4 @@
-"""Piloto de importación OSM. No es un map matcher ni un modelo ya evaluado."""
+"""OSM import pilot. It is neither a map matcher nor an already-evaluated model."""
 import json
 import re
 import xml.etree.ElementTree as ET
@@ -9,7 +9,7 @@ from .data import ROOT,load_data
 
 DRIVABLE={'motorway','trunk','primary','secondary','tertiary','unclassified','residential',
           'living_street','service','motorway_link','trunk_link','primary_link','secondary_link','tertiary_link'}
-# Supuestos ilustrativos para una demostración, no velocidades observadas.
+# Illustrative assumptions for a demonstration, not observed speeds.
 FALLBACK_KPH={'motorway':90,'trunk':70,'primary':50,'secondary':40,'tertiary':35,
               'residential':25,'living_street':10,'service':15}
 
@@ -54,11 +54,11 @@ def audit_graph():
                 source='OpenStreetMap contributors, ODbL',source_url='https://www.openstreetmap.org/copyright',
                 bbox=bounds,nodes=len(g) if g else 0,edges=g.number_of_edges() if g else 0,
                 complete_journeys_in_bbox=complete,
-                reason='Las consultas amplias de Overpass agotaron tiempo o fueron rechazadas. Solo se obtuvo un extracto pequeño. No hay cobertura suficiente para comparar un modelo basado en calles y tiempos.',
-                road_time_status='Solo demostración longitud/velocidad. Límites OSM o valores supuestos por tipo de vía; no duración real, tráfico histórico ni penalizaciones de giro.',
+                reason='Broad Overpass queries timed out or were rejected. Only a small extract was obtained. There is not enough coverage to compare a model based on streets and travel times.',
+                road_time_status='Length/speed demonstration only. OSM limits or assumed values by road class; not real duration, historical traffic or turn penalties.',
                 missing=['Cobertura de todas las ciudades','Map matching de ambas rutas con confianza y control de continuidad',
                          'Restricciones de giro y permisos completos','Tiempos comparables, versionados y validados',
-                         'Benchmark de características viarias sobre exactamente los mismos viajes'],
+                         'Benchmark of road features over exactly the same journeys'],
                 no_road_features_in_trained_models=True)
     if g:
         report['fraction_edges_with_imputed_speed']=float(np.mean([d['imputed_speed'] for _,_,d in g.edges(data=True)]))

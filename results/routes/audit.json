@@ -40,5 +40,5 @@
   "conflicted_journey_annotator_pairs": 7,
   "seed": 20261014,
   "split_policy": "60/20/20 por journey_id, estratificado por estado inicial de etiqueta; se conserva tras deduplicar votos, antes de evaluar modelos.",
-  "duplicate_policy": "Un voto por anotador y viaje. Repeticiones id\u00e9nticas colapsan; un voto decidido y una abstenci\u00f3n conservan el decidido; decisiones contradictorias de la misma persona se consideran abstenci\u00f3n."
+  "duplicate_policy": "One vote per annotator and journey. Identical repeats collapse; a decided vote plus an abstention keeps the decision; contradictory decisions from the same person count as an abstention."
 }
