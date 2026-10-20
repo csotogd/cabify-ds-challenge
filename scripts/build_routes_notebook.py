@@ -80,13 +80,13 @@ plt.rcParams.update({'figure.facecolor':BG,'axes.facecolor':BG,'savefig.facecolo
  'axes.spines.top':False,'axes.spines.right':False,'axes.titleweight':'bold',
  'axes.titlelocation':'left','axes.titlesize':13,'figure.dpi':110,'savefig.dpi':150})
 FIG=ROOT/'figures/routes';FIG.mkdir(parents=True,exist_ok=True)
-def finish(fig,name,note='Dataset del challenge · resultados reproducibles · semilla 20261014'):
+def finish(fig,name,note='Challenge dataset · reproducible results · seed 20261014'):
     fig.text(.02,.015,note,fontsize=9,color=MUTED)
     fig.tight_layout(rect=(0,.05,1,.95))
     fig.savefig(FIG/(name+'.png'),bbox_inches='tight')
     plt.show();plt.close(fig)
-names={'geometria_base':'Geometría básica','vector_interpretable':'Vector interpretable',
-       't2vec_decoder_clasificador':'t2vec + clasificador','hibrido_vector_t2vec':'Vector + t2vec'}
+names={'geometria_base':'Basic geometry','vector_interpretable':'Interpretable vector',
+       't2vec_decoder_clasificador':'t2vec + classifier','hibrido_vector_t2vec':'Vector + t2vec'}
 """)
 
 md(r"""
@@ -108,18 +108,18 @@ We find **123 additional records for the same annotator-journey pair**, with sev
 code("""
 counts=df.status.value_counts()
 fig,axs=plt.subplots(1,2,figsize=(12,4.6))
-labels=['Filas de anotación','Viajes únicos','Con mayoría definida']
+labels=['Annotation rows','Unique journeys','With a defined majority']
 values=[audit['n_records'],len(df),int(df.target_hard.notna().sum())]
 axs[0].barh(labels[::-1],values[::-1],color=[TEAL,ORANGE,INK])
 for y,v in enumerate(values[::-1]):axs[0].text(v+35,y,f'{v:,}'.replace(',','.'),va='center',weight='bold')
 axs[0].set_xlim(0,3500);axs[0].set_title('Las filas no son ejemplos independientes')
 status_order=['same','different','tie','unknown']
-axs[1].bar(['Iguales','Diferentes','Empate','Sin voto válido'],
+axs[1].bar(['The same','They differ','Tie','No valid vote'],
            [counts.get(k,0) for k in status_order],color=[TEAL,ORANGE,MUTED,RED])
 for i,k in enumerate(status_order):axs[1].text(i,counts.get(k,0)+15,str(counts.get(k,0)),ha='center')
-axs[1].set_title('Qué etiqueta podemos defender');axs[1].tick_params(axis='x',labelsize=9)
+axs[1].set_title('Which label we can defend');axs[1].tick_params(axis='x',labelsize=9)
 finish(fig,'01_muestra_y_etiquetas')
-display(pd.crosstab(df.split,df.status).rename(columns={'same':'Iguales','different':'Diferentes','tie':'Empate','unknown':'Sin voto válido'}))
+display(pd.crosstab(df.split,df.status).rename(columns={'same':'The same','different':'They differ','tie':'Tie','unknown':'No valid vote'}))
 """)
 
 md(r"""
@@ -143,36 +143,36 @@ for field in raw_fields:
     missing_report.append({'Campo':field,'Filas revisadas':len(raw_records),
         'Campo ausente':sum(field not in row for row in raw_records),
         'Valor null':sum(value is None for value in present),
-        'Vacío (texto o lista)':sum(isinstance(value,(str,list,dict)) and len(value)==0 for value in present)})
+        'Empty (text or list)':sum(isinstance(value,(str,list,dict)) and len(value)==0 for value in present)})
 missing_report=pd.DataFrame(missing_report).set_index('Campo')
 display(missing_report)
 
-# Una geometría por viaje: las anotaciones repetidas no inflan este recuento.
+# One geometry per journey: repeated annotations do not inflate this count.
 unique_raw={}
 for row in raw_records:
     unique_raw.setdefault(row['journey_id'],row)
 geod=Geod(ellps='WGS84')
 route_rows=[];quality={}
-for field,kind in [('estimated_route','Estimada'),('real_route','Real')]:
-    checks={'Rutas revisadas':len(unique_raw),'Ruta ausente, nula o vacía':0,
-            'Puntos con estructura inválida':0,'Componentes de coordenada null':0,
-            'Puntos no numéricos o no finitos':0,'Puntos fuera de rango':0,
-            'Rutas con menos de 2 posiciones distintas':0,'Puntos (0, 0)':0}
+for field,kind in [('estimated_route','Estimated'),('real_route','Real')]:
+    checks={'Rutas revisadas':len(unique_raw),'Route missing, null or empty':0,
+            'Points with invalid structure':0,'Componentes de coordenada null':0,
+            'Non-numeric or non-finite points':0,'Puntos fuera de rango':0,
+            'Routes with fewer than 2 distinct positions':0,'Puntos (0, 0)':0}
     for jid,row in unique_raw.items():
         value=row.get(field)
         if not isinstance(value,list) or not value:
-            checks['Ruta ausente, nula o vacía']+=1
+            checks['Route missing, null or empty']+=1
             continue
         valid=[]
         for point in value:
             if not isinstance(point,list) or len(point)!=2:
-                checks['Puntos con estructura inválida']+=1
+                checks['Points with invalid structure']+=1
                 continue
             nulls=sum(x is None for x in point)
             checks['Componentes de coordenada null']+=nulls
             if nulls:continue
             if not all(isinstance(x,(int,float)) and not isinstance(x,bool) and np.isfinite(x) for x in point):
-                checks['Puntos no numéricos o no finitos']+=1
+                checks['Non-numeric or non-finite points']+=1
                 continue
             lat,lon=point
             if abs(lat)>90 or abs(lon)>180:
@@ -182,13 +182,13 @@ for field,kind in [('estimated_route','Estimada'),('real_route','Real')]:
             valid.append(point)
         coords=np.asarray(valid,float)
         if len(coords)<2 or len(np.unique(coords,axis=0))<2:
-            checks['Rutas con menos de 2 posiciones distintas']+=1
+            checks['Routes with fewer than 2 distinct positions']+=1
             continue
         # Nunca calculamos sobre una ruta reparada silenciosamente.
         if len(valid)!=len(value):continue
         _,_,steps=geod.inv(coords[:-1,1],coords[:-1,0],coords[1:,1],coords[1:,0])
         adjacent=(np.diff(coords,axis=0)==0).all(axis=1)
-        feature_length=features.loc[jid,'length_est' if kind=='Estimada' else 'length_real']
+        feature_length=features.loc[jid,'length_est' if kind=='Estimated' else 'length_real']
         route_rows.append(dict(journey_id=jid,split=df.loc[jid,'split'],kind=kind,
             n_points=len(coords),n_repeated_adjacent=int(adjacent.sum()),n_steps=len(steps),
             length_km=float(feature_length/1000),geodesic_length_km=float(steps.sum()/1000),
@@ -199,12 +199,12 @@ for field,kind in [('estimated_route','Estimada'),('real_route','Real')]:
 route_eda=pd.DataFrame(route_rows)
 quality=pd.DataFrame(quality)
 display(quality)
-assert len(route_eda)==2*len(df), 'Hay rutas inválidas: revisar antes de modelar, no imputar coordenadas automáticamente.'
+assert len(route_eda)==2*len(df), 'There are invalid routes: review before modelling, do not impute coordinates automatically.'
 feature_checks=pd.Series({
-    'Viajes sin objetivo probabilístico (sin votos válidos)':int(df.target_soft.isna().sum()),
-    'Viajes sin mayoría binaria (sin votos o empate)':int(df.target_hard.isna().sum()),
-    'Valores NaN en las 42 variables geométricas':int(features.isna().to_numpy().sum()),
-    'Valores infinitos en las 42 variables geométricas':int(np.isinf(features.to_numpy()).sum()),
+    'Journeys with no probabilistic target (no valid votes)':int(df.target_soft.isna().sum()),
+    'Journeys with no binary majority (no votes or a tie)':int(df.target_hard.isna().sum()),
+    'NaN values across the 42 geometric variables':int(features.isna().to_numpy().sum()),
+    'Infinite values across the 42 geometric variables':int(np.isinf(features.to_numpy()).sum()),
     'Variables constantes en entrenamiento':int((features.loc[df.index[df.split=='train']].nunique()<=1).sum())
 },name='Recuento')
 display(feature_checks.to_frame())
@@ -235,23 +235,23 @@ In the tables and charts that follow, each training journey counts once. We show
 
 code("""
 length_summary=train_routes.groupby('kind').length_km.agg(
-    Viajes='count',Mínimo='min',P25=lambda s:s.quantile(.25),Mediana='median',
-    Media='mean',P75=lambda s:s.quantile(.75),P95=lambda s:s.quantile(.95),Máximo='max')
-display(length_summary.style.format({c:'{:.2f}' for c in length_summary.columns if c!='Viajes'})
+    Journeys='count',Minimum='min',P25=lambda s:s.quantile(.25),Mediana='median',
+    Media='mean',P75=lambda s:s.quantile(.75),P95=lambda s:s.quantile(.95),Maximum='max')
+display(length_summary.style.format({c:'{:.2f}' for c in length_summary.columns if c!='Journeys'})
         .set_caption('Longitud en km · solo entrenamiento'))
 
 fig,axs=plt.subplots(1,2,figsize=(12,4.8))
 bins=np.geomspace(train_routes.length_km.min()*.95,train_routes.length_km.max()*1.05,26)
-for kind,color in [('Estimada',INK),('Real',ORANGE)]:
+for kind,color in [('Estimated',INK),('Real',ORANGE)]:
     values=train_routes.loc[train_routes.kind==kind,'length_km']
     axs[0].hist(values,bins=bins,weights=np.full(len(values),100/len(values)),histtype='step',lw=2,
                 color=color,label=f'{kind} · mediana {values.median():.2f} km')
 axs[0].set_xscale('log')
 axs[0].set_xticks([.5,1,2,5,10,20,50],['0,5','1','2','5','10','20','50'])
-axs[0].set(xlabel='Longitud · km (escala logarítmica)',ylabel='Rutas por intervalo · %')
-axs[0].set_title('Un mismo problema en escalas diferentes');axs[0].legend(fontsize=9)
+axs[0].set(xlabel='Length · km (logarithmic scale)',ylabel='Routes per bin · %')
+axs[0].set_title('The same problem at different scales');axs[0].legend(fontsize=9)
 status_colors={'same':TEAL,'different':ORANGE,'tie':MUTED,'unknown':MUTED}
-for status,label in [('same','Iguales'),('different','Diferentes'),('tie','Empate / sin voto válido'),('unknown',None)]:
+for status,label in [('same','The same'),('different','They differ'),('tie','Tie / no valid vote'),('unknown',None)]:
     subset=train_features[train_features.status==status]
     axs[1].scatter(subset.length_est/1000,subset.length_real/1000,s=13,alpha=.4,
                    color=status_colors[status],label=label,edgecolors='none',rasterized=True)
@@ -259,15 +259,15 @@ lims=[min(train_routes.length_km.min()*.8,.5),train_routes.length_km.max()*1.2]
 axs[1].plot(lims,lims,color=MUTED,ls='--',lw=1,label='Misma longitud')
 axs[1].set(xscale='log',yscale='log',xlim=lims,ylim=lims,
            xlabel='Longitud estimada · km',ylabel='Longitud real · km')
-axs[1].set_title('Mismos kilómetros no implican misma ruta')
+axs[1].set_title('Same kilometres does not mean same route')
 axs[1].legend(fontsize=8);axs[1].grid(alpha=.12)
-finish(fig,'eda_01_longitudes','Entrenamiento: 1.432 viajes · las escalas logarítmicas son solo para visualizar, no transformaciones nuevas del modelo')
+finish(fig,'eda_01_longitudes','Training: 1,432 journeys · the log scales are for viewing only, not new model transformations')
 
 ratio=train_features.length_real/train_features.length_est
-display(Markdown(f'**Lectura:** la ruta real tiene mediana **{train_features.length_real.median()/1000:.2f} km** '
-    f'y P95 **{train_features.length_real.quantile(.95)/1000:.2f} km**. La razón longitud real/estimada '
-    f'va de **{ratio.min():.2f}** a **{ratio.max():.2f}**: existen rutas mucho más cortas o más largas que lo previsto. '
-    'La diagonal mezcla etiquetas: recorrer los mismos kilómetros no basta para decidir si se siguieron las mismas calles.'))
+display(Markdown(f'**Reading:** the real route has a median of **{train_features.length_real.median()/1000:.2f} km** '
+    f'y P95 **{train_features.length_real.quantile(.95)/1000:.2f} km**. The real/estimated length ratio '
+    f'runs from **{ratio.min():.2f}** to **{ratio.max():.2f}**: there are routes far shorter or far longer than predicted. '
+    'The diagonal mixes labels: covering the same kilometres is not enough to decide whether the same streets were taken.'))
 
 extreme_ids=pd.Index([
     train_features.length_est.idxmax(),train_features.length_real.idxmax(),ratio.idxmin(),ratio.idxmax()
@@ -275,11 +275,11 @@ extreme_ids=pd.Index([
 extremes=train_features.loc[extreme_ids,['length_est','length_real','status']].copy()
 extremes[['length_est','length_real']]/=1000
 extremes['Real / estimada']=ratio.loc[extreme_ids]
-extremes=extremes.rename(columns={'length_est':'Estimada · km','length_real':'Real · km','status':'Etiqueta disponible'})
+extremes=extremes.rename(columns={'length_est':'Estimated · km','length_real':'Real · km','status':'Etiqueta disponible'})
 extremes['Etiqueta disponible']=extremes['Etiqueta disponible'].map(
-    {'same':'Iguales','different':'Diferentes','tie':'Empate','unknown':'Sin voto válido'})
-display(extremes.style.format({'Estimada · km':'{:.2f}','Real · km':'{:.2f}','Real / estimada':'{:.2f}'})
-        .set_caption('Casos extremos de entrenamiento: máximas longitudes y razones mínima/máxima'))
+    {'same':'The same','different':'They differ','tie':'Tie','unknown':'No valid vote'})
+display(extremes.style.format({'Estimated · km':'{:.2f}','Real · km':'{:.2f}','Real / estimada':'{:.2f}'})
+        .set_caption('Extreme training cases: maximum lengths and minimum/maximum ratios'))
 """)
 
 md(r"""
@@ -305,16 +305,16 @@ fig,axs=plt.subplots(1,2,figsize=(12,4.6))
 axs[0].scatter(point_counts.n_estimated,point_counts.n_real,s=12,alpha=.25,color=TEAL,rasterized=True)
 lims=[min(point_counts.n_estimated.min(),point_counts.n_real.min())*.8,
       max(point_counts.n_estimated.max(),point_counts.n_real.max())*1.15]
-axs[0].plot(lims,lims,color=RED,ls='--',label='Mismo número de puntos')
+axs[0].plot(lims,lims,color=RED,ls='--',label='Same number of points')
 axs[0].set(xscale='log',yscale='log',xlim=lims,ylim=lims,
-    xlabel='Puntos de la ruta estimada · escala log',ylabel='Puntos de la ruta real · escala log')
-axs[0].set_title('Cada punto del gráfico es un viaje');axs[0].legend(fontsize=9)
+    xlabel='Points in the estimated route · log scale',ylabel='Points in the real route · log scale')
+axs[0].set_title('Each point on the chart is one journey');axs[0].legend(fontsize=9)
 bins=np.geomspace(point_counts.ratio.min(),point_counts.ratio.max(),36)
 axs[1].hist(point_counts.ratio,bins=bins,color=ORANGE,alpha=.85)
 axs[1].axvline(1,color=RED,ls='--');axs[1].set_xscale('log')
-axs[1].set(xlabel='Número de puntos real / estimada · escala log',ylabel='Viajes')
+axs[1].set(xlabel='Point count, real / estimated · log scale',ylabel='Journeys')
 axs[1].set_title('Distinto recuento no siempre es gran diferencia')
-finish(fig,'eda_02a_puntos_por_pareja',f'Archivo completo · {different_counts:,} de {len(df):,} parejas con distinto recuento · sin usar etiquetas')
+finish(fig,'eda_02a_puntos_por_pareja',f'Whole file · {different_counts:,} of {len(df):,} pairs with differing counts · no labels used')
 
 sampling_example='7f29deb0-5c8c-11ec-8622-eff6f2c898b6'
 sample_a,sample_b=project_pair(*routes[sampling_example])
@@ -322,50 +322,50 @@ assert len(sample_a)==323 and len(sample_b)==97
 fig,axs=plt.subplots(1,2,figsize=(12,5),sharex=True,sharey=True)
 both=np.concatenate([sample_a,sample_b])/1000
 low=both.min(axis=0);high=both.max(axis=0);padding=np.maximum((high-low)*.07,.05)
-for ax,line,other,label,color in zip(axs,[sample_a,sample_b],[sample_b,sample_a],['Estimada','Real'],[INK,ORANGE]):
+for ax,line,other,label,color in zip(axs,[sample_a,sample_b],[sample_b,sample_a],['Estimated','Real'],[INK,ORANGE]):
     ax.plot(other[:,0]/1000,other[:,1]/1000,color=MUTED,alpha=.3,lw=3,label='Otro trazado, como referencia')
     ax.plot(line[:,0]/1000,line[:,1]/1000,color=color,lw=1,alpha=.7)
-    ax.scatter(line[:,0]/1000,line[:,1]/1000,s=13,color=color,alpha=.75,label='Puntos del archivo')
+    ax.scatter(line[:,0]/1000,line[:,1]/1000,s=13,color=color,alpha=.75,label='Points in the file')
     ax.set_title(f'{label}: {len(line)} puntos')
     ax.set(xlim=(low[0]-padding[0],high[0]+padding[0]),ylim=(low[1]-padding[1],high[1]+padding[1]),
            xlabel='Este local · km',ylabel='Norte local · km')
     ax.set_aspect('equal',adjustable='box');ax.legend(fontsize=8)
-finish(fig,'eda_02b_ejemplo_323_97','Ejemplo descriptivo elegido por recuentos próximos a 300 y 100 · mismos ejes · no elegido por el resultado del modelo')
+finish(fig,'eda_02b_ejemplo_323_97','Descriptive example picked for counts near 300 and 100 · same axes · not picked by model outcome')
 display(Markdown(f'El viaje `{sampling_example}` tiene **323 puntos estimados y 97 reales**. '
-    f'Las polilíneas miden **{features.loc[sampling_example,"length_est"]/1000:.2f} km** y '
+    f'The polylines measure **{features.loc[sampling_example,"length_est"]/1000:.2f} km** y '
     f'**{features.loc[sampling_example,"length_real"]/1000:.2f} km**, respectivamente. '
-    'El recuento, la longitud y la similitud son propiedades distintas. Los marcadores superpuestos pueden ocultar '
-    'coordenadas repetidas. Este ejemplo ilustra el muestreo, sin afirmar que ambas rutas sean idénticas.'))
+    'Count, length and similarity are distinct properties. Overlapping markers can hide '
+    'repeated coordinates. This example illustrates sampling, without claiming both routes are identical.'))
 
 sampling_rows=[]
 for kind,group in route_eda.groupby('kind',sort=False):
     train=group[group.split=='train']
-    sampling_rows.append({'Ruta':kind,'Puntos por ruta · mediana train':train.n_points.median(),
-        'Puntos por km · mediana train':train.points_per_km.median(),
+    sampling_rows.append({'Ruta':kind,'Points per route · training median':train.n_points.median(),
+        'Points per km · training median':train.points_per_km.median(),
         'Pasos de longitud cero · archivo completo':int(group.n_repeated_adjacent.sum()),
         '% pasos de longitud cero · archivo completo':100*group.n_repeated_adjacent.sum()/group.n_steps.sum(),
-        'Rutas con algún paso >1 km · archivo completo':int((group.max_step_m>1000).sum())})
+        'Routes with any step >1 km · whole file':int((group.max_step_m>1000).sum())})
 sampling_summary=pd.DataFrame(sampling_rows).set_index('Ruta')
-display(sampling_summary.style.format({'Puntos por ruta · mediana train':'{:.1f}',
-    'Puntos por km · mediana train':'{:.1f}','% pasos de longitud cero · archivo completo':'{:.2f} %'}))
+display(sampling_summary.style.format({'Points per route · training median':'{:.1f}',
+    'Points per km · training median':'{:.1f}','% pasos de longitud cero · archivo completo':'{:.2f} %'}))
 
 fig,axs=plt.subplots(1,2,figsize=(12,4.6))
 def ecdf(ax,values,color,label):
     values=np.sort(np.asarray(values))
     ax.plot(values,np.arange(1,len(values)+1)/len(values)*100,color=color,label=label,lw=2)
-for kind,color in [('Estimada',INK),('Real',ORANGE)]:
+for kind,color in [('Estimated',INK),('Real',ORANGE)]:
     subset=train_routes[train_routes.kind==kind]
     ecdf(axs[0],subset.points_per_km,color,kind)
     ecdf(axs[1],subset.max_step_m,color,kind)
 for ax in axs:
     ax.set_xscale('log');ax.set_ylabel('Rutas acumuladas · %');ax.set_ylim(0,101);ax.legend();ax.grid(alpha=.15)
-axs[0].set_xlabel('Puntos registrados por km · escala log')
+axs[0].set_xlabel('Recorded points per km · log scale')
 axs[0].set_title('La densidad de puntos no es uniforme')
-axs[1].set_xlabel('Mayor paso entre puntos de una ruta · m')
-axs[1].set_title('Una ruta densa también puede tener huecos')
+axs[1].set_xlabel('Largest step between points of a route · m')
+axs[1].set_title('A dense route can still have gaps')
 axs[1].axvline(1000,color=RED,ls='--',lw=1)
-axs[1].text(1100,18,'1 km: referencia\\nde inspección',color=RED,fontsize=9)
-finish(fig,'eda_02_muestreo','Solo entrenamiento · una curva acumulada al 80 % indica el valor que no supera el 80 % de las rutas')
+axs[1].text(1100,18,'1 km: inspection\\nreference',color=RED,fontsize=9)
+finish(fig,'eda_02_muestreo','Training only · a cumulative curve at 80 % marks the value 80 % of routes stay below')
 
 # Ilustramos el mayor paso entre observaciones de una ruta real de train.
 worst=train_routes[train_routes.kind=='Real'].sort_values('max_step_m',ascending=False).iloc[0]
@@ -375,7 +375,7 @@ raw_b=routes[eda_jid][1]
 _,_,eda_steps=geod.inv(raw_b[:-1,1],raw_b[:-1,0],raw_b[1:,1],raw_b[1:,0])
 largest=int(np.argmax(eda_steps))
 fig,axs=plt.subplots(1,2,figsize=(12,4.8))
-axs[0].plot(eda_a[:,0]/1000,eda_a[:,1]/1000,color=INK,lw=2,label='Estimada')
+axs[0].plot(eda_a[:,0]/1000,eda_a[:,1]/1000,color=INK,lw=2,label='Estimated')
 axs[0].plot(eda_b[:,0]/1000,eda_b[:,1]/1000,color=ORANGE,lw=1.3,label='Real: puntos unidos')
 axs[0].scatter(eda_b[:,0]/1000,eda_b[:,1]/1000,s=4,color=ORANGE,alpha=.35)
 segment=eda_b[largest:largest+2]/1000
@@ -383,17 +383,17 @@ axs[0].plot(segment[:,0],segment[:,1],color=RED,lw=3,label=f'Paso sin puntos int
 axs[0].scatter(segment[:,0],segment[:,1],facecolors=BG,edgecolors=RED,s=45,zorder=5)
 axs[0].set_aspect('equal',adjustable='datalim')
 axs[0].set(xlabel='Este local · km',ylabel='Norte local · km')
-axs[0].set_title('La línea dibujada no es una observación')
+axs[0].set_title('The drawn line is not an observation')
 axs[0].legend(fontsize=8)
 axs[1].plot(np.arange(1,len(eda_steps)+1),eda_steps/1000,color=ORANGE,lw=1)
 axs[1].scatter(largest+1,eda_steps[largest]/1000,color=RED,s=40,zorder=4)
-axs[1].set(xlabel='Índice del paso entre puntos · no tiempo',ylabel='Distancia entre observaciones · km')
+axs[1].set(xlabel='Index of the step between points · not time',ylabel='Distancia entre observaciones · km')
 axs[1].set_title(f'{int(worst.n_points)} puntos, pero un paso de {worst.max_step_m/1000:.1f} km')
-finish(fig,'eda_03_hueco_trazado',f'Entrenamiento · ID {eda_jid} · elección: mayor paso de una ruta real · sin timestamps')
+finish(fig,'eda_03_hueco_trazado',f'Training · ID {eda_jid} · chosen as: largest step in a real route · no timestamps')
 
-display(Markdown('**Lo que implica:** no sabemos si este hueco procede de simplificar el trazado, perder registros '
-    'o de otro mecanismo. Unir extremos y remuestrear crea posiciones interpoladas, no recupera las calles recorridas. '
-    'Por eso una longitud, IoU o distancia geométrica puede depender de la resolución del archivo, además de la conducción.'))
+display(Markdown('**What it implies:** we do not know whether this gap comes from simplifying the trace, losing records '
+    'or from some other mechanism. Joining endpoints and resampling creates interpolated positions; it does not recover the streets driven. '
+    'So a length, IoU or geometric distance can depend on the resolution of the file as well as on the driving.'))
 """)
 
 md(r"""
@@ -411,7 +411,7 @@ The area is not an original field: it is an **approximation** based on where the
 """)
 
 code("""
-split_names={'train':'Entrenamiento','val':'Validación','test':'Test'}
+split_names={'train':'Entrenamiento','val':'Validation','test':'Test'}
 top_regions=df.loc[train_ids,'region'].value_counts().head(5).index.tolist()
 geo_labels=df.region.where(df.region.isin(top_regions),'Resto')
 geo_counts=pd.crosstab(df.split,geo_labels).reindex(index=['train','val','test'],columns=top_regions+['Resto'],fill_value=0)
@@ -427,44 +427,44 @@ for region,color in zip(geo_pct.columns,palette):
                              color='white' if color in palette[:3] else INK,fontsize=9)
     left+=values
 axs[0].set_yticks(np.arange(3),[split_names[s] for s in geo_pct.index])
-axs[0].invert_yaxis();axs[0].set_xlim(0,100);axs[0].set_xlabel('Viajes de cada conjunto · %')
+axs[0].invert_yaxis();axs[0].set_xlim(0,100);axs[0].set_xlabel('Journeys in each split · %')
 axs[0].set_title('Parecida mezcla no garantiza rutas nuevas')
 axs[0].legend(fontsize=8,ncol=3,loc='upper center',bbox_to_anchor=(.5,-.18))
 voters=df.loc[train_ids,'n_unique_annotators'].value_counts().sort_index()
 axs[1].bar(voters.index.astype(str),voters.values,color=[ORANGE]+[TEAL]*(len(voters)-1))
 for i,v in enumerate(voters.values):axs[1].text(i,v+12,str(v),ha='center')
 axs[1].set_ylim(0,voters.max()*1.16)
-axs[1].set(xlabel='Personas distintas por viaje · incluye abstenciones',ylabel='Viajes de entrenamiento')
-axs[1].set_title('La mayoría suele ser una sola persona')
-finish(fig,'eda_04_mezcla_y_anotadores','Zonas aproximadas · orden y categorías elegidos en entrenamiento · comparación entre conjuntos solo descriptiva')
+axs[1].set(xlabel='Distinct people per journey · abstentions included',ylabel='Training journeys')
+axs[1].set_title('The majority is usually one person')
+finish(fig,'eda_04_mezcla_y_anotadores','Approximate areas · order and categories chosen on training · cross-split comparison is descriptive only')
 
 split_rows=[]
 for split in ['train','val','test']:
     ids=df.index[df.split==split];part=df.loc[ids];f=features.loc[ids]
     real=route_eda[(route_eda.split==split)&(route_eda.kind=='Real')]
-    split_rows.append({'Conjunto':split_names[split],'Viajes':len(part),
+    split_rows.append({'Conjunto':split_names[split],'Journeys':len(part),
         'Longitud real mediana · km':f.length_real.median()/1000,
         'Longitud real P95 · km':f.length_real.quantile(.95)/1000,
-        '% con mayoría definida':100*part.target_hard.notna().mean(),
-        '% diferentes entre mayorías':100*part.target_hard.dropna().mean(),
-        '% rutas reales con paso >1 km':100*(real.max_step_m>1000).mean()})
+        '% with a defined majority':100*part.target_hard.notna().mean(),
+        '% different among majorities':100*part.target_hard.dropna().mean(),
+        '% real routes with a step >1 km':100*(real.max_step_m>1000).mean()})
 split_summary=pd.DataFrame(split_rows).set_index('Conjunto')
-display(split_summary.style.format({c:'{:.2f}' for c in split_summary.columns if c!='Viajes'}))
+display(split_summary.style.format({c:'{:.2f}' for c in split_summary.columns if c!='Journeys'}))
 
 duplicate_geometry={kind:int(group.geometry_hash.duplicated().sum()) for kind,group in route_eda.groupby('kind')}
-display(Markdown(f'**Comprobación adicional:** {duplicate_geometry["Estimada"]} rutas estimadas y '
-    f'{duplicate_geometry["Real"]} rutas reales son copias exactas adicionales de la secuencia de otro viaje. '
-    'La ausencia de copias exactas no descarta compartir calles o corredores. Esta partición aleatoria mide rendimiento '
-    'dentro de una mezcla geográfica conocida; para evaluar una ciudad nueva habría que separarla expresamente.'))
+display(Markdown(f'**Additional check:** {duplicate_geometry["Estimated"]} estimated routes and '
+    f'{duplicate_geometry["Real"]} real routes are additional exact copies of the sequence of another journey. '
+    'The absence of exact copies does not rule out shared streets or corridors. This random split measures performance '
+    'within a known geographic mix; evaluating a new city would require holding it out explicitly.'))
 
 quartiles=pd.qcut(train_features.length_real/1000,4)
 length_label=pd.crosstab(quartiles,train_features.status).reindex(columns=['same','different','tie','unknown'],fill_value=0)
-length_label['Con mayoría']=length_label['same']+length_label['different']
-length_label['% diferentes entre mayorías']=100*length_label['different']/length_label['Con mayoría']
-length_label['Sin mayoría']=length_label['tie']+length_label['unknown']
-display(length_label[['Con mayoría','% diferentes entre mayorías','Sin mayoría']].style
-        .format({'% diferentes entre mayorías':'{:.1f} %'})
-        .set_caption('Entrenamiento · cuatro grupos por longitud real (km) · asociación descriptiva, no causal'))
+length_label['With a majority']=length_label['same']+length_label['different']
+length_label['% different among majorities']=100*length_label['different']/length_label['With a majority']
+length_label['No majority']=length_label['tie']+length_label['unknown']
+display(length_label[['With a majority','% different among majorities','No majority']].style
+        .format({'% different among majorities':'{:.1f} %'})
+        .set_caption('Training · four groups by real length (km) · descriptive association, not causal'))
 """)
 
 md(r"""
@@ -495,13 +495,13 @@ for i,v in enumerate(votes_total.values):
     axs[0].text(i,v*.5 if v>200 else v+150,f'{v/len(df):.0%}',ha='center',fontsize=9,
                 color='white' if v>200 else MUTED)
 axs[0].set_ylim(0,votes_total.max()*1.18)
-axs[0].set(xlabel='Votos decididos por viaje · sin «no sé» ni contradicciones',ylabel='Viajes')
-axs[0].set_title('Tres de cada cuatro etiquetas las sostiene una persona')
+axs[0].set(xlabel='Decided votes per journey · excluding «unsure» answers and contradictions',ylabel='Journeys')
+axs[0].set_title('Three in four labels rest on one person')
 rows=votes_status.loc[[1,2,3]] if 3 in votes_status.index else votes_status
 share=rows.div(rows.sum(axis=1),axis=0)*100
 left=np.zeros(len(rows))
-for col,color,label in [('same',TEAL,'Mayoría: iguales'),('different',ORANGE,'Mayoría: diferentes'),
-                        ('tie',MUTED,'Empate, sin mayoría')]:
+for col,color,label in [('same',TEAL,'Majority: the same'),('different',ORANGE,'Majority: they differ'),
+                        ('tie',MUTED,'Tie, no majority')]:
     values=share[col].to_numpy()
     axs[1].barh(np.arange(len(rows)),values,left=left,color=color,label=label,height=.6)
     for i,v in enumerate(values):
@@ -509,21 +509,21 @@ for col,color,label in [('same',TEAL,'Mayoría: iguales'),('different',ORANGE,'M
     left+=values
 axs[1].set_yticks(np.arange(len(rows)),[f'{k} voto' if k==1 else f'{k} votos' for k in rows.index])
 axs[1].invert_yaxis();axs[1].set_xlim(0,100)
-axs[1].set_xlabel('Viajes con ese número de votos · %')
-axs[1].set_title('El desacuerdo solo es observable con dos o más')
+axs[1].set_xlabel('Journeys with that vote count · %')
+axs[1].set_title('Disagreement is only observable with two or more')
 axs[1].legend(fontsize=8,ncol=3,loc='upper center',bbox_to_anchor=(.5,-.18))
-finish(fig,'eda_05_votos_por_ruta','Archivo completo · votos ya deduplicados por anotador y viaje')
+finish(fig,'eda_05_votos_por_ruta','Whole file · votes already deduplicated by annotator and journey')
 
 ties=int((df.status=='tie').sum());multi=int((df.n_votes>=2).sum())
 def miles(n):return f'{n:,}'.replace(',','.')
 display(Markdown(
-    f'**Lo que se puede y no se puede medir.** {miles(int(votes_total.get(1,0)))} viajes tienen un solo voto: en ellos '
-    f'el acuerdo entre personas es **inobservable**. Entre los {miles(multi)} con dos o más, {ties} terminan en empate '
+    f'**What can and cannot be measured.** {miles(int(votes_total.get(1,0)))} journeys have a single vote: in those '
+    f'agreement between people is **unobservable**. Among the {miles(multi)} with two or more, {ties} end in a tie '
     f'({ties/multi:.1%}), y {int(df.n_conflicted_annotators.sum())} anotadores se contradicen sobre un mismo viaje. '
-    f'Hay además {miles(int(df.n_unknown.sum()))} abstenciones repartidas en {miles(int((df.n_unknown>0).sum()))} viajes. '
-    'El enunciado pide expresamente una valoración «según su propia percepción»: no existe un criterio fijo de '
-    'cuántos metros de desvío convierten dos rutas en diferentes. El desacuerdo es una propiedad del problema, '
-    'no un defecto de los datos.'))
+    f'There are also {miles(int(df.n_unknown.sum()))} abstentions spread over {miles(int((df.n_unknown>0).sum()))} journeys. '
+    'The brief explicitly asks for an assessment «according to their own perception»: there is no fixed criterion for '
+    'how many metres of detour make two routes different. The disagreement is a property of the problem, '
+    'not a defect of the data.'))
 """)
 
 md(r"""
@@ -550,11 +550,11 @@ for ann in sorted({row['annotator'] for row in raw_records}):
     sole=sum(1 for j in journeys if set(by_journey[j])=={ann})
     conflicted=sum(1 for j in journeys if len(decided(by_journey[j][ann]))>1)
     counts=Counter(row['annotation'] for row in mine)
-    annotator_rows.append({'Anotador':ann,'Anotaciones':len(mine),'Viajes':len(journeys),
-        'Único anotador':sole,'Acompañado':len(journeys)-sole,
-        '% «diferentes»':100*counts['They differ']/len(mine),
-        '% «no sé»':100*counts["I don't know"]/len(mine),
-        'Se contradice':conflicted})
+    annotator_rows.append({'Anotador':ann,'Annotations':len(mine),'Journeys':len(journeys),
+        'Only annotator':sole,'Alongside others':len(journeys)-sole,
+        '% «they differ»':100*counts['They differ']/len(mine),
+        '% «unsure»':100*counts["I don't know"]/len(mine),
+        'Self-contradictions':conflicted})
 panel=pd.DataFrame(annotator_rows).set_index('Anotador')
 
 agreement=defaultdict(lambda:[0,0])
@@ -576,20 +576,20 @@ for (x,y),(n,ok) in agreement.items():
            if len(decided(anns.get(x,set())))==1 and len(decided(anns.get(y,set())))==1]
     v=np.array(votes);po=(v[:,0]==v[:,1]).mean();p1,p2=v[:,0].mean(),v[:,1].mean()
     pe=p1*p2+(1-p1)*(1-p2)
-    kappa_rows.append({'Par':f'{x} y {y}','Viajes compartidos':n,'Acuerdo':100*po,
+    kappa_rows.append({'Par':f'{x} y {y}','Shared journeys':n,'Acuerdo':100*po,
                        'Kappa de Cohen':(po-pe)/(1-pe)})
 kappa=pd.DataFrame(kappa_rows).sort_values('Kappa de Cohen').set_index('Par')
 
 fig,axs=plt.subplots(1,2,figsize=(13,5))
-order=panel.sort_values('Anotaciones').index
-axs[0].barh([str(a) for a in order],panel.loc[order,'Único anotador'],color=ORANGE,label='Único anotador del viaje')
-axs[0].barh([str(a) for a in order],panel.loc[order,'Acompañado'],left=panel.loc[order,'Único anotador'],
-            color=TEAL,label='Alguien más también votó')
+order=panel.sort_values('Annotations').index
+axs[0].barh([str(a) for a in order],panel.loc[order,'Only annotator'],color=ORANGE,label='Only annotator of the journey')
+axs[0].barh([str(a) for a in order],panel.loc[order,'Alongside others'],left=panel.loc[order,'Only annotator'],
+            color=TEAL,label='Someone else also voted')
 for i,a in enumerate(order):
-    axs[0].text(panel.loc[a,'Viajes']+14,i,f"{panel.loc[a,'Viajes']}",va='center',fontsize=9,weight='bold')
-axs[0].set_xlim(0,panel.Viajes.max()*1.14)
-axs[0].set(xlabel='Viajes anotados',ylabel='Anotador')
-axs[0].set_title('Una persona define en solitario el 26 % del archivo')
+    axs[0].text(panel.loc[a,'Journeys']+14,i,f"{panel.loc[a,'Journeys']}",va='center',fontsize=9,weight='bold')
+axs[0].set_xlim(0,panel.Journeys.max()*1.14)
+axs[0].set(xlabel='Journeys annotated',ylabel='Anotador')
+axs[0].set_title('One person alone defines 26 % of the file')
 axs[0].legend(fontsize=8,ncol=2,loc='upper center',bbox_to_anchor=(.5,-.16))
 im=axs[1].imshow(matrix,cmap='BuGn',vmin=70,vmax=100)
 axs[1].set_xticks(range(len(people)),people);axs[1].set_yticks(range(len(people)),people)
@@ -600,15 +600,15 @@ for i in range(len(people)):
         else: axs[1].text(j,i,f'{matrix[i,j]:.0f}',ha='center',va='center',fontsize=9,
                           color='white' if matrix[i,j]>92 else INK)
 axs[1].set(xlabel='Anotador',ylabel='Anotador')
-axs[1].set_title(f'Acuerdo cuando coinciden · % · «·» = menos de {MIN_PAIRS} viajes')
+axs[1].set_title(f'Agreement when they overlap · % · «·» = fewer than {MIN_PAIRS} journeys')
 fig.colorbar(im,ax=axs[1],fraction=.046,label='Acuerdo · %')
 finish(fig,'eda_06_panel_anotadores',
-       'Archivo completo · el acuerdo se calcula solo sobre viajes que ambos votaron con decisión')
+       'Whole file · agreement computed only over journeys both voted on decisively')
 
-display(panel[['Anotaciones','Viajes','Único anotador','% «diferentes»','% «no sé»','Se contradice']]
-        .style.format({'% «diferentes»':'{:.1f} %','% «no sé»':'{:.1f} %'}))
-display(Markdown('**Acuerdo descontando el azar.** Dos personas que digan «diferentes» casi siempre coincidirán '
- 'mucho sin compartir criterio. Kappa corrige eso: 1 es acuerdo perfecto, 0 es el que se esperaría al azar.'))
+display(panel[['Annotations','Journeys','Only annotator','% «they differ»','% «unsure»','Self-contradictions']]
+        .style.format({'% «they differ»':'{:.1f} %','% «unsure»':'{:.1f} %'}))
+display(Markdown('**Agreement discounting chance.** Two people who say «they differ» most of the time will agree a lot '
+ 'without sharing a criterion. Kappa corrects for that: 1 is perfect agreement, 0 is what chance would give.'))
 display(kappa.style.format({'Acuerdo':'{:.1f} %','Kappa de Cohen':'{:.3f}'}))
 """)
 
@@ -680,7 +680,7 @@ This is a rescaling of the network's inputs, not a normalisation of kilometres. 
 code("""
 # Informe ligero para reproducir las cifras sin extraerlas de las figuras.
 eda_report={
- 'scope':'Calidad: archivo completo. Distribuciones y relación con etiquetas: train. Comparación de splits: descriptiva.',
+ 'scope':'Quality: whole file. Distributions and label relationships: train. Split comparison: descriptive.',
  'added_after_model_evaluation':True,
  'raw_rows':len(raw_records),'unique_journeys':len(df),
  'missing_fields':missing_report.to_dict(orient='index'),
@@ -718,16 +718,16 @@ All annotations for a journey stay together. There are no exactly duplicated geo
 
 code("""
 fig,axs=plt.subplots(1,3,figsize=(12,4.3))
-for ax,status,title in zip(axs,['same','different','unknown'],['Mayoría: iguales','Mayoría: diferentes','Sin decisión válida']):
+for ax,status,title in zip(axs,['same','different','unknown'],['Majority: the same','Majority: they differ','No valid decision']):
     ids=df.index[(df.split=='train')&(df.status==status)]
-    # Caso mediano en longitud: selección determinista, no por acierto del modelo.
+    # Median case by length: a deterministic pick, not chosen by model accuracy.
     jid=features.loc[ids,'length_real'].sort_values().index[len(ids)//2]
     a,b=project_pair(*routes[jid])
-    ax.plot(a[:,0]/1000,a[:,1]/1000,color=INK,lw=2.5,label='Estimada')
+    ax.plot(a[:,0]/1000,a[:,1]/1000,color=INK,lw=2.5,label='Estimated')
     ax.plot(b[:,0]/1000,b[:,1]/1000,color=ORANGE,lw=1.7,label='Real')
     ax.set_title(title);ax.set_aspect('equal',adjustable='datalim');ax.set_xlabel('Este local · km')
     ax.set_ylabel('Norte local · km');ax.legend(fontsize=9)
-finish(fig,'02_ejemplos_reales','Ejemplos del entrenamiento · coordenadas proyectadas localmente · sin mapa base')
+finish(fig,'02_ejemplos_reales','Training examples · locally projected coordinates · no base map')
 """)
 
 md(r"""
@@ -758,12 +758,12 @@ We keep absolute and relative values. IoU is already normalised; we do not divid
 
 code("""
 from routes.features import features_xy
-# Comprobación conceptual: dos líneas idénticas pero recorridas al revés.
+# Conceptual check: two identical lines traversed in opposite directions.
 a=np.array([[0.,0.],[1000.,0.]])
 demo=features_xy(a,a[::-1])
 display(pd.DataFrame([{'Hausdorff (m)':demo['hausdorff_discrete_m'],
                       'IoU corredor 50 m':demo['buffer_iou_50m'],
-                      'Fréchet discreto (m)':demo['frechet_64_m']}]))
+                      'Discrete Fréchet (m)':demo['frechet_64_m']}]))
 
 from shapely import distance,points
 ids=df.index[(df.split=='train')&(df.status=='different')]
@@ -772,14 +772,14 @@ a,b=project_pair(*routes[jid]);la,lb=clean_line(a),clean_line(b)
 positions=sample_line(lb,400,midpoints=True)
 distances=distance(points(positions),la)
 fig,axs=plt.subplots(1,2,figsize=(12,4.2))
-axs[0].plot(a[:,0],a[:,1],color=INK,lw=2,label='Estimada')
+axs[0].plot(a[:,0],a[:,1],color=INK,lw=2,label='Estimated')
 axs[0].plot(b[:,0],b[:,1],color=ORANGE,lw=1.5,label='Real')
 axs[0].set_aspect('equal',adjustable='datalim');axs[0].legend();axs[0].set_title('Una pareja de rutas de entrenamiento')
 axs[0].set_xlabel('Este local · m');axs[0].set_ylabel('Norte local · m')
 axs[1].plot((np.arange(400)+.5)/400*100,distances,color=ORANGE)
 axs[1].axhline(50,color=TEAL,ls='--',label='50 m')
 axs[1].fill_between((np.arange(400)+.5)/400*100,distances,where=distances>50,color=ORANGE,alpha=.2)
-axs[1].set_xlabel('Porcentaje recorrido de la ruta real');axs[1].set_ylabel('Distancia a la estimada · m')
+axs[1].set_xlabel('Percentage along the real route');axs[1].set_ylabel('Distance to the estimated route · m')
 axs[1].set_title('Del trazado a un perfil interpretable');axs[1].legend()
 finish(fig,'03_perfil_de_desviacion')
 """)
@@ -878,32 +878,32 @@ def diagram_box(x,y,w,h,text,color):
     ax.add_patch(FancyBboxPatch((x,y),w,h,boxstyle='round,pad=.08',facecolor=color,alpha=.1,edgecolor=color))
     ax.text(x+w/2,y+h/2,text,ha='center',va='center',fontsize=11,color=INK)
 def arrow(x1,y1,x2,y2):ax.annotate('',xy=(x2,y2),xytext=(x1,y1),arrowprops={'arrowstyle':'->','color':MUTED,'lw':1.6})
-ax.text(.15,5.65,'1. Aprender a representar una ruta · sin votos humanos',fontsize=13,weight='bold')
+ax.text(.15,5.65,'1. Learn to represent a route · no human votes',fontsize=13,weight='bold')
 diagram_box(.2,3.9,2.1,1.1,'Ruta alterada\\nA → C → D',TEAL)
-diagram_box(3,3.9,2.1,1.1,'Encoder\\n64 números',TEAL)
-diagram_box(5.8,3.9,2.1,1.1,'Decoder\\nreconstrucción',TEAL)
+diagram_box(3,3.9,2.1,1.1,'Encoder\\n64 numbers',TEAL)
+diagram_box(5.8,3.9,2.1,1.1,'Decoder\\nreconstruction',TEAL)
 diagram_box(8.6,3.9,3.0,1.1,'Objetivo original\\nA → B → C → D',TEAL)
 for x1,x2 in [(2.3,3),(5.1,5.8),(7.9,8.6)]:arrow(x1,4.45,x2,4.45)
 ax.text(.2,3.25,'Se ajustan encoder y decoder. Las celdas cercanas reciben un tratamiento espacial.',fontsize=10,color=MUTED)
-ax.text(.15,2.55,'2. Aprender a juzgar una pareja · con votos humanos',fontsize=13,weight='bold')
+ax.text(.15,2.55,'2. Learn to judge a pair · with human votes',fontsize=13,weight='bold')
 diagram_box(.2,.8,2.1,1.1,'Ruta estimada\\nRuta real',ORANGE)
 diagram_box(3,.8,2.1,1.1,'Mismo encoder\\ncongelado',ORANGE)
 diagram_box(5.8,.8,2.1,1.1,'Dos vectores +\\ncomparaciones',ORANGE)
-diagram_box(8.6,.8,3.0,1.1,'Clasificador\\nP(diferentes)',ORANGE)
+diagram_box(8.6,.8,3.0,1.1,'Classifier\\nP(they differ)',ORANGE)
 for x1,x2 in [(2.3,3),(5.1,5.8),(7.9,8.6)]:arrow(x1,1.35,x2,1.35)
-ax.text(.2,.2,'Se ajusta el clasificador. El decoder ya no se utiliza para predecir la etiqueta.',fontsize=10,color=MUTED)
-finish(fig,'05a_t2vec_dos_etapas','Esquema de nuestra adaptación · dos objetivos distintos · no es una reproducción exacta del artículo')
+ax.text(.2,.2,'The classifier is fitted. The decoder is no longer used to predict the label.',fontsize=10,color=MUTED)
+finish(fig,'05a_t2vec_dos_etapas','Diagram of our adaptation · two distinct objectives · not an exact reproduction of the paper')
 """)
 
 code("""
 fig,axs=plt.subplots(1,2,figsize=(12,4.3))
 h=pd.DataFrame(encoder['history'])
 axs[0].plot(h.epoch,h.train_loss,color=TEAL,label='Entrenamiento')
-axs[0].plot(h.epoch,h.inner_validation_loss,color=ORANGE,label='Validación interna')
-axs[0].set_xlabel('Época');axs[0].set_ylabel('Pérdida espacial muestreada')
-axs[0].set_title('Baja la pérdida; falta comprobar la reconstrucción');axs[0].legend()
+axs[0].plot(h.epoch,h.inner_validation_loss,color=ORANGE,label='Internal validation')
+axs[0].set_xlabel('Epoch');axs[0].set_ylabel('Sampled spatial loss')
+axs[0].set_title('The loss falls; reconstruction still unchecked');axs[0].legend()
 rates=encoder['oov_by_split']
-axs[1].bar(['Entrenamiento','Validación','Test'],[100*rates[s] for s in ['train','val','test']],color=[TEAL,ORANGE,INK])
+axs[1].bar(['Entrenamiento','Validation','Test'],[100*rates[s] for s in ['train','val','test']],color=[TEAL,ORANGE,INK])
 for i,s in enumerate(['train','val','test']):axs[1].text(i,100*rates[s]+.6,f'{100*rates[s]:.1f} %',ha='center')
 axs[1].set_ylim(0,32);axs[1].set_ylabel('Puntos en celdas no vistas · %')
 axs[1].set_title('Reconstruir no garantiza comparar bien')
@@ -938,33 +938,33 @@ recon_dir=ROOT/'results/routes_reconstruction'
 recon_metrics=json.loads((recon_dir/'metrics.json').read_text())
 recon_predictions=pd.DataFrame(json.loads((recon_dir/'predictions.json').read_text()))
 recon_rows=[]
-for scenario,label in [('clean','Sin alteración'),('corrupted','20 % de eliminación + ruido')]:
+for scenario,label in [('clean','No alteration'),('corrupted','20 % dropout + noise')]:
     m=recon_metrics[scenario]
-    recon_rows.append({'Entrada':label,'Rutas':m['n_routes'],'Salida vacía':m['empty_fraction'],
-        'Exactitud tokens con ayuda':m['teacher_forced_token_accuracy']['mean'],
-        'Edición libre media':m['free_normalized_edit']['mean'],
-        'Rutas no vacías':m['decoded_frechet_m']['n'],
-        'Fréchet mediano no vacías · km':(m['decoded_frechet_m']['median'] if m['decoded_frechet_m']['median'] is not None else np.nan)/1000})
+    recon_rows.append({'Entrada':label,'Rutas':m['n_routes'],'Empty output':m['empty_fraction'],
+        'Token accuracy with teacher forcing':m['teacher_forced_token_accuracy']['mean'],
+        'Mean free-running edit distance':m['free_normalized_edit']['mean'],
+        'Non-empty routes':m['decoded_frechet_m']['n'],
+        'Median Fréchet, non-empty · km':(m['decoded_frechet_m']['median'] if m['decoded_frechet_m']['median'] is not None else np.nan)/1000})
 display(pd.DataFrame(recon_rows).set_index('Entrada').style.format({
-    'Salida vacía':'{:.1%}','Exactitud tokens con ayuda':'{:.1%}','Edición libre media':'{:.4f}',
-    'Fréchet mediano no vacías · km':'{:.1f}'}))
+    'Empty output':'{:.1%}','Token accuracy with teacher forcing':'{:.1%}','Mean free-running edit distance':'{:.4f}',
+    'Median Fréchet, non-empty · km':'{:.1f}'}))
 corrupted=recon_predictions[recon_predictions.scenario=='corrupted']
 nonempty=corrupted[~corrupted['empty']]
 fig,axs=plt.subplots(1,2,figsize=(12,4.8))
 empty_n=int(corrupted['empty'].sum());nonempty_n=len(nonempty)
 axs[0].bar(['Termina sin celdas','Emite alguna celda'],[empty_n,nonempty_n],color=[RED,ORANGE])
 for i,n in enumerate([empty_n,nonempty_n]):axs[0].text(i,n+4,f'{n}/{len(corrupted)}',ha='center')
-axs[0].set_ylim(0,len(corrupted));axs[0].set_ylabel('Trayectorias de validación interna')
+axs[0].set_ylim(0,len(corrupted));axs[0].set_ylabel('Internal validation trajectories')
 axs[0].set_title('El decoder puede terminar antes de empezar')
 fields=['input_frechet_m','oracle_quantized_frechet_m','decoded_frechet_m']
 values=[nonempty[k].median()/1000 for k in fields]
 axs[1].bar(['Puntos\\ndisponibles','Objetivo\\ncuantizado','Decoder\\nsin ayuda'],values,color=[TEAL,INK,RED])
-axs[1].set_yscale('log');axs[1].set_ylabel('Fréchet mediano · km · escala log')
-axs[1].set_title(f'En las mismas {len(nonempty)} salidas no vacías')
+axs[1].set_yscale('log');axs[1].set_ylabel('Median Fréchet · km · log scale')
+axs[1].set_title(f'Over the same {len(nonempty)} non-empty outputs')
 for i,v in enumerate(values):axs[1].text(i,v*1.2,f'{v:.2f} km',ha='center',fontsize=9)
 axs[1].set_ylim(min(values)*.4,max(values)*4)
-finish(fig,'05b_auditoria_reconstruccion','Modelo original congelado · diagnóstico posterior · las 199 salidas vacías se muestran aparte, no se ocultan')
-known=corrupted.assign(geography=np.where(corrupted.oov==0,'Todas las celdas conocidas','Alguna celda no vista'))
+finish(fig,'05b_auditoria_reconstruccion','Original frozen model · post-hoc diagnostic · the 199 empty outputs are shown separately, not hidden')
+known=corrupted.assign(geography=np.where(corrupted.oov==0,'All known cells','Alguna celda no vista'))
 display(known.groupby('geography').agg(Rutas=('journey_id','size'),
     Fraccion_vacia=('empty','mean'),Edicion_media=('free_normalized_edit','mean')))
 """)
@@ -997,26 +997,26 @@ code("""
 corrected_recon=json.loads((ROOT/'results/routes_reconstruction_corrected/metrics.json').read_text())
 corrected_model=json.loads((ROOT/'results/routes_t2vec_corrected/metrics.json').read_text())
 comparison_rows=[]
-for label,report in [('Original: pérdida defectuosa',recon_metrics),('Pérdida corregida',corrected_recon)]:
+for label,report in [('Original: defective loss',recon_metrics),('Corrected loss',corrected_recon)]:
     m=report['corrupted']
-    comparison_rows.append({'Versión':label,'Salida vacía':m['empty_fraction'],
-        'Termina antes del límite':m['eos_fraction'],'Edición libre media':m['free_normalized_edit']['mean'],
-        'Exactitud tokens con ayuda':m['teacher_forced_token_accuracy']['mean'],
-        'Rutas no vacías':m['decoded_frechet_m']['n'],
-        'Fréchet mediano no vacías · km':(m['decoded_frechet_m']['median'] if m['decoded_frechet_m']['median'] is not None else np.nan)/1000})
-display(pd.DataFrame(comparison_rows).set_index('Versión').style.format({
-    'Salida vacía':'{:.1%}','Termina antes del límite':'{:.1%}','Edición libre media':'{:.4f}',
-    'Exactitud tokens con ayuda':'{:.1%}','Fréchet mediano no vacías · km':'{:.2f}'}))
+    comparison_rows.append({'Version':label,'Empty output':m['empty_fraction'],
+        'Terminates before the cap':m['eos_fraction'],'Mean free-running edit distance':m['free_normalized_edit']['mean'],
+        'Token accuracy with teacher forcing':m['teacher_forced_token_accuracy']['mean'],
+        'Non-empty routes':m['decoded_frechet_m']['n'],
+        'Median Fréchet, non-empty · km':(m['decoded_frechet_m']['median'] if m['decoded_frechet_m']['median'] is not None else np.nan)/1000})
+display(pd.DataFrame(comparison_rows).set_index('Version').style.format({
+    'Empty output':'{:.1%}','Terminates before the cap':'{:.1%}','Mean free-running edit distance':'{:.4f}',
+    'Token accuracy with teacher forcing':'{:.1%}','Median Fréchet, non-empty · km':'{:.2f}'}))
 fig,axs=plt.subplots(1,2,figsize=(12,4.2))
-for ax,key,title in zip(axs,['empty_fraction','free_normalized_edit'],['¿Evita terminar inmediatamente?','¿Recupera la secuencia de celdas?']):
+for ax,key,title in zip(axs,['empty_fraction','free_normalized_edit'],['Does it avoid terminating immediately?','Does it recover the cell sequence?']):
     vals=[]
     for report in [recon_metrics,corrected_recon]:
         value=report['corrupted'][key]
         vals.append(value['mean'] if isinstance(value,dict) else value)
     ax.bar(['Original','Corregido'],vals,color=[RED,TEAL]);ax.set_ylim(0,1.1)
     for i,v in enumerate(vals):ax.text(i,v+.025,f'{v:.3f}',ha='center')
-    ax.set_title(title);ax.set_ylabel('Fracción vacía' if key=='empty_fraction' else 'Distancia de edición (0–1)')
-finish(fig,'05c_reconstruccion_corregida','Mismas 286 trayectorias y alteraciones · corregir un error de implementación no garantiza resolver la tarea')
+    ax.set_title(title);ax.set_ylabel('Empty fraction' if key=='empty_fraction' else 'Edit distance (0–1)')
+finish(fig,'05c_reconstruccion_corregida','Same 286 trajectories and alterations · fixing an implementation bug does not guarantee solving the task')
 display(pd.DataFrame([
     {'Modelo':'Original','LL val':details['t2vec_decoder_clasificador']['val_soft_logloss'],
      'BA val':metrics['t2vec_decoder_clasificador']['validation']['balanced_accuracy'],
@@ -1024,10 +1024,10 @@ display(pd.DataFrame([
     {'Modelo':'Corregido','LL val':corrected_model['val_soft_logloss'],
      'BA val':corrected_model['validation']['balanced_accuracy'],'BA test':corrected_model['balanced_accuracy']}
 ]).set_index('Modelo').style.format('{:.4f}'))
-display(Markdown('Estas métricas de clasificación responden a otra pregunta: si el vector permite reproducir los votos humanos. '
-    'Hay que leerlas junto a la reconstrucción, las celdas desconocidas y la referencia geométrica. '
-    'Un objetivo de entrenamiento correcto es necesario para interpretar el experimento, pero no asegura que '
-    'la representación aprendida sea suficiente para esta tarea.'))
+display(Markdown('These classification metrics answer a different question: whether the vector allows the human votes to be reproduced. '
+    'They must be read alongside the reconstruction, the unknown cells and the geometric baseline. '
+    'A correct training objective is necessary to interpret the experiment, but it does not ensure that '
+    'the learned representation is sufficient for this task.'))
 """)
 
 md(r"""
@@ -1077,38 +1077,38 @@ def metric_table(split):
         columns[names[key]]={
             'Accuracy ↑':f"{m['accuracy']:.2%}",
             'Balanced accuracy ↑':f"{m['balanced_accuracy']:.2%}",
-            'Precisión · diferentes ↑':f'{tp/(tp+fp):.2%}',
-            'Recall · diferentes ↑':f'{tp/(tp+fn):.2%}',
-            'F1 · diferentes ↑':f"{m['f1']:.2%}",
+            'Precision · they differ ↑':f'{tp/(tp+fp):.2%}',
+            'Recall · they differ ↑':f'{tp/(tp+fn):.2%}',
+            'F1 · they differ ↑':f"{m['f1']:.2%}",
             'ROC-AUC ↑':f"{m['roc_auc']:.4f}",
             'Average precision (AP) ↑':f"{m['average_precision']:.4f}",
             'Brier binario ↓':f"{m['brier']:.4f}",
             'Log loss binaria ↓':f"{m['logloss']:.4f}",
-            'Log loss de votos ↓ · criterio de selección en val':f'{soft:.4f}',
-            'Umbral elegido en validación':f"{metrics[key]['threshold']:.2f}",
-            'Viajes con mayoría / con votos válidos':f"{m['n']} / {int(((df.split==split)&df.target_soft.notna()).sum())}",
+            'Vote log loss ↓ · selection criterion on val':f'{soft:.4f}',
+            'Threshold chosen on validation':f"{metrics[key]['threshold']:.2f}",
+            'Journeys with a majority / with valid votes':f"{m['n']} / {int(((df.split==split)&df.target_soft.notna()).sum())}",
             'TN / FP / FN / TP':f'{tn} / {fp} / {fn} / {tp}'}
     return pd.DataFrame(columns)
 
-display(Markdown('### Validación: donde se tomaron las decisiones'))
+display(Markdown('### Validation: where the decisions were made'))
 display(metric_table('val'))
-display(Markdown('### Test: evaluación con modelos y umbrales congelados'))
+display(Markdown('### Test: evaluation with frozen models and thresholds'))
 display(metric_table('test'))
-display(Markdown('↑ Mayor es mejor; ↓ menor es mejor. TN/TP son aciertos en iguales/diferentes; FP/FN son falsas alarmas/diferencias no detectadas. La columna geométrica es la elegida en validación. Las métricas de validación han participado en el ajuste y la selección; no son una estimación independiente del rendimiento final.'))
+display(Markdown('↑ Higher is better; ↓ lower is better. TN/TP are correct calls on the same/differ classes; FP/FN are false alarms/missed differences. The geometry column is the one chosen on validation. The validation metrics took part in fitting and selection; they are not an independent estimate of final performance.'))
 keys=list(names);yy=np.arange(len(keys))
 fig,axs=plt.subplots(1,2,figsize=(12,4.8))
 vals=[frozen['validation_results'][k] for k in keys]
 axs[0].barh(yy,vals,color=[TEAL if k==frozen['selected'] else MUTED for k in keys])
 axs[0].set_yticks(yy,[names[k] for k in keys]);axs[0].invert_yaxis()
-axs[0].set_xlabel('Log loss frente a votos · menor es mejor')
-axs[0].set_title('La elección se hace en validación')
+axs[0].set_xlabel('Log loss against votes · lower is better')
+axs[0].set_title('The choice is made on validation')
 means=np.array([metrics[k]['balanced_accuracy'] for k in keys])*100
 ci=np.array([metrics[k]['balanced_accuracy_ci95'] for k in keys])*100
 axs[1].errorbar(means,yy,xerr=[means-ci[:,0],ci[:,1]-means],fmt='o',color=ORANGE,capsize=4)
 axs[1].set_yticks(yy,[names[k] for k in keys]);axs[1].invert_yaxis()
 axs[1].set_xlim(60,100);axs[1].set_xlabel('Acierto equilibrado en test · %')
-axs[1].set_title('Test: estimación e incertidumbre')
-finish(fig,'06_validacion_y_test','Test: 443 viajes con mayoría definida · IC bootstrap percentil 95 % · una partición y una semilla')
+axs[1].set_title('Test: estimate and uncertainty')
+finish(fig,'06_validacion_y_test','Test: 443 journeys with a defined majority · 95 % percentile bootstrap CI · one split and one seed')
 """)
 
 md(r"""
@@ -1132,8 +1132,8 @@ fig,ax=plt.subplots(figsize=(10,3.8))
 ax.axvline(0,color=MUTED,ls='--')
 ax.errorbar(means,np.arange(len(keys)),xerr=[means-ci[:,0],ci[:,1]-means],fmt='o',capsize=5,color=TEAL)
 ax.set_yticks(np.arange(len(keys)),[names[k] for k in keys]);ax.invert_yaxis()
-ax.set_xlabel('Diferencia frente a geometría básica · puntos porcentuales')
-ax.set_title('¿La mejora persiste al cambiar los viajes del test?')
+ax.set_xlabel('Difference against basic geometry · percentage points')
+ax.set_title('Does the improvement persist when the test journeys change?')
 finish(fig,'07_diferencias_pareadas')
 """)
 
@@ -1163,8 +1163,8 @@ cm=np.array(m['confusion_matrix'])
 axs[0].imshow(cm,cmap='Blues')
 for i in range(2):
     for j in range(2):axs[0].text(j,i,str(cm[i,j]),ha='center',va='center',fontsize=24,color='white' if cm[i,j]>100 else INK)
-axs[0].set_xticks([0,1],['Iguales','Diferentes']);axs[0].set_yticks([0,1],['Iguales','Diferentes'])
-axs[0].set_xlabel('Predicción');axs[0].set_ylabel('Mayoría humana');axs[0].set_title('Errores de la referencia elegida')
+axs[0].set_xticks([0,1],['The same','They differ']);axs[0].set_yticks([0,1],['The same','They differ'])
+axs[0].set_xlabel('Prediction');axs[0].set_ylabel('Human majority');axs[0].set_title('Errors of the chosen baseline')
 test=predictions[(predictions.split=='test')&predictions.target_hard.notna()].copy()
 p=np.array([r[selected] for r in test.probabilities]);y=test.target_hard.to_numpy(float)
 edges=np.linspace(0,1,6)
@@ -1176,8 +1176,8 @@ axs[1].plot([0,1],[0,1],ls='--',color=MUTED);axs[1].plot(xs,ys,'o-',color=TEAL)
 for a,b,n in zip(xs,ys,ns):
     offset=(-18,-18) if a>.9 else (5,9)
     axs[1].annotate(f'n={n}',(a,b),xytext=offset,textcoords='offset points',fontsize=9)
-axs[1].set_xlabel('Probabilidad media predicha');axs[1].set_ylabel('Fracción de mayorías «diferentes»')
-axs[1].set_title('Calibración descriptiva · intervalos de 0,2')
+axs[1].set_xlabel('Probabilidad media predicha');axs[1].set_ylabel('Fraction of «they differ» majorities')
+axs[1].set_title('Descriptive calibration · bins of 0.2')
 finish(fig,'08_errores_y_calibracion')
 """)
 
@@ -1186,12 +1186,12 @@ importance=pd.Series(details[selected]['feature_importance']).sort_values()
 fig,ax=plt.subplots(figsize=(10,4.3))
 feature_labels={'mean_real_to_est_m':'Distancia media: real → estimada',
  'mean_est_to_real_m':'Distancia media: estimada → real','length_real':'Longitud real',
- 'length_est':'Longitud estimada','hausdorff_discrete_m':'Separación máxima · Hausdorff discreto',
- 'relative_length_delta':'Diferencia relativa de longitud','start_gap_m':'Separación de orígenes',
- 'end_gap_m':'Separación de destinos'}
+ 'length_est':'Longitud estimada','hausdorff_discrete_m':'Maximum separation · discrete Hausdorff',
+ 'relative_length_delta':'Diferencia relativa de longitud','start_gap_m':'Origin separation',
+ 'end_gap_m':'Destination separation'}
 ax.barh([feature_labels[k] for k in importance.index],importance.values,color=TEAL)
 ax.set_xlabel('Importancia gain normalizada · no causal')
-ax.set_title('Qué utiliza el modelo de ocho variables')
+ax.set_title('What the eight-variable model uses')
 finish(fig,'09_variables_referencia')
 """)
 
@@ -1212,23 +1212,23 @@ assert selected=='geometria_base'
 assert set(test.index).issubset(set(df.index[df.split=='test']))
 assert np.array_equal(cm,np.array([[((y==i)&(test.pred.to_numpy()==j)).sum() for j in range(2)] for i in range(2)]))
 
-# Selección descriptiva, reproducible y posterior a congelar el modelo.
+# Descriptive, reproducible selection made after freezing the model.
 case_rows=[]
 for kind,label in [('TN',0),('TP',1)]:
     group=test[(test.target_hard==label)&(test.pred==label)].sort_values(['p'],kind='stable')
     central=group.index[len(group)//2]
     boundary=(group.p-m['threshold']).abs().sort_values(kind='stable').index[0]
-    for suffix,jid,reason in [('1',central,'Puntuación central entre los aciertos de su clase'),
-                              ('2',boundary,'Acierto de su clase más próximo al umbral')]:
+    for suffix,jid,reason in [('1',central,'Central score among the correct calls of its class'),
+                              ('2',boundary,'Correct call of its class closest to the threshold')]:
         case_rows.append(dict(case=kind+suffix,kind=kind,journey_id=jid,selection=reason))
 fp=test[(test.target_hard==0)&(test.pred==1)].sort_values('p',ascending=False,kind='stable')
 fn=test[(test.target_hard==1)&(test.pred==0)].sort_values('p',kind='stable')
 for k,jid in enumerate(fp.index,1):
-    case_rows.append(dict(case=f'FP{k}',kind='FP',journey_id=jid,selection='Todas las falsas alarmas, ordenadas por puntuación'))
+    case_rows.append(dict(case=f'FP{k}',kind='FP',journey_id=jid,selection='All false alarms, ordered by score'))
 for k,rank in enumerate([0,len(fn)//2,len(fn)-1],1):
     case_rows.append(dict(case=f'FN{k}',kind='FN',journey_id=fn.index[rank],
-        selection=['Menor puntuación entre los falsos negativos','Puntuación central entre los falsos negativos',
-                   'Falso negativo más próximo al umbral'][k-1]))
+        selection=['Lowest score among the false negatives','Central score among the false negatives',
+                   'False negative closest to the threshold'][k-1]))
 cases=pd.DataFrame(case_rows).set_index('case')
 assert cases.journey_id.is_unique and len(cases)==10
 assert len(fp)==3 and len(fn)==25
@@ -1240,13 +1240,13 @@ def vote_counts(jid):
 
 def vote_text(jid):
     same,different,unknown,conflict=vote_counts(jid)
-    text=f'{same} iguales / {different} diferentes'
-    if unknown:text+=f' / {unknown} no sé'
+    text=f'{same} same / {different} differ'
+    if unknown:text+=f' / {unknown} unsure'
     if conflict:text+=f' / {conflict} contradictorios'
     return text
 
 def plot_routes(ax,a,b,ends=True,legend=True):
-    ax.plot(a[:,0]/1000,a[:,1]/1000,color=INK,lw=2.8,alpha=.85,label='Estimada')
+    ax.plot(a[:,0]/1000,a[:,1]/1000,color=INK,lw=2.8,alpha=.85,label='Estimated')
     ax.plot(b[:,0]/1000,b[:,1]/1000,color=ORANGE,lw=1.7,ls='--',label='Real')
     if ends:
         for xy,color in [(a,INK),(b,ORANGE)]:
@@ -1264,24 +1264,24 @@ for ax,(case,meta) in zip(axs.flat,cases[cases.kind.isin(['TN','TP'])].iterrows(
     plot_routes(ax,a,b)
     human='iguales' if row.target_hard==0 else 'diferentes'
     reason='central' if case.endswith('1') else 'cerca del umbral'
-    ax.set_title(f'{case} · Ambos dicen {human} · {reason}\\np(diferentes)={row.p:.4f} · umbral 0,75',fontsize=11)
+    ax.set_title(f'{case} · Both say {human} · {reason}\\np(differ)={row.p:.4f} · threshold 0.75',fontsize=11)
     ax.text(.02,.02,f'ID {jid[:8]} · {vote_text(jid)}',transform=ax.transAxes,fontsize=8,
             bbox=dict(facecolor=BG,alpha=.9,edgecolor='none'))
-finish(fig,'10_aciertos_test','Cuatro aciertos de test · selección por puntuación central / cercanía al umbral · escalas propias por viaje')
+finish(fig,'10_aciertos_test','Four test successes · selected by central score / closeness to threshold · own scale per journey')
 
 ledger=[]
 for case,meta in cases.iterrows():
     jid=meta.journey_id;row=test.loc[jid];f=features.loc[jid]
-    ledger.append({'Caso':case,'journey_id':jid,'Votos de personas distintas':vote_text(jid),
-       'p(diferentes)':row.p,'Long. estimada · km':f.length_est/1000,'Long. real · km':f.length_real/1000,
+    ledger.append({'Case':case,'journey_id':jid,'Votos de personas distintas':vote_text(jid),
+       'p(differ)':row.p,'Long. estimada · km':f.length_est/1000,'Long. real · km':f.length_real/1000,
        'Media real → estimada · m':f.mean_real_to_est_m,'Media estimada → real · m':f.mean_est_to_real_m,
        'Hausdorff discreto · m':f.hausdorff_discrete_m,
        'Real a >50 m de estimada':f.fraction_real_to_est_over_50m})
-ledger=pd.DataFrame(ledger).set_index('Caso')
-display(Markdown('**Registro de los diez casos.** Se conservan sus identificadores completos para localizarlos en el archivo; los votos ya están deduplicados. La proporción a más de 50 m ayuda a leer los dibujos, pero no es una entrada del modelo de ocho variables.'))
-display(ledger[['journey_id','Votos de personas distintas','p(diferentes)']].style.format({'p(diferentes)':'{:.4f}'}))
-display(Markdown('**Medidas geométricas de los mismos casos.** Los identificadores TN, TP, FP y FN conectan estas medidas con las figuras.'))
-display(ledger.drop(columns=['journey_id','Votos de personas distintas','p(diferentes)']).style.format({'Long. estimada · km':'{:.2f}','Long. real · km':'{:.2f}',
+ledger=pd.DataFrame(ledger).set_index('Case')
+display(Markdown('**Log of the ten cases.** Their full identifiers are kept so they can be found in the file; the votes are already deduplicated. The proportion beyond 50 m helps read the plots, but is not an input to the eight-variable model.'))
+display(ledger[['journey_id','Votos de personas distintas','p(differ)']].style.format({'p(differ)':'{:.4f}'}))
+display(Markdown('**Geometric measurements for the same cases.** The TN, TP, FP and FN identifiers link these measurements to the figures.'))
+display(ledger.drop(columns=['journey_id','Votos de personas distintas','p(differ)']).style.format({'Long. estimada · km':'{:.2f}','Long. real · km':'{:.2f}',
     'Media real → estimada · m':'{:.1f}','Media estimada → real · m':'{:.1f}',
     'Hausdorff discreto · m':'{:.1f}','Real a >50 m de estimada':'{:.1%}'}))
 """)
@@ -1337,10 +1337,10 @@ reconstructed=1/(1+np.exp(-contributions.sum(axis=1).to_numpy()))
 assert np.allclose(reconstructed,test.loc[case_ids,'p'].to_numpy(),atol=1e-6,rtol=1e-5)
 
 inspection={'selected':selected,'threshold':m['threshold'],'model_sha256':model_digest,
- 'purpose':'Inspección posterior de test, sin ajuste de modelos ni umbral.',
- 'selection_policy':{'correct':'Puntuación central y más próxima al umbral por clase.',
-                     'fp':'Todos los falsos positivos, por puntuación descendente.',
-                     'fn':'Mínima, central y máxima puntuación entre los falsos negativos.'},
+ 'purpose':'Post-hoc test inspection, with no model or threshold fitting.',
+ 'selection_policy':{'correct':'Central score and closest to the threshold, per class.',
+                     'fp':'All false positives, by descending score.',
+                     'fn':'Lowest, central and highest score among the false negatives.'},
  'confusion_matrix':cm.tolist(),'cases':[]}
 for case,meta in cases.iterrows():
     jid=meta.journey_id
@@ -1355,8 +1355,8 @@ for case,meta in cases.iterrows():
 inspection_path.write_text(json.dumps(inspection,indent=2,ensure_ascii=False))
 
 short_labels={'length_est':'Longitud estimada','length_real':'Longitud real',
- 'relative_length_delta':'Diferencia relativa de longitud','start_gap_m':'Separación de orígenes',
- 'end_gap_m':'Separación de destinos','mean_est_to_real_m':'Media estimada → real',
+ 'relative_length_delta':'Diferencia relativa de longitud','start_gap_m':'Origin separation',
+ 'end_gap_m':'Destination separation','mean_est_to_real_m':'Media estimada → real',
  'mean_real_to_est_m':'Media real → estimada','hausdorff_discrete_m':'Hausdorff discreto'}
 
 def error_figure(case,jid):
@@ -1383,66 +1383,66 @@ def error_figure(case,jid):
     zoom.plot([furthest[0]/1000,nearest[0]/1000],[furthest[1]/1000,nearest[1]/1000],
               color=TEAL,ls=':',lw=2)
     zoom.scatter(*furthest/1000,color=TEAL,s=28,zorder=5)
-    zoom.set_title('2 · Un detalle que la escala puede ocultar',fontsize=12)
+    zoom.set_title('2 · A detail the scale can hide',fontsize=12)
     xx=(np.arange(800)+.5)/800*100
-    profile.plot(xx,da,color=INK,lw=1.4,label='Estimada → real')
+    profile.plot(xx,da,color=INK,lw=1.4,label='Estimated → real')
     profile.plot(xx,db,color=ORANGE,lw=1.4,ls='--',label='Real → estimada')
     profile.axhline(50,color=TEAL,ls=':',lw=1,label='50 m · referencia visual')
-    profile.set(xlabel='Porcentaje de longitud de cada ruta',ylabel='Distancia a la otra ruta · m')
-    profile.set_title('3 · ¿Breve o persistente?',fontsize=12)
+    profile.set(xlabel='Porcentaje de longitud de cada ruta',ylabel='Distance to the other route · m')
+    profile.set_title('3 · Brief or persistent?',fontsize=12)
     profile.legend(fontsize=8);profile.grid(alpha=.12)
     s=contributions.loc[jid,BASE_FEATURES].sort_values()
     shap_ax.barh([short_labels[k] for k in s.index],s.values,
                   color=[ORANGE if v>=0 else TEAL for v in s.values])
     shap_ax.axvline(0,color=MUTED,lw=.8)
     shap_ax.tick_params(axis='y',labelsize=9)
-    shap_ax.set_xlabel('Contribución log-odds · ← iguales | diferentes →',fontsize=10)
-    shap_ax.set_title('4 · Cómo llega el modelo a esta puntuación',fontsize=12)
+    shap_ax.set_xlabel('Log-odds contribution · ← the same | they differ →',fontsize=10)
+    shap_ax.set_title('4 · How the model reaches this score',fontsize=12)
     human='iguales' if row.target_hard==0 else 'diferentes'
     predicted='iguales' if row.pred==0 else 'diferentes'
     fig.suptitle(f'{case} · Humano: {human} | Modelo: {predicted}\\n'
-                 f'p(diferentes)={row.p:.4f} · umbral 0,7500 · {vote_text(jid)}',
+                 f'p(differ)={row.p:.4f} · threshold 0.7500 · {vote_text(jid)}',
                  x=.02,ha='left',fontsize=14,weight='bold',y=.995)
     finish(fig,f'11_error_test_{case.lower()}',
-           f'Test · ID {jid} · ampliación geométrica sin mapa base · contribuciones descriptivas, no causales')
+           f'Test · ID {jid} · geometric zoom without a base map · descriptive contributions, not causal')
 
 for case,meta in cases[~cases.kind.isin(['TN','TP'])].iterrows():
     jid=meta.journey_id;row=test.loc[jid];f=features.loc[jid]
     heading='Falsa alarma' if meta.kind=='FP' else 'Diferencia no detectada'
-    display(Markdown(f'### {case} · {heading}\\n\\n**Selección:** {meta.selection}. '
-                     f'ID completo: **{jid}**. Votos válidos y abstenciones: **{vote_text(jid)}**.'))
+    display(Markdown(f'### {case} · {heading}\\n\\n**Selection:** {meta.selection}. '
+                     f'Full ID: **{jid}**. Valid votes and abstentions: **{vote_text(jid)}**.'))
     error_figure(case,jid)
-    stats=(f'**Lo que medimos:** ruta estimada {f.length_est/1000:.2f} km y real {f.length_real/1000:.2f} km; '
-           f'medias de separación real→estimada **{f.mean_real_to_est_m:.1f} m** y estimada→real '
-           f'**{f.mean_est_to_real_m:.1f} m**; máximo discreto **{f.hausdorff_discrete_m:.0f} m**. '
-           f'El **{f.fraction_real_to_est_over_50m:.1%}** de la longitud real está a más de 50 m de la estimada.')
+    stats=(f'**What we measure:** estimated route {f.length_est/1000:.2f} km and real route {f.length_real/1000:.2f} km; '
+           f'mean separations real→estimated **{f.mean_real_to_est_m:.1f} m** and estimated→real '
+           f'**{f.mean_est_to_real_m:.1f} m**; discrete maximum **{f.hausdorff_discrete_m:.0f} m**. '
+           f'**{f.fraction_real_to_est_over_50m:.1%}** of the real length lies more than 50 m from the estimated route.')
     display(Markdown(stats))
     s=contributions.loc[jid,BASE_FEATURES]
     explain='; '.join(f'{short_labels[k]} {v:+.2f}' for k,v in s.reindex(s.abs().sort_values(ascending=False).index[:3]).items())
-    display(Markdown(f'**Lo que hace el modelo:** sus tres mayores contribuciones en valor absoluto son '
+    display(Markdown(f'**What the model does:** its three largest contributions in absolute value are '
                      f'{explain} (log-odds). Con referencia {contributions.loc[jid,"reference"]:.3f}, '
-                     f'la suma total es {contributions.loc[jid].sum():.3f}; '
-                     f'la sigmoide recupera **{row.p:.4f}**, frente al umbral **{m["threshold"]:.2f}**.'))
+                     f'the total sum is {contributions.loc[jid].sum():.3f}; '
+                     f'the sigmoid recovers **{row.p:.4f}**, against the threshold **{m["threshold"]:.2f}**.'))
     if meta.kind=='FP':
-        interpretation=('**Lectura:** hay separación geométrica, pero el único voto válido dice «iguales». '
-            'El modelo cruza el umbral; el anotador pudo tolerar ese cambio al juzgar el viaje completo. '
-            'Es una hipótesis para revisar con más personas, no una prueba de que la etiqueta esté mal. '
-            'Tampoco sabemos si el trazado refleja el recorrido real con precisión: no tenemos una validación independiente del GPS.')
+        interpretation=('**Reading:** there is geometric separation, but the only valid vote says «the same». '
+            'The model crosses the threshold; the annotator may have tolerated that change when judging the whole trip. '
+            'This is a hypothesis to check with more people, not proof the label is wrong. '
+            'Nor do we know whether the trace reflects the real trip accurately: we have no independent validation of the GPS.')
     elif case=='FN1':
-        interpretation=('**Lectura:** la separación máxima supera medio kilómetro, pero las medias quedan en unas decenas de metros '
-            'dentro de un recorrido de unos 15 km. Las contribuciones de las medias y las longitudes reducen la puntuación. '
-            'Aquí se ve cómo un resumen global puede dar poco peso a una diferencia localizada. '
-            'No basta con bajar ligeramente el umbral: la puntuación es muy baja. El único anotador válido la consideró diferente; '
-            'habría que revisar la importancia del tramo y la consistencia de ese juicio.')
+        interpretation=('**Reading:** the maximum separation exceeds half a kilometre, but the means stay in the tens of metres '
+            'within a trip of about 15 km. The contributions of the means and the lengths lower the score. '
+            'Here we see how a global summary can give little weight to a localised difference. '
+            'Lowering the threshold slightly is not enough: the score is very low. The only valid annotator considered it different; '
+            'the importance of that stretch and the consistency of that judgement would need reviewing.')
     elif case=='FN2':
-        interpretation=('**Lectura:** las medias empujan hacia «diferentes», pero las longitudes empujan hacia «iguales». '
-            'La puntuación queda cerca de 0,5 y no alcanza 0,75. Hay un voto «diferentes» y dos «no sé»: '
-            'no es un consenso de tres personas. Este caso muestra incertidumbre en la etiqueta además del compromiso del modelo.')
+        interpretation=('**Reading:** the means push towards «they differ», but the lengths push towards «the same». '
+            'The score sits near 0.5 and does not reach 0.75. There is one «they differ» vote and two «unsure»: '
+            'this is not a three-person consensus. This case shows uncertainty in the label as well as the trade-off made by the model.')
     else:
-        interpretation=('**Lectura:** 0,749593 queda justo por debajo de 0,750000. Este error está en la frontera de decisión: '
-            'redondear ambos números a 0,75 ocultaría lo ocurrido. Mover el umbral lo cambiaría de clase, '
-            'pero también alteraría otros aciertos y errores. No lo ajustamos para corregir este viaje de test; '
-            'el umbral debe responder al coste de errores y validarse en datos independientes.')
+        interpretation=('**Reading:** 0.749593 sits just below 0.750000. This error is right on the decision boundary: '
+            'rounding both numbers to 0.75 would hide what happened. Moving the threshold would flip its class, '
+            'but it would also change other hits and misses. We do not tune it to fix this test journey; '
+            'the threshold should answer to the cost of errors and be validated on independent data.')
     display(Markdown(interpretation))
 """)
 
@@ -1469,7 +1469,7 @@ There are two readings, and it is worth not stopping at the first.
 code("""
 from scipy.stats import hypergeom
 vote_rows=[];concentration={}
-for split,label in [('val','Validación'),('test','Test')]:
+for split,label in [('val','Validation'),('test','Test')]:
     part=predictions[(predictions.split==split)&predictions.target_hard.notna()]
     prob=np.array([r[selected] for r in part.probabilities])
     pred=(prob>m['threshold']).astype(int);truth=part.target_hard.to_numpy(int)
@@ -1478,11 +1478,11 @@ for split,label in [('val','Validación'),('test','Test')]:
         g=nv==k;yy,pp=truth[g],pred[g]
         tpr=(pp[yy==1]==1).mean() if (yy==1).any() else np.nan
         tnr=(pp[yy==0]==0).mean() if (yy==0).any() else np.nan
-        vote_rows.append({'Conjunto':label,'Votos':int(k),'Viajes':int(g.sum()),
+        vote_rows.append({'Conjunto':label,'Votos':int(k),'Journeys':int(g.sum()),
             'Acierto':float(100*(yy==pp).mean()),'Errores':int((yy!=pp).sum()),
             'Acierto equilibrado':float(100*np.nanmean([tpr,tnr])),
-            '% del conjunto':float(100*g.mean())})
-    # ¿Se concentran los errores en un voto más de lo que explica su frecuencia?
+            '% of the split':float(100*g.mean())})
+    # Do the errors concentrate on single-vote journeys beyond what their frequency explains?
     wrong=truth!=pred;N=len(truth);K=int((nv==1).sum());n=int(wrong.sum());x=int((nv[wrong]==1).sum())
     concentration[label]=dict(N=int(N),K=K,n=n,x=x,expected=float(n*K/N),
                               p_value=float(hypergeom.sf(x-1,N,K,n)))
@@ -1490,34 +1490,34 @@ votes_eval=pd.DataFrame(vote_rows)
 
 fig,axs=plt.subplots(1,2,figsize=(12,4.6))
 width=.36
-for i,(label,color) in enumerate([('Validación',TEAL),('Test',ORANGE)]):
+for i,(label,color) in enumerate([('Validation',TEAL),('Test',ORANGE)]):
     part=votes_eval[votes_eval.Conjunto==label]
     xpos=np.arange(len(part))+(i-.5)*width
     axs[0].bar(xpos,part['Acierto'],width,color=color,label=label)
-    for xv,acc,nn in zip(xpos,part['Acierto'],part['Viajes']):
+    for xv,acc,nn in zip(xpos,part['Acierto'],part['Journeys']):
         axs[0].text(xv,acc+.45,f'{acc:.1f} %',ha='center',fontsize=9,weight='bold')
         axs[0].text(xv,90.25,f'n={nn}',ha='center',fontsize=8,color=MUTED)
-axs[0].set_xticks(np.arange(3),['1 voto','2 votos','3 votos'])
+axs[0].set_xticks(np.arange(3),['1 vote','2 votos','3 votos'])
 axs[0].set_ylim(90,102.4);axs[0].set_ylabel('Acierto · %')
-axs[0].set_title('El acierto sube con cada voto adicional')
+axs[0].set_title('Accuracy rises with each extra vote')
 axs[0].legend(fontsize=9,ncol=2,loc='upper center',bbox_to_anchor=(.5,-.14));axs[0].grid(axis='y',alpha=.12)
-sizes=votes_eval[votes_eval.Conjunto=='Test'].set_index('Votos')['Viajes']
+sizes=votes_eval[votes_eval.Conjunto=='Test'].set_index('Votos')['Journeys']
 axs[1].bar([f'{k} voto' if k==1 else f'{k} votos' for k in sizes.index],sizes.values,color=ORANGE)
 for i,v in enumerate(sizes.values):axs[1].text(i,v+6,str(v),ha='center',weight='bold')
-axs[1].set_ylim(0,sizes.max()*1.16);axs[1].set_ylabel('Viajes de test con mayoría')
-axs[1].set_title('Pero los grupos grandes son diminutos')
+axs[1].set_ylim(0,sizes.max()*1.16);axs[1].set_ylabel('Test journeys with a majority')
+axs[1].set_title('But the larger groups are tiny')
 axs[1].text(.5,.62,'Con 72 y 6 viajes, un acierto\\ndel 100 % es compatible con\\nuna tasa de error real no nula',
             transform=axs[1].transAxes,fontsize=9,color=MUTED,ha='center',
             bbox=dict(facecolor=BG,edgecolor=MUTED,alpha=.75,boxstyle='round,pad=.5'))
 finish(fig,'12_rendimiento_por_votos',
-       'Modelo y umbral congelados en validación · reparto descriptivo de los mismos aciertos')
+       'Model and threshold frozen on validation · descriptive breakdown of the same correct calls')
 
 display(votes_eval.set_index(['Conjunto','Votos']).style.format({
-    'Acierto':'{:.1f} %','Acierto equilibrado':'{:.1f} %','% del conjunto':'{:.1f} %'}))
+    'Acierto':'{:.1f} %','Acierto equilibrado':'{:.1f} %','% of the split':'{:.1f} %'}))
 display(Markdown(
-    '**¿Es más que la frecuencia de cada grupo?** Los viajes de un voto son mayoría, así que concentran errores '
-    'aunque el modelo no distinga entre grupos. Comparamos lo observado con lo esperado si los errores cayeran al azar '
-    '(prueba hipergeométrica unilateral, descriptiva y posterior a ver los datos): '
+    '**Is this more than the frequency of each group?** Single-vote journeys are the majority, so they concentrate errors '
+    'even if the model did not distinguish between groups. We compare what we observe against what we would expect if errors fell at random '
+    '(one-sided hypergeometric test, descriptive and after seeing the data): '
     + ' · '.join(f"**{k}**: {v['x']} de {v['n']} errores en viajes de un voto, "
                  f"esperados {v['expected']:.1f}, p = {v['p_value']:.3f}".replace('.',',',1)
                  for k,v in concentration.items()) + '.'))
@@ -1582,17 +1582,17 @@ fig,axs=plt.subplots(2,4,figsize=(16,8))
 for ax,jid,prob in zip(axs.flat,tie_ids,tie_p):
     a,b=project_pair(*routes[jid])
     plot_routes(ax,a,b,legend=False)
-    ax.set_title(f'p(diferentes)={prob:.3f} · modelo dice '
-                 f'«{"diferentes" if prob>m["threshold"] else "iguales"}»',fontsize=10)
+    ax.set_title(f'p(differ)={prob:.3f} · model says '
+                 f'«{"they differ" if prob>m["threshold"] else "the same"}»',fontsize=10)
     ax.text(.02,.02,f'ID {jid[:8]} · 1 igual / 1 diferente',transform=ax.transAxes,fontsize=8,
             bbox=dict(facecolor=BG,alpha=.9,edgecolor='none'))
     ax.tick_params(labelsize=8);ax.set_xlabel('Este local · km',fontsize=8)
     ax.set_ylabel('Norte local · km',fontsize=8)
 last=axs.flat[len(tie_ids)]
 last.axis('off')
-last.text(.0,.5,f'Zona de duda del modelo\\n(p entre 0,4 y 0,9)\\n\\n'
-    f'Empates: {band(tie_p):.0%} de 7\\nResto de test: {band(decisive):.0%} de {len(decisive)}\\n\\n'
-    'Más empates caen en esa banda,\\npero con siete casos la\\ndiferencia no es concluyente.',
+last.text(.0,.5,f'Model doubt zone\\n(p between 0.4 and 0.9)\\n\\n'
+    f'Ties: {band(tie_p):.0%} de 7\\nResto de test: {band(decisive):.0%} de {len(decisive)}\\n\\n'
+    'More ties fall in that band,\\nbut with seven cases the\\ndifference is not conclusive.',
     transform=last.transAxes,fontsize=10,va='center',color=INK,
     bbox=dict(facecolor=BG,edgecolor=MUTED,boxstyle='round,pad=.8'))
 for ax in list(axs.flat)[len(tie_ids)+1:]:ax.axis('off')
@@ -1600,30 +1600,30 @@ handles,labels=axs.flat[0].get_legend_handles_labels()
 fig.legend(handles,labels,loc='upper right',ncol=2,fontsize=10,frameon=False)
 fig.suptitle('Los 7 empates de test · dos personas, un voto cada clase',
              x=.02,ha='left',fontsize=14,weight='bold',y=.998)
-finish(fig,'13_empates_test','Sin etiqueta binaria: excluidos de todas las métricas · el modelo nunca vio estos casos')
+finish(fig,'13_empates_test','No binary label: excluded from every metric · the model never saw these cases')
 
-# ¿Dónde se separan? Posición del punto de mayor distancia a la otra ruta.
+# Where do they separate? Position of the point furthest from the other route.
 tie_detail=[]
 for jid in tie_ids:
     a_,b_=project_pair(*routes[jid]);la,lb=clean_line(a_),clean_line(b_)
     sa,sb=sample_line(la,400,midpoints=True),sample_line(lb,400,midpoints=True)
     da,db=distance(points(sa),lb),distance(points(sb),la)
     d=da if da.max()>=db.max() else db
-    tie_detail.append({'Longitud · km':la.length/1000,'Separación máxima · m':float(d.max()),
-        'Posición del máximo · % del trayecto':100*(np.argmax(d)+.5)/400,
+    tie_detail.append({'Longitud · km':la.length/1000,'Maximum separation · m':float(d.max()),
+        'Position of the maximum · % of the trip':100*(np.argmax(d)+.5)/400,
         '% de ruta a >50 m':100*float((da>50).mean())})
 tie_table=pd.DataFrame(tie_detail,index=[j[:8] for j in tie_ids]).assign(
-    Zona=[predictions.loc[j,'region'] for j in tie_ids],**{'p(diferentes)':tie_p,
-    'Decisión del modelo':['Diferentes' if v>m['threshold'] else 'Iguales' for v in tie_p]})
+    Area=[predictions.loc[j,'region'] for j in tie_ids],**{'p(differ)':tie_p,
+    'Model decision':['They differ' if v>m['threshold'] else 'The same' for v in tie_p]})
 tie_table.index.name='journey_id'
-display(tie_table[['Zona','Longitud · km','Separación máxima · m','Posición del máximo · % del trayecto',
-                   '% de ruta a >50 m','p(diferentes)','Decisión del modelo']].style.format(
-    {'Longitud · km':'{:.2f}','Separación máxima · m':'{:.0f}','Posición del máximo · % del trayecto':'{:.0f} %',
-     '% de ruta a >50 m':'{:.0f} %','p(diferentes)':'{:.3f}'}))
-edges_count=int(sum((r['Posición del máximo · % del trayecto']<25) or
-                    (r['Posición del máximo · % del trayecto']>75) for r in tie_detail))
-display(Markdown(f'En **{edges_count} de los {len(tie_ids)}** empates, la mayor separación cae en el primer o el '
-    'último cuarto del trayecto: la discrepancia está en cómo empieza o termina el viaje, no en el camino intermedio.'))
+display(tie_table[['Area','Longitud · km','Maximum separation · m','Position of the maximum · % of the trip',
+                   '% de ruta a >50 m','p(differ)','Model decision']].style.format(
+    {'Longitud · km':'{:.2f}','Maximum separation · m':'{:.0f}','Position of the maximum · % of the trip':'{:.0f} %',
+     '% de ruta a >50 m':'{:.0f} %','p(differ)':'{:.3f}'}))
+edges_count=int(sum((r['Position of the maximum · % of the trip']<25) or
+                    (r['Position of the maximum · % of the trip']>75) for r in tie_detail))
+display(Markdown(f'En **{edges_count} de los {len(tie_ids)}** ties, the largest separation falls in the first or '
+    'last quarter of the trip: the discrepancy is in how the trip starts or ends, not in the path between.'))
 """)
 
 md(r"""
@@ -1674,34 +1674,34 @@ for ann in sorted(panel.index):
     prob=np.array([predictions.loc[j,'probabilities'][selected] for j in ids])
     truth=np.array([predictions.loc[j,'target_hard'] for j in ids],dtype=int)
     pred=(prob>m['threshold']).astype(int)
-    judge_rows.append({'Anotador':ann,'Viajes':len(ids),'Acierto':100*(truth==pred).mean(),
-        '% que etiquetó «diferentes»':100*truth.mean(),
-        '% «diferentes» en todo el archivo':float(panel.loc[ann,'% «diferentes»'])})
+    judge_rows.append({'Anotador':ann,'Journeys':len(ids),'Acierto':100*(truth==pred).mean(),
+        '% who labelled «they differ»':100*truth.mean(),
+        '% «they differ» across the whole file':float(panel.loc[ann,'% «they differ»'])})
 judges=pd.DataFrame(judge_rows).set_index('Anotador')
-enough=judges[judges.Viajes>=40]
+enough=judges[judges.Journeys>=40]
 
 fig,axs=plt.subplots(1,2,figsize=(13,4.8))
 colors=[ORANGE if v<92 else TEAL for v in enough['Acierto']]
 axs[0].bar([str(a) for a in enough.index],enough['Acierto'],color=colors)
 for i,(a,row) in enumerate(enough.iterrows()):
     axs[0].text(i,row['Acierto']+.5,f"{row['Acierto']:.1f} %",ha='center',weight='bold',fontsize=10)
-    axs[0].text(i,85.4,f"n={int(row['Viajes'])}",ha='center',fontsize=8,color=MUTED)
-axs[0].set_ylim(85,101);axs[0].set(xlabel='Anotador',ylabel='Acierto del modelo · %')
-axs[0].set_title('El modelo coincide más con unos que con otros')
+    axs[0].text(i,85.4,f"n={int(row['Journeys'])}",ha='center',fontsize=8,color=MUTED)
+axs[0].set_ylim(85,101);axs[0].set(xlabel='Anotador',ylabel='Model accuracy · %')
+axs[0].set_title('The model agrees more with some than with others')
 axs[0].grid(axis='y',alpha=.12)
-axs[1].scatter(enough['% «diferentes» en todo el archivo'],enough['Acierto'],
-               s=enough['Viajes']*1.1,color=TEAL,alpha=.75,zorder=3)
+axs[1].scatter(enough['% «they differ» across the whole file'],enough['Acierto'],
+               s=enough['Journeys']*1.1,color=TEAL,alpha=.75,zorder=3)
 for a,row in enough.iterrows():
-    axs[1].annotate(str(a),(row['% «diferentes» en todo el archivo'],row['Acierto']),
+    axs[1].annotate(str(a),(row['% «they differ» across the whole file'],row['Acierto']),
                     xytext=(8,-4),textcoords='offset points',fontsize=10,weight='bold')
-axs[1].set(xlabel='Con qué frecuencia esa persona dice «diferentes» · %',ylabel='Acierto del modelo · %')
-axs[1].set_title('Cuanto más exigente la persona, peor coincide')
+axs[1].set(xlabel='How often that person says «they differ» · %',ylabel='Model accuracy · %')
+axs[1].set_title('The stricter the person, the worse the agreement')
 axs[1].grid(alpha=.12)
 finish(fig,'14_acuerdo_por_anotador',
-       'Validación y test · solo viajes con un único anotador decidido · tamaño del punto ∝ número de viajes')
+       'Validation and test · only journeys with a single decided annotator · point size ∝ number of journeys')
 
-display(judges.style.format({'Acierto':'{:.1f} %','% que etiquetó «diferentes»':'{:.1f} %',
-                             '% «diferentes» en todo el archivo':'{:.1f} %'}))
+display(judges.style.format({'Acierto':'{:.1f} %','% who labelled «they differ»':'{:.1f} %',
+                             '% «they differ» across the whole file':'{:.1f} %'}))
 """)
 
 md(r"""
@@ -1759,22 +1759,22 @@ from routes.pricing import build_impact, tariff_table, EBITDA_MARGIN
 impact=build_impact()
 impact['p']=[predictions.loc[j,'probabilities'][selected] for j in impact.index]
 impact['pred']=(impact.p>m['threshold']).astype(int)
-display(Markdown('**Tarifas utilizadas.** «Estimada» marca las que no proceden de una cifra única publicada.'))
+display(Markdown('**Fares used.** «Estimated» marks those not taken from a single published figure.'))
 display(tariff_table()[['Ciudades','currency','per_km_local','per_min_local','per_km_eur','per_min_eur','estimated']]
         .rename(columns={'currency':'Moneda','per_km_local':'Por km (local)','per_min_local':'Por min (local)',
-                         'per_km_eur':'Por km (€)','per_min_eur':'Por min (€)','estimated':'Estimada'})
+                         'per_km_eur':'Por km (€)','per_min_eur':'Por min (€)','estimated':'Estimated'})
         .style.format({'Por km (local)':'{:.2f}','Por min (local)':'{:.2f}',
                        'Por km (€)':'{:.3f}','Por min (€)':'{:.3f}'}).hide(axis='index'))
 
 decided=impact[impact.target_hard.notna()]
 fig,axs=plt.subplots(1,2,figsize=(13,4.8))
 bins=np.logspace(-3,1.3,40)
-for lab,color,name in [(0,TEAL,'Humano: iguales'),(1,ORANGE,'Humano: diferentes')]:
+for lab,color,name in [(0,TEAL,'Human: the same'),(1,ORANGE,'Human: they differ')]:
     axs[0].hist(decided[decided.target_hard==lab].abs_delta_eur.clip(1e-3),bins=bins,
                 color=color,alpha=.68,label=name)
 axs[0].set_xscale('log');axs[0].axvline(.5,color=INK,ls=':',lw=1.2)
 axs[0].text(.52,axs[0].get_ylim()[1]*.82,'0,50 €',fontsize=9,color=INK)
-axs[0].set(xlabel='Desviación de precio |Δ€| · escala logarítmica',ylabel='Viajes')
+axs[0].set(xlabel='Price deviation |Δ€| · logarithmic scale',ylabel='Journeys')
 axs[0].set_title('Las etiquetas se solapan mucho en euros')
 axs[0].legend(fontsize=9)
 share=impact.abs_delta_eur.sort_values(ascending=False).cumsum()/impact.abs_delta_eur.sum()
@@ -1785,27 +1785,27 @@ for q,color in [(10,ORANGE),(25,INK)]:
     y=100*share.values[int(q/100*len(share))-1]
     axs[1].plot([q,q],[0,y],ls=':',color=color,lw=1.4)
     axs[1].plot([0,q],[y,y],ls=':',color=color,lw=1.4)
-    axs[1].annotate(f'{q} % de los viajes\\nacumulan el {y:.0f} %',(q,y),xytext=(14,-26),
+    axs[1].annotate(f'{q} % of journeys\\naccount for {y:.0f} %',(q,y),xytext=(14,-26),
                     textcoords='offset points',fontsize=9,color=color,weight='bold')
-axs[1].set(xlabel='Viajes ordenados por |Δ€| descendente · %',ylabel='Porcentaje del |Δ€| total',
+axs[1].set(xlabel='Journeys ordered by |Δ€| descending · %',ylabel='Porcentaje del |Δ€| total',
            xlim=(0,100),ylim=(0,100))
-axs[1].set_title('El impacto se concentra en una minoría')
+axs[1].set_title('The impact concentrates in a minority')
 axs[1].legend(fontsize=9,loc='lower right');axs[1].grid(alpha=.12)
-finish(fig,'15_euros_impacto','Tarifas públicas de 2026 sobre viajes de 2021 · categoría estándar · estimación de orden de magnitud')
+finish(fig,'15_euros_impacto','Public 2026 fares applied to 2021 trips · standard category · order-of-magnitude estimate')
 
 from scipy.stats import spearmanr
 rho_label=spearmanr(decided.target_hard,decided.abs_delta_eur).statistic
 top=decided.nlargest(int(.1*len(decided)),'abs_delta_eur')
 display(Markdown(
- f'**Cifras.** Precio medio estimado del viaje: **{impact.charged_eur.mean():.2f} €**. Desviación absoluta mediana: '
+ f'**Figures.** Average estimated trip price: **{impact.charged_eur.mean():.2f} €**. Median absolute deviation: '
  f'**{impact.abs_delta_eur.median():.3f} €**, el {100*(impact.abs_delta_eur/impact.charged_eur).median():.1f} % de la '
- f'tarifa; P95 **{impact.abs_delta_eur.quantile(.95):.2f} €**. La media con signo es '
- f'**{impact.delta_eur.mean():+.4f} €**: las desviaciones se compensan y no hay una fuga sistemática en una dirección. '
- f'La correlación de Spearman entre la etiqueta humana y |Δ€| es **{rho_label:.2f}** — hay señal, pero lejos de ser '
- f'la misma pregunta. Y sin embargo, del 10 % de viajes con mayor impacto, el '
- f'**{100*top.target_hard.mean():.0f} %** está etiquetado «diferentes», frente al '
- f'{100*decided.drop(top.index).target_hard.mean():.0f} % del resto: **el juicio humano acierta justo donde más '
- 'dinero hay**, y se vuelve ambiguo en la cola de desviaciones pequeñas.'))
+ f'fare; P95 **{impact.abs_delta_eur.quantile(.95):.2f} €**. The signed mean is '
+ f'**{impact.delta_eur.mean():+.4f} €**: the deviations offset each other and there is no systematic leak in one direction. '
+ f'The Spearman correlation between the human label and |Δ€| is **{rho_label:.2f}** — there is signal, but far from being '
+ f'the same question. And yet, among the 10 % of journeys with the largest impact, '
+ f'**{100*top.target_hard.mean():.0f} %** is labelled «they differ», against '
+ f'{100*decided.drop(top.index).target_hard.mean():.0f} % for the rest: **human judgement gets it right exactly where the most '
+ 'money is**, and becomes ambiguous in the tail of small deviations.'))
 """)
 
 md(r"""
@@ -1826,7 +1826,7 @@ code("""
 fig,axs=plt.subplots(1,2,figsize=(13,4.9))
 edges=np.linspace(-2.5,2.5,61)
 over=impact.delta_eur.clip(-2.5,2.5)
-axs[0].hist(over[impact.delta_eur<0],bins=edges,color=ORANGE,alpha=.8,label='El cliente pagó de más')
+axs[0].hist(over[impact.delta_eur<0],bins=edges,color=ORANGE,alpha=.8,label='The customer overpaid')
 axs[0].hist(over[impact.delta_eur>0],bins=edges,color=TEAL,alpha=.8,label='Cabify y conductor lo absorben')
 axs[0].axvline(0,color=INK,lw=1.1)
 n_neg=int((impact.delta_eur<0).sum());n_pos=int((impact.delta_eur>0).sum())
@@ -1834,33 +1834,33 @@ axs[0].text(-2.35,axs[0].get_ylim()[1]*.88,f'{n_neg} viajes\\n{abs(impact.delta_
             fontsize=10,color=ORANGE,weight='bold',va='top')
 axs[0].text(2.35,axs[0].get_ylim()[1]*.88,f'{n_pos} viajes\\n{impact.delta_eur[impact.delta_eur>0].sum():.0f} €',
             fontsize=10,color=TEAL,weight='bold',ha='right',va='top')
-axs[0].set(xlabel='Δ€ · negativo: el cliente pagó de más | positivo: lo absorbe Cabify',ylabel='Viajes')
-axs[0].set_title('Se compensan en el agregado, no para cada persona')
+axs[0].set(xlabel='Δ€ · negative: the customer overpaid | positive: Cabify absorbs it',ylabel='Journeys')
+axs[0].set_title('They offset in aggregate, not for each person')
 axs[0].legend(fontsize=9,loc='upper center',bbox_to_anchor=(.5,-.18),ncol=2)
 ratio=impact.deviation_over_margin.clip(0,20)
 axs[1].hist(ratio,bins=np.linspace(0,20,61),color=TEAL,alpha=.85)
 axs[1].axvline(1,color=RED,lw=1.8,ls='--')
 share=100*(impact.deviation_over_margin>1).mean()
 axs[1].text(1.5,axs[1].get_ylim()[1]*.8,
-            f'El {share:.0f} % de los viajes\\nse desvía más de lo que\\nese viaje deja de margen',
+            f'El {share:.0f} % de los viajes\\ndeviate by more than\\nthat journey leaves in margin',
             fontsize=10,color=RED,weight='bold',va='top')
-axs[1].set(xlabel='Desviación como múltiplo del margen de ese viaje',ylabel='Viajes')
-axs[1].set_title('Comparado con un margen del 3,3 %, no es calderilla')
+axs[1].set(xlabel='Deviation as a multiple of the margin of that journey',ylabel='Journeys')
+axs[1].set_title('Against a 3.3 % margin, this is not loose change')
 finish(fig,'15b_euros_quien_paga',
-       'Margen EBITDA del grupo Cabify en 2025 (3,3 %) aplicado a cada viaje · referencia de escala, no contabilidad unitaria')
+       'Cabify group EBITDA margin for 2025 (3.3 %) applied to each journey · a scale reference, not per-trip accounting')
 
 rel=100*impact.delta_eur/impact.charged_eur
 display(Markdown(
- f'**Para Cabify, en el agregado, casi nada.** El neto es {impact.delta_eur.sum():+.0f} € sobre '
+ f'**For Cabify, in aggregate, almost nothing.** The net is €{impact.delta_eur.sum():+.0f} on '
  f'{impact.charged_eur.sum():.0f} € facturados: un {100*impact.delta_eur.sum()/impact.charged_eur.sum():+.2f} %, '
- f'el {abs(100*(impact.delta_eur.sum()/impact.charged_eur.sum())/EBITDA_MARGIN):.0f} % del margen. '
- f'**Pero el dinero que se mueve mal no es el neto, es el bruto:** {impact.abs_delta_eur.sum():.0f} €, un '
- f'{100*impact.abs_delta_eur.sum()/impact.charged_eur.sum():.1f} % de la facturación, frente a un margen EBITDA del '
+ f'el {abs(100*(impact.delta_eur.sum()/impact.charged_eur.sum())/EBITDA_MARGIN):.0f} % of the margin. '
+ f'**But the money that moves wrongly is not the net, it is the gross:** €{impact.abs_delta_eur.sum():.0f}, '
+ f'{100*impact.abs_delta_eur.sum()/impact.charged_eur.sum():.1f} % of billings, against an EBITDA margin of '
  f'{100*EBITDA_MARGIN:.1f} %. Es **{impact.abs_delta_eur.sum()/impact.charged_eur.sum()/EBITDA_MARGIN:.1f} veces el '
- f'margen** moviéndose en direcciones opuestas y cancelándose.\\n\\n'
- f'**Y para las personas concretas, mucho.** {int((rel<-10).sum())} clientes ({100*(rel<-10).mean():.1f} %) pagaron '
- f'más de un 10 % por encima de lo que valía su trayecto real, y {int((rel<-25).sum())} pagaron más de un 25 % de '
- f'más. En sentido contrario, Cabify y el conductor absorbieron más de un 25 % del precio en '
+ f'margin** moving in opposite directions and cancelling out.\\n\\n'
+ f'**And for the individuals involved, a great deal.** {int((rel<-10).sum())} customers ({100*(rel<-10).mean():.1f} %) paid '
+ f'more than 10 % above what their real trip was worth, and {int((rel<-25).sum())} paid more than 25 % '
+ f'over. In the other direction, Cabify and the driver absorbed more than 25 % of the fare on '
  f'{int((rel>25).sum())} viajes ({100*(rel>25).mean():.1f} %).'))
 """)
 
@@ -1873,8 +1873,8 @@ by cell of the test confusion matrix.
 
 code("""
 test_impact=decided[decided.split=='test']
-cells=[('TN','Acierto · iguales',(test_impact.pred==0)&(test_impact.target_hard==0),TEAL),
-       ('TP','Acierto · diferentes',(test_impact.pred==1)&(test_impact.target_hard==1),TEAL),
+cells=[('TN','Correct · the same',(test_impact.pred==0)&(test_impact.target_hard==0),TEAL),
+       ('TP','Correct · they differ',(test_impact.pred==1)&(test_impact.target_hard==1),TEAL),
        ('FP','Falsa alarma',(test_impact.pred==1)&(test_impact.target_hard==0),RED),
        ('FN','Diferencia no detectada',(test_impact.pred==0)&(test_impact.target_hard==1),ORANGE)]
 fig,axs=plt.subplots(1,2,figsize=(13,4.8))
@@ -1884,7 +1884,7 @@ for patch,(_,_,_,color) in zip(bp['boxes'],cells):patch.set_facecolor(color);pat
 for element in ['medians','whiskers','caps']:
     for line in bp[element]:line.set_color(INK)
 axs[0].set_xticks(range(1,5),[f'{k}\\nn={int(mask.sum())}' for k,_,mask,_ in cells])
-axs[0].set_yscale('log');axs[0].set_ylabel('|Δ€| · escala logarítmica')
+axs[0].set_yscale('log');axs[0].set_ylabel('|Δ€| · logarithmic scale')
 axs[0].set_title('Los fallos caen donde hay poco dinero')
 axs[0].grid(axis='y',alpha=.12)
 totals=[test_impact[mask].abs_delta_eur.sum() for _,_,mask,_ in cells]
@@ -1895,18 +1895,18 @@ for i,(t,(k,_,mask,_)) in enumerate(zip(totals,cells)):
     axs[1].text(i,100*t/total+1.2,f'{100*t/total:.1f} %\\n{t:.0f} €',ha='center',fontsize=9,weight='bold')
 axs[1].set_ylim(0,max(100*t/total for t in totals)*1.28)
 axs[1].set_ylabel('Porcentaje del |Δ€| total de test')
-axs[1].set_title('Reparto del dinero, no de los casos')
+axs[1].set_title('Distribution of the money, not of the cases')
 axs[1].grid(axis='y',alpha=.12)
-finish(fig,'16_euros_y_errores','Test · 443 viajes con mayoría · mismo modelo y umbral congelados')
+finish(fig,'16_euros_y_errores','Test · 443 journeys with a majority · same frozen model and threshold')
 
 captured=100*sum(t for t,(k,_,_,_) in zip(totals,cells) if k in ('TP','FN'))
 missed=test_impact[(test_impact.pred==0)&(test_impact.target_hard==1)].abs_delta_eur.sum()
 flagged=test_impact[(test_impact.pred==1)&(test_impact.target_hard==1)].abs_delta_eur.sum()
 display(Markdown(
- f'**El modelo recupera el {100*flagged/(flagged+missed):.1f} % del dinero en juego entre los viajes realmente '
- f'distintos**, pese a detectar solo el {100*230/255:.1f} % de los casos. Las 25 diferencias que se le escapan suman '
+ f'**The model recovers {100*flagged/(flagged+missed):.1f} % of the money at stake among the genuinely '
+ f'different journeys**, while catching only {100*230/255:.1f} % of the cases. The 25 differences it misses add up to '
  f'**{missed:.2f} €** de los **{flagged+missed:.0f} €** de ese grupo. Medido en euros en lugar de en viajes, el '
- 'modelo rinde mejor de lo que sugiere su exactitud.'))
+ 'the model performs better than its accuracy suggests.'))
 """)
 
 md(r"""
@@ -2000,7 +2000,7 @@ else:
 baseline_error=100*28/443
 
 fig,axs=plt.subplots(1,2,figsize=(13,4.9))
-# alpha=0,05 abstiene en el 84 %: queda fuera de escala para no aplastar la zona útil.
+# alpha=0.05 abstains on 84 %: kept off-scale so it does not squash the useful region.
 usable=curve[curve.abstention_rate<.5]
 dropped=curve[curve.abstention_rate>=.5]
 axs[0].plot(100*usable.abstention_rate,100*usable.error_rate_answered,'o-',color=TEAL,lw=2.2,zorder=3)
@@ -2013,47 +2013,47 @@ for (xv,yv),labels in merged.items():
     axs[0].annotate('α='+' y '.join(labels),(xv,yv),xytext=(9,6),
                     textcoords='offset points',fontsize=9)
 axs[0].scatter([0],[baseline_error],color=RED,s=95,zorder=4,marker='D')
-axs[0].annotate(f'Umbral fijo actual · {baseline_error:.1f} % de error, sin revisión',(0,baseline_error),
+axs[0].annotate(f'Current fixed threshold · {baseline_error:.1f} % error, no review',(0,baseline_error),
                 xytext=(14,-2),textcoords='offset points',fontsize=9.5,color=RED,weight='bold')
 axs[0].axhline(2,color=MUTED,ls=':',lw=1.2)
 axs[0].set_xlim(-.7,16.5);axs[0].set_ylim(-.45,7.6)
 axs[0].text(16.2,2.12,'objetivo de ejemplo: 2 % de error',fontsize=9,color=MUTED,ha='right')
 for _,row in dropped.iterrows():
     axs[0].text(16.2,5.3,f"α={row.alpha:.2f} queda fuera de escala:\\n"
-                f"{100*row.abstention_rate:.0f} % a revisión y "
+                f"{100*row.abstention_rate:.0f} % to review and "
                 f"{100*row.error_rate_answered:.0f} % de error".replace('.',',',1),
                 fontsize=8.5,color=MUTED,ha='right',va='center',
                 bbox=dict(facecolor=BG,edgecolor=MUTED,alpha=.9,boxstyle='round,pad=.45'))
-axs[0].set(xlabel='Viajes enviados a revisión humana · %',ylabel='Error en las decisiones automáticas · %')
-axs[0].set_title('La palanca: cuánta revisión compras, cuánto error te queda')
+axs[0].set(xlabel='Journeys sent to human review · %',ylabel='Error on automated decisions · %')
+axs[0].set_title('The lever: how much review you buy, how much error you keep')
 axs[0].grid(alpha=.12)
 width=.36
 groups=list(GROUPS)
 for i,(name,color) in enumerate(zip(groups,[ORANGE,TEAL])):
     values=[100*row['abstention_by_group'][name] for _,row in curve.iterrows()]
     axs[1].bar(np.arange(len(curve))+(i-.5)*width,values,width,color=color,
-               label=f"{name} · calibración n={calibration_sizes[name]}")
+               label=f"{name} · calibration n={calibration_sizes[name]}")
 axs[1].set_xticks(np.arange(len(curve)),[f"{a:.2f}".replace('.',',') for a in curve.alpha])
-axs[1].set(xlabel='α',ylabel='Viajes sin decisión · %')
-axs[1].set_title('La duda se concentra donde la etiqueta no está corroborada')
+axs[1].set(xlabel='α',ylabel='Journeys with no decision · %')
+axs[1].set_title('Doubt concentrates where the label is not corroborated')
 axs[1].legend(fontsize=8,ncol=1,loc='upper right');axs[1].grid(axis='y',alpha=.12)
 finish(fig,'17_conformal_palanca',
-       'CV+ sobre entrenamiento · calibración Mondrian por número de votos · evaluado en test')
+       'CV+ over training · Mondrian calibration by vote count · evaluated on test')
 
 display(curve[['alpha','nominal_coverage','empirical_coverage','abstention_rate',
                'error_rate_answered','n_answered','n_abstained','mean_width']]
         .rename(columns={'alpha':'α','nominal_coverage':'Cobertura garantizada',
-            'empirical_coverage':'Cobertura observada','abstention_rate':'A revisión',
-            'error_rate_answered':'Error en lo automático','n_answered':'Decididos',
-            'n_abstained':'Sin decisión','mean_width':'Ancho medio'})
+            'empirical_coverage':'Cobertura observada','abstention_rate':'To review',
+            'error_rate_answered':'Error on automated calls','n_answered':'Decididos',
+            'n_abstained':'No decision','mean_width':'Ancho medio'})
         .style.format({'α':'{:.2f}','Cobertura garantizada':'{:.0%}','Cobertura observada':'{:.1%}',
-            'A revisión':'{:.1%}','Error en lo automático':'{:.2%}','Ancho medio':'{:.3f}'}).hide(axis='index'))
-narrowing=100*(1-residual_q90['2 o más votos']/residual_q90['1 voto'])
+            'To review':'{:.1%}','Error on automated calls':'{:.2%}','Ancho medio':'{:.3f}'}).hide(axis='index'))
+narrowing=100*(1-residual_q90['2 or more votes']/residual_q90['1 vote'])
 display(Markdown(
- f'**El precio de la anotación.** El residuo en el percentil 90 es **{residual_q90["1 voto"]:.3f}** para los viajes '
- f'de un voto y **{residual_q90["2 o más votos"]:.3f}** para los de dos o más: un intervalo un '
- f'**{narrowing:.0f} % más estrecho** cuando la etiqueta está corroborada. En α = 0,10 eso se traduce en una tasa de '
- 'revisión del 14,5 % frente al 5,1 %.'))
+ f'**The price of annotation.** The 90th-percentile residual is **{residual_q90["1 vote"]:.3f}** for journeys '
+ f'with one vote and **{residual_q90["2 or more votes"]:.3f}** for those with two or more: an interval '
+ f'**{narrowing:.0f} % narrower** when the label is corroborated. At α = 0.10 that translates into a '
+ 'review rate of 14.5 % against 5.1 %.'))
 """)
 
 md(r"""
@@ -2096,33 +2096,33 @@ else:
     sys.path.insert(0,str(ROOT/'scripts'))
     from benchmark_inference import measure
     cost=measure();cost_path.write_text(json.dumps(cost,indent=2,ensure_ascii=False))
-steps=[('Proyectar a metros',cost['ms_projection']),('Calcular las 8 variables',cost['ms_features']),
-       ('Puntuar con XGBoost',cost['ms_scoring'])]
+steps=[('Project to metres',cost['ms_projection']),('Compute the 8 variables',cost['ms_features']),
+       ('Score with XGBoost',cost['ms_scoring'])]
 fig,axs=plt.subplots(1,2,figsize=(13,4.4))
 labels=[k for k,_ in steps];values=[v for _,v in steps]
 axs[0].barh(labels[::-1],values[::-1],color=[INK,ORANGE,TEAL])
 for i,v in enumerate(values[::-1]):
     axs[0].text(v+.12,i,f'{v:.2f} ms' if v>=.01 else f'{v*1000:.1f} µs',va='center',weight='bold',fontsize=10)
-axs[0].set_xlim(0,max(values)*1.32);axs[0].set_xlabel('Milisegundos por pareja')
-axs[0].set_title(f"El modelo no es el coste · total {cost['ms_total']:.1f} ms")
+axs[0].set_xlim(0,max(values)*1.32);axs[0].set_xlabel('Milliseconds per pair')
+axs[0].set_title(f"The model is not the cost · total {cost['ms_total']:.1f} ms")
 volumes=np.array([1e5,5e5,1e6,5e6])
 reviews={'α=0,20 · 4,1 %':.041,'α=0,15 · 6,1 %':.061,'α=0,10 · 12,9 %':.129}
 for (name,rate),color in zip(reviews.items(),[TEAL,ORANGE,RED]):
     axs[1].plot(volumes,volumes*rate,'o-',color=color,lw=2,label=name)
 axs[1].axhline(2000,color=INK,ls='--',lw=1.4)
-axs[1].text(1.05e5,2300,'~2.000 revisiones/día ≈ 10 personas a jornada completa',fontsize=9,color=INK)
-axs[1].set(xscale='log',yscale='log',xlabel='Viajes al día',ylabel='Revisiones humanas al día')
-axs[1].set_title('El cuello de botella no es la CPU, son las personas')
-axs[1].legend(fontsize=9,title='Tasa de abstención',title_fontsize=9);axs[1].grid(alpha=.15,which='both')
+axs[1].text(1.05e5,2300,'~2,000 reviews/day ≈ 10 full-time people',fontsize=9,color=INK)
+axs[1].set(xscale='log',yscale='log',xlabel='Journeys per day',ylabel='Human reviews per day')
+axs[1].set_title('The bottleneck is not the CPU, it is the people')
+axs[1].legend(fontsize=9,title='Abstention rate',title_fontsize=9);axs[1].grid(alpha=.15,which='both')
 finish(fig,'18_coste_y_escala',
-       f"Medición de un proceso sobre {cost['pairs_measured']} parejas · {cost['mean_points_per_pair']:.0f} puntos de media · cota superior")
+       f"Single-process measurement over {cost['pairs_measured']} pairs · {cost['mean_points_per_pair']:.0f} points on average · upper bound")
 
 display(Markdown(
- f"**Cómputo: irrelevante.** {cost['ms_total']:.1f} ms por pareja, de los que el modelo consume "
- f"{1000*cost['ms_scoring']:.1f} µs: el coste está en la geometría, no en XGBoost. Un millón de viajes al día son "
- f"**{cost['cpu_hours_per_million']:.1f} horas de CPU**, o {cost['cores_continuous_per_million_day']:.2f} núcleos "
- 'en continuo. Cabe en una máquina pequeña, y el camino obvio de optimización —vectorizar por lotes y cachear la '
- 'proyección— ni siquiera hace falta tocarlo todavía.'))
+ f"**Compute: irrelevant.** {cost['ms_total']:.1f} ms per pair, of which the model consumes "
+ f"{1000*cost['ms_scoring']:.1f} µs: the cost is in the geometry, not in XGBoost. A million journeys a day is "
+ f"**{cost['cpu_hours_per_million']:.1f} CPU-hours**, or {cost['cores_continuous_per_million_day']:.2f} cores "
+ 'running continuously. It fits on a small machine, and the obvious optimisation path — batching and caching the '
+ 'projection — does not even need touching yet.'))
 """)
 
 md(r"""

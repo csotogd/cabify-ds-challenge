@@ -9,12 +9,12 @@
   "n_rounds": 268,
   "guarantee": "cobertura >= 1 - 2*alpha sobre target_soft; aproximada por solapamiento de calles",
   "calibration_sizes": {
-    "1 voto": 1085,
-    "2 o más votos": 263
+    "1 vote": 1085,
+    "2 or more votes": 263
   },
   "residual_q90_by_group": {
-    "1 voto": 0.32373308539390566,
-    "2 o más votos": 0.22553786635398868
+    "1 vote": 0.32373308539390566,
+    "2 or more votes": 0.22553786635398868
   },
   "curve": [
     {
@@ -27,16 +27,16 @@
       "n_abstained": 14,
       "mean_width": 0.0575217638,
       "width_by_group": {
-        "1 voto": 0.058993131,
-        "2 o más votos": 0.05063652
+        "1 vote": 0.058993131,
+        "2 or more votes": 0.05063652
       },
       "coverage_by_group": {
-        "1 voto": 0.7178082192,
-        "2 o más votos": 0.7948717949
+        "1 vote": 0.7178082192,
+        "2 or more votes": 0.7948717949
       },
       "abstention_by_group": {
-        "1 voto": 0.0328767123,
-        "2 o más votos": 0.0256410256
+        "1 vote": 0.0328767123,
+        "2 or more votes": 0.0256410256
       }
     },
     {
@@ -49,16 +49,16 @@
       "n_abstained": 18,
       "mean_width": 0.074467457,
       "width_by_group": {
-        "1 voto": 0.077554033,
-        "2 o más votos": 0.0600238642
+        "1 vote": 0.077554033,
+        "2 or more votes": 0.0600238642
       },
       "coverage_by_group": {
-        "1 voto": 0.7506849315,
-        "2 o más votos": 0.8461538462
+        "1 vote": 0.7506849315,
+        "2 or more votes": 0.8461538462
       },
       "abstention_by_group": {
-        "1 voto": 0.0438356164,
-        "2 o más votos": 0.0256410256
+        "1 vote": 0.0438356164,
+        "2 or more votes": 0.0256410256
       }
     },
     {
@@ -71,16 +71,16 @@
       "n_abstained": 18,
       "mean_width": 0.1203770132,
       "width_by_group": {
-        "1 voto": 0.127369816,
-        "2 o más votos": 0.087654282
+        "1 vote": 0.127369816,
+        "2 or more votes": 0.087654282
       },
       "coverage_by_group": {
-        "1 voto": 0.8054794521,
-        "2 o más votos": 0.8846153846
+        "1 vote": 0.8054794521,
+        "2 or more votes": 0.8846153846
       },
       "abstention_by_group": {
-        "1 voto": 0.0438356164,
-        "2 o más votos": 0.0256410256
+        "1 vote": 0.0438356164,
+        "2 or more votes": 0.0256410256
       }
     },
     {
@@ -93,16 +93,16 @@
       "n_abstained": 27,
       "mean_width": 0.220698319,
       "width_by_group": {
-        "1 voto": 0.2347022319,
-        "2 o más votos": 0.1551671877
+        "1 vote": 0.2347022319,
+        "2 or more votes": 0.1551671877
       },
       "coverage_by_group": {
-        "1 voto": 0.8547945205,
-        "2 o más votos": 0.9358974359
+        "1 vote": 0.8547945205,
+        "2 or more votes": 0.9358974359
       },
       "abstention_by_group": {
-        "1 voto": 0.0684931507,
-        "2 o más votos": 0.0256410256
+        "1 vote": 0.0684931507,
+        "2 or more votes": 0.0256410256
       }
     },
     {
@@ -115,16 +115,16 @@
       "n_abstained": 57,
       "mean_width": 0.3637771715,
       "width_by_group": {
-        "1 voto": 0.3859875837,
-        "2 o más votos": 0.259843832
+        "1 vote": 0.3859875837,
+        "2 or more votes": 0.259843832
       },
       "coverage_by_group": {
-        "1 voto": 0.9150684932,
-        "2 o más votos": 0.9487179487
+        "1 vote": 0.9150684932,
+        "2 or more votes": 0.9487179487
       },
       "abstention_by_group": {
-        "1 voto": 0.1452054795,
-        "2 o más votos": 0.0512820513
+        "1 vote": 0.1452054795,
+        "2 or more votes": 0.0512820513
       }
     },
     {
@@ -137,16 +137,16 @@
       "n_abstained": 373,
       "mean_width": 0.6243605748,
       "width_by_group": {
-        "1 voto": 0.6621273626,
-        "2 o más votos": 0.4476313752
+        "1 vote": 0.6621273626,
+        "2 or more votes": 0.4476313752
       },
       "coverage_by_group": {
-        "1 voto": 0.9671232877,
-        "2 o más votos": 0.9743589744
+        "1 vote": 0.9671232877,
+        "2 or more votes": 0.9743589744
       },
       "abstention_by_group": {
-        "1 voto": 1.0,
-        "2 o más votos": 0.1025641026
+        "1 vote": 1.0,
+        "2 or more votes": 0.1025641026
       }
     }
   ]

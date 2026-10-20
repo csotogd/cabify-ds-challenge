@@ -35,7 +35,7 @@ from .features import build_features, BASE_FEATURES
 N_FOLDS = 10
 CHOSEN = dict(max_depth=2, min_child_weight=8, reg_lambda=8)
 N_ROUNDS = 268          # iteración elegida en validación (best_iteration 267, inclusive)
-GROUPS = {'1 voto': lambda v: v == 1, '2 o más votos': lambda v: v >= 2}
+GROUPS = {'1 vote': lambda v: v == 1, '2 or more votes': lambda v: v >= 2}
 
 def _fit(x, y):
     model = XGBRegressor(objective='binary:logistic', eval_metric='logloss',
