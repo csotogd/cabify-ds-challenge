@@ -1140,20 +1140,20 @@ finish(fig,'07_diferencias_pareadas')
 cells.extend(result_cells())
 
 md(r"""
-## 8. Volvemos a las rutas: ¿qué significa acertar y qué significa fallar?
+## 8. Back to the routes: what does getting it right, and getting it wrong, mean?
 
-Una AUC alta indica buena ordenación, pero no resuelve qué umbral conviene al negocio. Con el umbral elegido en validación, la referencia marca como similares 25 viajes que la mayoría consideró diferentes, y marca como diferentes tres viajes que la mayoría consideró similares.
+A high AUC indicates good ranking, but it does not settle which threshold suits the business. At the threshold chosen on validation, the baseline marks as similar 25 journeys the majority considered different, and marks as different three journeys the majority considered similar.
 
-Estas cifras dependen del objetivo humano elegido. Las probabilidades no son certeza objetiva. La curva de calibración se muestra como diagnóstico: no se ha recalibrado usando test.
+These figures depend on the chosen human target. The probabilities are not objective certainty. The calibration curve is shown as a diagnostic: it has not been recalibrated using test.
 
-En adelante, todas las rutas que inspeccionamos son del **test** y todas las predicciones corresponden a **geometría básica + XGBoost**, con umbral **0,75**. Los ejemplos de entrenamiento anteriores servían para explicar las medidas; estos sirven para auditar el resultado final.
+From here on, every route we inspect is from **test** and every prediction comes from **basic geometry + XGBoost**, at threshold **0.75**. The earlier training examples were there to explain the measurements; these are here to audit the final result.
 
-| | El modelo dice «iguales» | El modelo dice «diferentes» |
+| | The model says «the same» | The model says «they differ» |
 |---|---|---|
-| La mayoría dice «iguales» | **185 aciertos — TN** | **3 falsas alarmas — FP** |
-| La mayoría dice «diferentes» | **25 diferencias no detectadas — FN** | **230 aciertos — TP** |
+| The majority says «the same» | **185 correct — TN** | **3 false alarms — FP** |
+| The majority says «they differ» | **25 missed differences — FN** | **230 correct — TP** |
 
-«Fallo» significa desacuerdo con la mayoría disponible, que a menudo es **una sola persona**. No significa que hayamos demostrado que el recorrido es objetivamente igual o diferente. Para distinguir un error del modelo de una etiqueta discutible necesitaríamos revisión adicional.
+«Error» means disagreement with the available majority, which is often **a single person**. It does not mean we have demonstrated the trip is objectively the same or different. Telling a model error apart from a debatable label would require additional review.
 """)
 
 code("""
@@ -1196,13 +1196,13 @@ finish(fig,'09_variables_referencia')
 """)
 
 md(r"""
-### 8.1 Primero, reconocer los dos tipos de acierto
+### 8.1 First, recognising the two kinds of correct call
 
-Una curva de métricas no permite ver si el modelo reconoce dos recorridos casi superpuestos o una desviación evidente. Mostramos **dos aciertos de cada clase**: el que ocupa la posición central al ordenar su puntuación y el más próximo al umbral. Así vemos un caso central y otro de decisión más ajustada, sin seleccionar a mano los dibujos más vistosos.
+A metrics curve does not let you see whether the model recognises two almost-overlapping trips or an obvious deviation. We show **two correct calls of each class**: the one in the central position when sorting by score, and the one closest to the threshold. That way we see a central case and a tighter decision, without hand-picking the most striking pictures.
 
-La línea oscura es la ruta estimada; la naranja discontinua es la real. Los ejes están en kilómetros, con la misma escala horizontal y vertical dentro de cada panel. Los paneles se ajustan a cada viaje: no todos tienen la misma extensión. Los círculos indican comienzos y los cuadrados finales.
+The dark line is the estimated route; the dashed orange one is the real route. Axes are in kilometres, with the same horizontal and vertical scale within each panel. Panels adapt to each journey: they do not all span the same area. Circles mark starts and squares mark ends.
 
-Al leer «0,74», recuerda: es una puntuación probabilística de «diferentes», pero la regla elegida exige **al menos 0,75** para emitir esa etiqueta. No es un porcentaje de metros diferentes.
+When reading «0.74», remember: it is a probabilistic score for «they differ», but the chosen rule requires **at least 0.75** to emit that label. It is not a percentage of differing metres.
 """)
 
 code("""
@@ -1287,25 +1287,25 @@ display(ledger.drop(columns=['journey_id','Votos de personas distintas','p(difer
 """)
 
 md(r"""
-### 8.2 Los errores: separar trazado, decisión y etiqueta
+### 8.2 The errors: separating trace, decision and label
 
-Inspeccionamos **los tres falsos positivos** y **tres de los 25 falsos negativos**: el de menor puntuación, el central y el más próximo al umbral. No son una muestra aleatoria de errores ni sirven para estimar la frecuencia de cada explicación. El registro de predicciones conserva los 28 errores.
+We inspect **the three false positives** and **three of the 25 false negatives**: the lowest-scoring one, the central one and the one closest to the threshold. They are not a random sample of errors and cannot be used to estimate how often each explanation applies. The prediction log keeps all 28 errors.
 
-Cada figura responde a cuatro preguntas:
+Each figure answers four questions:
 
-1. **Vista completa:** ¿las rutas se parecen globalmente?
-2. **Ampliación:** ¿hay un tramo que la escala del viaje ocultaba? Centramos la ventana en la mayor separación encontrada al muestrear 800 posiciones por ruta.
-3. **Perfil de distancias:** ¿es una diferencia breve o persistente? Medimos desde cada posición a la polilínea contraria. El porcentaje se refiere a la longitud de **cada ruta**, no al tiempo ni a posiciones sincronizadas.
-4. **Contribuciones del modelo:** ¿qué variables empujan esta predicción hacia «iguales» o «diferentes»?
+1. **Full view:** do the routes look alike overall?
+2. **Zoom:** is there a stretch the trip's scale was hiding? We centre the window on the largest separation found when sampling 800 positions per route.
+3. **Distance profile:** is the difference brief or persistent? We measure from each position to the opposite polyline. The percentage refers to the length of **each route**, not to time or to synchronised positions.
+4. **Model contributions:** which variables push this prediction towards «the same» or «they differ»?
 
-Para el último panel usamos las [contribuciones TreeSHAP de XGBoost](https://xgboost.readthedocs.io/en/stable/prediction.html). Descomponen la puntuación del modelo ya entrenado antes de la sigmoide:
+For the last panel we use [XGBoost's TreeSHAP contributions](https://xgboost.readthedocs.io/en/stable/prediction.html). They decompose the trained model's score before the sigmoid:
 
 $$\log\frac{q}{1-q}=\phi_0+\sum_{k=1}^{8}\phi_k,\qquad
 q=\frac{1}{1+\exp[-(\phi_0+\sum_k\phi_k)]}.$$
 
-$\phi_0$ es la referencia implícita de los árboles; cada $\phi_k$ es una contribución en **log-odds**, no en puntos porcentuales. Naranja aumenta la puntuación de «diferentes» y verde la reduce. Usamos la referencia interna del modelo entrenado, sin añadir test como fondo de comparación. Conservamos exactamente los árboles de la iteración elegida en validación y comprobamos que la suma reconstruya la predicción congelada.
+$\phi_0$ is the trees' implicit baseline; each $\phi_k$ is a contribution in **log-odds**, not in percentage points. Orange raises the «they differ» score and green lowers it. We use the trained model's internal baseline, without adding test as a background set. We keep exactly the trees of the iteration chosen on validation and check that the sum reconstructs the frozen prediction.
 
-Esto explica **cómo puntúa el modelo esta entrada**, no por qué condujo así una persona ni por qué votó así el anotador. Las variables están relacionadas entre sí; sus contribuciones no son efectos causales.
+This explains **how the model scores this input**, not why a person drove that way or why the annotator voted that way. The variables are related to each other; their contributions are not causal effects.
 """)
 
 code("""
@@ -1447,23 +1447,23 @@ for case,meta in cases[~cases.kind.isin(['TN','TP'])].iterrows():
 """)
 
 md(r"""
-### 8.3 El aprendizaje de la inspección
+### 8.3 What the inspection taught us
 
-El mismo rótulo «error» puede esconder problemas distintos. Un desvío localizado puede quedar diluido en las medias de un viaje largo; dos señales geométricas pueden empujar en sentidos opuestos; y una puntuación casi idéntica al umbral puede cambiar la decisión por unas diezmilésimas.
+The same «error» label can hide different problems. A localised detour can be diluted in the averages of a long trip; two geometric signals can push in opposite directions; and a score almost identical to the threshold can flip the decision by ten-thousandths.
 
-También importa la referencia humana. En las tres falsas alarmas hay un único voto decidido por viaje. En el falso negativo central hay una decisión y dos abstenciones. **Más complejidad del modelo no resolverá por sí sola qué criterio de similitud queremos reproducir.**
+The human reference matters too. All three false alarms have a single decided vote per journey. The central false negative has one decision and two abstentions. **More model complexity will not, on its own, settle which similarity criterion we want to reproduce.**
 
-La inspección propone hipótesis, no las confirma. Para avanzar pediríamos anotaciones adicionales con instrucciones claras, analizaríamos el coste de ambos errores y compararíamos representaciones con validación separada. Después de explorar estos ejemplos, este test ya no debería usarse como terreno para nuevas decisiones y, a la vez, como confirmación independiente de esas mejoras.
+The inspection proposes hypotheses, it does not confirm them. To move forward we would ask for additional annotations with clear instructions, analyse the cost of both error types and compare representations on a separate validation set. After exploring these examples, this test set should no longer be used both as ground for new decisions and as independent confirmation of those improvements.
 """)
 
 md(r"""
-### 8.4 ¿Dónde falla? Casi siempre donde la etiqueta la sostiene una sola persona
+### 8.4 Where does it fail? Almost always where a single person holds up the label
 
-La inspección anterior sugería algo que conviene medir en lugar de insinuar: en los errores aparecía una y otra vez
-**un único voto decidido**. Separamos ahora el rendimiento según cuántas personas sostienen la etiqueta, en validación
-y en test, con el modelo y el umbral ya congelados. No cambia nada del experimento: reparte los mismos aciertos.
+The inspection above suggested something worth measuring rather than hinting at: **a single decided vote** kept
+appearing among the errors. We now split performance by how many people hold up the label, on validation
+and on test, with the model and threshold already frozen. It changes nothing about the experiment: it redistributes the same correct calls.
 
-La lectura es doble y conviene no quedarse en la primera mitad.
+There are two readings, and it is worth not stopping at the first.
 """)
 
 code("""
@@ -1528,48 +1528,48 @@ display(Markdown(
 """)
 
 md(r"""
-**Primera lectura: el modelo acierta más cuando más personas respaldan la etiqueta.** En validación pasa del 94,3 %
-con un voto al 100 % con dos o tres; en test, del 92,6 % al 98,6 % y 100 %. Los 21 errores de validación y 27 de los 28
-de test están en viajes de un solo voto. La concentración supera lo que explicaría el tamaño del grupo, aunque por
-poco: esperaríamos 17,3 de 21 en validación y 23,1 de 28 en test.
+**First reading: the model does better the more people back the label.** On validation it goes from 94.3 %
+with one vote to 100 % with two or three; on test, from 92.6 % to 98.6 % and 100 %. The 21 validation errors and 27 of the 28
+test errors are on single-vote journeys. The concentration exceeds what group size alone would explain, though only
+just: we would expect 17.3 of 21 on validation and 23.1 of 28 on test.
 
-**Segunda lectura, la que impide celebrar la primera: los grupos no son comparables.** Un viaje con dos votos y
-mayoría definida es, *por construcción*, un viaje donde dos personas coincidieron — si hubieran discrepado sería un
-empate y no tendría etiqueta. El grupo «dos o más votos» no es «la misma dificultad, mejor medida»: es **el subconjunto
-de casos que resultaron visualmente inequívocos**. Dicho de otro modo, hemos comparado los casos difíciles con los
-fáciles y hemos descubierto que los difíciles son más difíciles.
+**Second reading, the one that stops us celebrating the first: the groups are not comparable.** A journey with two votes and
+a defined majority is, *by construction*, a journey where two people agreed — had they disagreed it would be a
+tie and carry no label. The «two or more votes» group is not «the same difficulty, measured better»: it is **the subset
+of cases that turned out visually unambiguous**. Put another way, we compared the hard cases with the
+easy ones and discovered the hard ones are harder.
 
-Las dos explicaciones son indistinguibles con este archivo:
+The two explanations are indistinguishable with this file:
 
-| Explicación | Qué implica | Cómo se distinguiría |
+| Explanation | What it implies | How it would be told apart |
 |---|---|---|
-| **Ruido de etiqueta** · parte de esos 21 y 27 «errores» son opiniones individuales que otra persona no compartiría | Nuestra exactitud real está infraestimada; el techo no es 100 % | Reanotar esos casos con varias personas y medir cuántas mayorías cambian |
-| **Dificultad real** · los casos ambiguos para las personas también lo son para la geometría | El modelo tiene margen donde más cuesta | Reanotar y comprobar que la mayoría se mantiene pese al desacuerdo |
+| **Label noise** · some of those 21 and 27 «errors» are individual opinions another person would not share | Our real accuracy is underestimated; the ceiling is not 100 % | Re-annotate those cases with several people and measure how many majorities change |
+| **Genuine difficulty** · cases that are ambiguous for people are ambiguous for geometry too | The model has room to improve where it is hardest | Re-annotate and check the majority holds despite the disagreement |
 
-Que 72 viajes de dos votos den 100 % y 98,6 % tampoco es tranquilizador por sí mismo: con esos tamaños, un intervalo
-de confianza al 95 % para una proporción de 72/72 llega aproximadamente hasta el 95 %. No hemos demostrado que el
-modelo sea infalible en los casos claros; hemos observado que no ha fallado en unos pocos.
+That 72 two-vote journeys give 100 % and 98.6 % is not reassuring in itself either: at those sizes, a 95 %
+confidence interval for a proportion of 72/72 reaches down to roughly 95 %. We have not demonstrated the
+model is infallible on the clear cases; we have observed that it did not fail on a handful.
 
-**Lo accionable.** Si se quisiera subir el rendimiento medido, el camino más corto no es un modelo mayor: es
-**conseguir una segunda anotación para los viajes de un voto**, que son el 83 % de los casos decisivos y la totalidad
-práctica de los errores. Eso convertiría parte del «error» actual en desacuerdo humano documentado y daría, por primera
-vez, una referencia con la que comparar el modelo en los casos que de verdad están en disputa. Antes de eso conviene
-fijar en las instrucciones qué cuenta como diferente —un umbral de metros, de tiempo o de desvío— porque hoy el
-enunciado deja el criterio a la percepción de cada anotador.
+**The actionable part.** If the aim were to raise measured performance, the shortest path is not a bigger model: it is
+**getting a second annotation for the single-vote journeys**, which are 83 % of the decisive cases and in practice all
+of the errors. That would turn part of today's «error» into documented human disagreement and would give, for the first
+time, a reference against which to compare the model on the cases genuinely in dispute. Before that it is worth
+fixing in the instructions what counts as different — a threshold in metres, in time or in detour — because today the
+brief leaves the criterion to each annotator's perception.
 """)
 
 md(r"""
-### 8.5 Los empates: ¿de verdad son casos confusos?
+### 8.5 The ties: are they really confusing cases?
 
-Hasta aquí hemos evaluado solo los viajes con mayoría. Los **31 empates** del archivo —7 de ellos en test— se quedaron
-fuera por no tener etiqueta binaria. Conviene mirarlos, porque sostienen una afirmación que hemos repetido sin probar:
-que el desacuerdo humano señala ambigüedad real y no descuido de los anotadores.
+So far we have only evaluated journeys with a majority. The **31 ties** in the file — 7 of them in test — were left
+out for having no binary label. They are worth looking at, because they underpin a claim we have repeated without testing:
+that human disagreement signals genuine ambiguity rather than annotator carelessness.
 
-Si al dibujarlos aparecieran parejas obviamente iguales u obviamente distintas, el empate sería ruido del panel y
-nuestra regla de consenso estaría descartando información buena. Si aparecen desvíos intermedios —ni superposición
-ni divergencia clara— el empate describe el problema.
+If plotting them showed obviously identical or obviously different pairs, the tie would be panel noise and
+our consensus rule would be discarding good information. If instead they show intermediate detours — neither overlap
+nor clear divergence — then the tie describes the problem.
 
-Añadimos la puntuación del modelo, que no vio estas etiquetas: es una segunda opinión independiente del panel.
+We add the model's score, which never saw these labels: a second opinion independent of the panel.
 """)
 
 code("""
@@ -1627,42 +1627,42 @@ display(Markdown(f'En **{edges_count} de los {len(tie_ids)}** empates, la mayor 
 """)
 
 md(r"""
-**Lo que muestran los dibujos, y es más específico de lo que esperábamos.** Ninguno es una superposición perfecta
-ni una divergencia total, pero además comparten una estructura: **en los siete, el cuerpo central del trayecto
-coincide y la discrepancia se concentra en un extremo** —la mayor separación cae siempre en el primer o el último
-cuarto del recorrido—. Entre el 6 % y el 22 % de la ruta queda a más de 50 m de la otra; el resto se superpone.
+**What the pictures show, and it is more specific than we expected.** None is a perfect overlap
+nor a total divergence, but they also share a structure: **in all seven, the central body of the trip
+coincides and the discrepancy concentrates at one end** — the largest separation always falls in the first or last
+quarter of the trip. Between 6 % and 22 % of the route lies more than 50 m from the other; the rest overlaps.
 
-Eso sugiere que el empate no nace de «dos caminos distintos», sino de **cómo empieza o acaba el viaje**: el punto de
-recogida real frente al previsto, los últimos metros hasta el destino, una maniobra de aproximación. Y ahí la pregunta
-«¿son la misma ruta?» no tiene una respuesta visual evidente: una persona puede considerar que el trayecto es el mismo
-con una recogida desplazada, y otra que la ruta ya es distinta. El desacuerdo describe una ambigüedad genuina del
-problema, no un descuido, y respalda tratar el empate como ausencia de etiqueta en lugar de forzar un 0 o un 1.
+That suggests the tie does not come from «two different paths», but from **how the trip starts or ends**: the actual
+pickup point against the predicted one, the last few metres to the destination, an approach manoeuvre. And there the question
+«are these the same route?» has no obvious visual answer: one person may consider the trip the same
+with a shifted pickup, and another that the route is already different. The disagreement describes a genuine ambiguity in the
+problem, not carelessness, and supports treating the tie as an absent label rather than forcing a 0 or a 1.
 
-Conviene no sobreleer siete casos: es una observación sobre los empates de test, no una ley del dataset. Pero es
-comprobable y apunta a una pregunta concreta de negocio —si lo que importa para el precio es el trayecto o también
-los extremos— que las instrucciones de anotación no resuelven hoy.
+It is worth not over-reading seven cases: this is an observation about the test ties, not a law of the dataset. But it is
+checkable and it points at a concrete business question — whether what matters for pricing is the trip or also
+its endpoints — that the annotation instructions do not resolve today.
 
-**Lo que no muestran.** El modelo *no* reproduce esa duda de forma fiable. Tres de los siete caen en su zona
-intermedia, frente al 9 % del resto de test, pero en los otros cuatro puntúa con aplomo —0,091 y 0,261 para parejas
-que partieron al panel por la mitad—. Con siete casos la comparación no es concluyente (Mann-Whitney unilateral,
-p = 0,13), y además la probabilidad de XGBoost no es una medida de incertidumbre: es una estimación puntual sin
-intervalo. Que el modelo dude donde dudan las personas es una propiedad deseable que **aquí no está demostrada**.
+**What they do not show.** The model does *not* reproduce that doubt reliably. Three of the seven fall in its
+intermediate zone, against 9 % of the rest of test, but on the other four it scores with confidence — 0.091 and 0.261 for pairs
+that split the panel down the middle. With seven cases the comparison is not conclusive (one-sided Mann-Whitney,
+p = 0.13), and besides, XGBoost's probability is not a measure of uncertainty: it is a point estimate with no
+interval. That the model should hesitate where people hesitate is a desirable property that **is not demonstrated here**.
 
-Eso señala un trabajo concreto: cuantificar la incertidumbre del modelo con un método que ofrezca garantías
-—predicción conforme sobre el conjunto de validación, por ejemplo— y comprobar si sus casos abstenidos coinciden con
-los empates y los votos divididos. Requiere más empates de los que hay aquí: 31 en todo el archivo son pocos para
-medir ese solapamiento con precisión útil.
+That points at concrete work: quantify the model's uncertainty with a method that offers guarantees
+— conformal prediction over the validation set, for instance — and check whether its abstained cases coincide with
+the ties and the split votes. It needs more ties than there are here: 31 across the whole file is few for
+measuring that overlap with useful precision.
 """)
 
 md(r"""
-### 8.6 ¿Con quién está de acuerdo el modelo?
+### 8.6 Who does the model agree with?
 
-Si el 80 % de las etiquetas las firma una sola persona, «acertar» significa *coincidir con esa persona*. Cabe entonces
-una pregunta que las métricas globales no responden: **¿acierta igual con todos los anotadores?**
+If 80 % of the labels are signed by a single person, «being right» means *agreeing with that person*. That raises
+a question the global metrics do not answer: **is it equally accurate with every annotator?**
 
-Tomamos los viajes de validación y test donde hubo **un único anotador con voto decidido**, los agrupamos por quién
-fue, y medimos el acierto del modelo congelado en cada grupo. Son particiones distintas del mismo test ya inspeccionado:
-un reparto descriptivo, no una evaluación nueva.
+We take the validation and test journeys where there was **a single annotator with a decided vote**, group them by who
+it was, and measure the frozen model's accuracy in each group. These are different partitions of the same already-inspected test set:
+a descriptive breakdown, not a new evaluation.
 """)
 
 code("""
@@ -1705,53 +1705,53 @@ display(judges.style.format({'Acierto':'{:.1f} %','% que etiquetó «diferentes�
 """)
 
 md(r"""
-**El modelo no es igual de bueno con todo el mundo.** Entre los anotadores con suficientes viajes en solitario, el
-acierto va del **88,2 % con el anotador 1** (119 viajes) al **98,0 % con el anotador 7** (147 viajes). Casi diez
-puntos de diferencia sobre el mismo modelo, el mismo umbral y la misma métrica.
+**The model is not equally good with everyone.** Among the annotators with enough solo journeys, accuracy
+runs from **88.2 % with annotator 1** (119 journeys) to **98.0 % with annotator 7** (147 journeys). Almost ten
+points of difference on the same model, the same threshold and the same metric.
 
-**Y la dirección no es casual.** El panel derecho lo ordena: cuanto más a menudo dice «diferentes» una persona, peor
-coincide el modelo con ella. El anotador 1 es el más exigente del panel —marca «diferentes» el 65 % de las veces— y
-es con quien menos coincide; el 7 es el más indulgente —39,7 %— y es con quien más. Dicho de forma directa: el modelo
-ha aprendido **un umbral de tolerancia más cercano al del anotador 7 que al del 1**, y eso es coherente con que sus
-errores sean sobre todo diferencias no detectadas: 17 de 21 en validación, 25 de 28 en test. Falla hacia «iguales»,
-igual que el anotador más indulgente.
+**And the direction is not accidental.** The right-hand panel orders it: the more often a person says «they differ», the worse
+the model agrees with them. Annotator 1 is the strictest on the panel — marking «they differ» 65 % of the time — and
+is the one it agrees with least; annotator 7 is the most lenient — 39.7 % — and is the one it agrees with most. Put plainly: the model
+has learned **a tolerance threshold closer to annotator 7's than to annotator 1's**, and that is consistent with its
+errors being mostly missed differences: 17 of 21 on validation, 25 of 28 on test. It fails towards «the same»,
+just like the most lenient annotator.
 
-**Tres cautelas antes de llevarse esto demasiado lejos.** Cada grupo contiene viajes distintos, así que parte de la
-brecha puede ser dificultad y no criterio. Los grupos pequeños se omiten del gráfico (menos de 40 viajes) porque con
-veinte casos un punto porcentual no significa nada. Y esto es un reparto descriptivo de un test ya inspeccionado, no
-una medición independiente.
+**Three cautions before taking this too far.** Each group contains different journeys, so part of the
+gap may be difficulty rather than criterion. Small groups are omitted from the chart (fewer than 40 journeys) because with
+twenty cases a percentage point means nothing. And this is a descriptive breakdown of an already-inspected test set, not
+an independent measurement.
 
-**Lo que sí deja claro.** No existe «el» objetivo: existe el objetivo de un panel concreto, dominado por unas pocas
-personas con umbrales distintos entre sí. Antes de poner esto en producción habría que decidir **qué criterio quiere
-la empresa** —cuántos metros de desvío importan para el precio— y reanotar con esa instrucción, en vez de heredar
-implícitamente el listón del anotador que más viajes miró.
+**What it does make clear.** There is no such thing as «the» target: there is the target of a particular panel, dominated by a few
+people with thresholds that differ from each other. Before putting this into production we would have to decide **what criterion
+the company wants** — how many metres of detour matter for pricing — and re-annotate with that instruction, rather than implicitly inheriting
+the bar set by whichever annotator looked at the most journeys.
 """)
 
 md(r"""
 <a id="dinero"></a>
 
-## 9. ¿Cuánto dinero hay en juego?
+## 9. How much money is at stake?
 
-Todo lo anterior optimiza una pregunta perceptual: *¿le parecerían distintas a una persona?* Pero el enunciado
-motiva el problema desde el **precio**: la tarifa se fija antes del viaje con la distancia y la duración estimadas.
-Si el recorrido real difiere, la diferencia entre lo cobrado y lo que ese trayecto habría costado es el error real.
+Everything above optimises a perceptual question: *would these look different to a person?* But the brief
+motivates the problem from **pricing**: the fare is set before the trip using the estimated distance and duration.
+If the real trip differs, the gap between what was charged and what that trip would have cost is the real error.
 
-Esas dos preguntas no son la misma, y conviene medir cuánto se separan antes de seguir afinando la primera.
+Those two questions are not the same, and it is worth measuring how far apart they are before refining the first any further.
 
-**Cómo estimamos el euro.** La tarifa base y la mínima son idénticas con la ruta estimada y con la real, así que
-se cancelan al restar. Solo hacen falta los precios por kilómetro y por minuto:
+**How we estimate the euro.** The base fare and the minimum fare are identical for the estimated and the real route, so
+they cancel out when subtracting. Only the per-kilometre and per-minute prices are needed:
 
 $$\Delta\unicode{x20AC} = \unicode{x20AC}/\mathrm{km}\cdot(\mathrm{km}_{real}-\mathrm{km}_{est})
   + \unicode{x20AC}/\mathrm{min}\cdot(\mathrm{min}_{real}-\mathrm{min}_{est}).$$
 
-Las tarifas son las públicas de Cabify por ciudad, categoría estándar, consultadas el 19 de octubre de 2026. Las
-duraciones salen del encaje viario de OSRM donde es fiable (1.398 de 2.386 viajes) y, en el resto, de la distancia
-dividida por la velocidad mediana que OSRM implica en esa misma ciudad.
+The fares are Cabify's public ones by city, standard category, consulted on 19 October 2026. The
+durations come from the OSRM map match where it is reliable (1,398 of 2,386 journeys) and, for the rest, from distance
+divided by the median speed OSRM implies in that same city.
 
-> **Esto es una estimación de orden de magnitud, no una auditoría contable.** Las tarifas son de 2026 y el archivo
-> es de diciembre de 2021: con la inflación argentina del periodo, la cifra histórica sería incomparable. Suponemos
-> categoría estándar para todos los viajes, e ignoramos peajes, tarifa dinámica, esperas y promociones. Colombia y
-> Ecuador no publican un valor único y usan estimaciones declaradas. Las duraciones no incorporan tráfico real.
+> **This is an order-of-magnitude estimate, not a financial audit.** The fares are from 2026 and the file
+> is from December 2021: with Argentine inflation over that period, the historical figure would not be comparable. We assume
+> the standard category for every journey, and ignore tolls, surge pricing, waiting time and promotions. Colombia and
+> Ecuador do not publish a single value and use declared estimates. The durations do not incorporate real traffic.
 """)
 
 code("""
@@ -1809,17 +1809,17 @@ display(Markdown(
 """)
 
 md(r"""
-### 9.1 ¿Quién se come la diferencia?
+### 9.1 Who absorbs the difference?
 
-El precio se cierra antes de arrancar. El cliente paga lo pactado, pase lo que pase después. Así que la desviación
-**no se reparte: cae entera de un lado u otro**, y nunca se devuelve.
+The fare is closed before the trip starts. The customer pays what was agreed, whatever happens afterwards. So the deviation
+**is not shared: it falls entirely on one side or the other**, and is never refunded.
 
-| Si el trayecto real resulta… | Quién lo absorbe |
+| If the real trip turns out… | Who absorbs it |
 |---|---|
-| **más largo** de lo previsto | Cabify y el conductor: ese kilómetro se recorre y nadie lo cobra |
-| **más corto** de lo previsto | El cliente: pagó por un trayecto que no se hizo, y no hay reembolso |
+| **longer** than predicted | Cabify and the driver: that kilometre is driven and nobody charges for it |
+| **shorter** than predicted | The customer: they paid for a trip that did not happen, and there is no refund |
 
-Mirar solo la media esconde justo esto, porque los dos casos se cancelan entre sí.
+Looking only at the mean hides exactly this, because the two cases cancel each other out.
 """)
 
 code("""
@@ -1865,10 +1865,10 @@ display(Markdown(
 """)
 
 md(r"""
-### 9.2 ¿Los errores del modelo cuestan dinero?
+### 9.2 Do the model's errors cost money?
 
-La pregunta que importa no es cuántos fallos comete, sino **cuánto valen**. Repartimos las desviaciones de precio
-por casilla de la matriz de confusión en test.
+The question that matters is not how many mistakes it makes, but **what they are worth**. We break the price deviations down
+by cell of the test confusion matrix.
 """)
 
 code("""
@@ -1910,79 +1910,79 @@ display(Markdown(
 """)
 
 md(r"""
-**Tres conclusiones, y una de ellas corrige una sospecha razonable.**
+**Three conclusions, and one of them corrects a reasonable suspicion.**
 
-**Primera: por viaje, el dinero es pequeño.** La desviación mediana es de 11 céntimos, el 3,1 % de una tarifa media
-de 4,63 €. Ningún cliente reclama por eso. Lo que lo convierte en un problema es la escala: Cabify sirve cientos de
-miles de trayectos al día, y una media de 0,31 € de desviación absoluta por viaje son decenas de miles de euros
-diarios mal asignados, aunque no perdidos.
+**First: per journey, the money is small.** The median deviation is 11 cents, 3.1 % of an average fare
+of €4.63. No customer complains about that. What makes it a problem is scale: Cabify serves hundreds of
+thousands of trips a day, and an average of €0.31 of absolute deviation per journey is tens of thousands of euros
+misallocated daily, even if not lost.
 
-**Segunda: no hay fuga sistemática, pero eso no significa que sea inofensivo.** La media con signo es prácticamente
-cero —el neto son −9 € sobre 11.054 € facturados— porque los viajes que costaron de más compensan a los que costaron
-de menos. El problema es que **la compensación ocurre en la hoja de cálculo, no en la calle**: el precio se cierra
-antes de arrancar, así que cada desviación cae entera sobre alguien y no se devuelve. Un 8,9 % de los clientes pagó
-más de un 10 % por encima de lo que valía su trayecto, y en un 2,6 % de los viajes Cabify y el conductor absorbieron
-más de un 25 % del precio.
+**Second: there is no systematic leak, but that does not make it harmless.** The signed mean is practically
+zero — the net is −€9 on €11,054 billed — because the trips that cost more offset those that cost
+less. The problem is that **the netting happens in the spreadsheet, not on the street**: the fare is closed
+before the trip starts, so each deviation falls entirely on someone and is not refunded. 8.9 % of customers paid
+more than 10 % above what their trip was worth, and on 2.6 % of journeys Cabify and the driver absorbed
+more than 25 % of the fare.
 
-Y la escala correcta para juzgarlo no es la facturación, sino el margen. Cabify cerró 2025 con un EBITDA de 27,2 M€
-sobre 833,3 M€, un **3,3 %**. Sobre una tarifa media de 4,63 €, eso son unos 15 céntimos de margen por viaje, frente
-a una desviación mediana de 11. Visto así: **casi la mitad de los viajes —el 48 %— se desvía más de lo que ese mismo
-viaje deja de beneficio**, y en el 10 % la desviación es cinco veces el margen. El bruto que se mueve equivale a
-2,1 veces el margen de la compañía. No es calderilla; es ruido del tamaño del beneficio, que hoy se cancela por
-suerte y no por diseño.
+And the right scale for judging it is not revenue, it is margin. Cabify closed 2025 with EBITDA of €27.2M
+on €833.3M, **3.3 %**. On an average fare of €4.63, that is about 15 cents of margin per journey, against
+a median deviation of 11. Seen that way: **almost half of all journeys — 48 % — deviate by more than that same
+journey leaves in profit**, and on 10 % the deviation is five times the margin. The gross amount moved is equivalent to
+2.1 times the company's margin. This is not loose change; it is noise the size of the profit, which today cancels out by
+luck rather than by design.
 
-Dos advertencias sobre esa comparación. El 3,3 % es el margen **del grupo**, no el de un trayecto concreto: sirve
-para dar escala, no para imputar beneficio por viaje. Y la muestra está dominada por ciudades latinoamericanas con
-tarifas bajas, mientras que España aporta casi un tercio de los ingresos del grupo, así que la tarifa media de este
-archivo no representa la del negocio.
+Two warnings about that comparison. The 3.3 % is the **group** margin, not that of a particular trip: it serves
+to give scale, not to attribute profit per journey. And the sample is dominated by Latin American cities with
+low fares, while Spain contributes almost a third of group revenue, so the average fare in this
+file does not represent the business.
 
-**Tercera, y es la que más cambia el juicio sobre el modelo: falla en los viajes baratos y acierta en los caros.**
-Era razonable temer lo contrario. El modelo heredó el criterio del anotador más indulgente (§8.6) y se equivoca casi
-siempre hacia «iguales»: 25 de sus 28 errores en test son diferencias que no detecta. Si esos casos fueran los de
-mayor desviación, el sistema estaría dejando pasar justo lo que debía capturar.
+**Third, and this is the one that most changes the verdict on the model: it fails on the cheap trips and gets the expensive ones right.**
+It was reasonable to fear the opposite. The model inherited the most lenient annotator's criterion (§8.6) and almost
+always errs towards «the same»: 25 of its 28 test errors are differences it does not detect. If those cases were the ones with the
+largest deviation, the system would be letting through precisely what it was meant to catch.
 
-Los datos dicen lo contrario. Las 25 diferencias no detectadas tienen una desviación mediana de 0,06 €, **menor que
-la de los aciertos** (0,19 €), y suman 3 € de los 113 € en juego entre los viajes realmente distintos. Es decir:
+The data say the opposite. The 25 undetected differences have a median deviation of €0.06, **lower than
+that of the correct calls** (€0.19), and add up to €3 of the €113 at stake among the genuinely different journeys. That is:
 
-> **El modelo detecta el 90,2 % de los casos, pero recupera el 97,4 % del dinero.**
+> **The model catches 90.2 % of the cases, but recovers 97.4 % of the money.**
 
-Esa brecha de siete puntos es el valor que la exactitud no ve. Un informe que diga «90 % de acierto» describe peor el
-sistema que uno que diga «captura 97 de cada 100 euros desviados». Y no era predecible desde las métricas de
-clasificación: hizo falta ponerle precio a cada caso para saberlo. Conviene no leerlo como una virtud deliberada del
-modelo —nadie lo entrenó para esto—, sino como una propiedad afortunada de este archivo, que habría que volver a
-comprobar con datos nuevos antes de confiar en ella.
+That seven-point gap is the value accuracy does not see. A report saying «90 % accuracy» describes the
+system worse than one saying «it captures 97 of every 100 euros deviated». And it was not predictable from the
+classification metrics: it took putting a price on each case to find out. It should not be read as a deliberate virtue of the
+model — nobody trained it for this — but as a fortunate property of this file, which would need re-checking
+against new data before relying on it.
 
-**Lo que esto cambia en la práctica.** Si el objetivo es proteger el precio, la métrica no debería ser el acierto
-equilibrado sino el **dinero recuperado**, y el esfuerzo debería concentrarse en el 10 % de viajes que acumulan el
-55 % del impacto. Afinar del 94 % al 96 % de acierto no mueve la aguja si los dos puntos ganados están en la cola
-barata. Esto es una recomendación de diseño, no un cambio que apliquemos aquí: el modelo, el umbral y las métricas
-del experimento siguen siendo los congelados en validación.
+**What this changes in practice.** If the goal is protecting the price, the metric should not be balanced
+accuracy but **money recovered**, and the effort should concentrate on the 10 % of journeys that account for
+55 % of the impact. Going from 94 % to 96 % accuracy does not move the needle if the two points gained are in the
+cheap tail. This is a design recommendation, not a change we apply here: the model, the threshold and the metrics
+of the experiment remain the ones frozen on validation.
 """)
 
 md(r"""
-## 10. Decidir con incertidumbre: predicción conforme
+## 10. Deciding under uncertainty: conformal prediction
 
-El modelo entrega una probabilidad, y eso **no es una medida de incertidumbre**. Que valga 0,52 no significa «dudo»:
-significa que los árboles promediaron ahí. Cuando el sistema decide con un umbral fijo, falla en un 6,3 % de los
-casos de test y **no sabemos en cuáles**. Esa es la limitación operativa, no la exactitud.
+The model returns a probability, and that **is not a measure of uncertainty**. A value of 0.52 does not mean «I am unsure»:
+it means the trees averaged out there. When the system decides with a fixed threshold, it fails on 6.3 % of the
+test cases and **we do not know which ones**. That is the operational limitation, not the accuracy.
 
-La predicción conforme cambia el contrato. En lugar de una etiqueta forzada, produce un intervalo sobre la proporción
-de votos «diferentes» y lo convierte en una decisión de tres valores:
+Conformal prediction changes the contract. Instead of a forced label, it produces an interval over the proportion
+of «they differ» votes and turns it into a three-valued decision:
 
-| El intervalo… | Decisión |
+| The interval… | Decision |
 |---|---|
-| queda entero por debajo de 0,5 | iguales |
-| queda entero por encima de 0,5 | diferentes |
-| contiene 0,5 | **sin decisión: a revisión humana** |
+| lies entirely below 0.5 | the same |
+| lies entirely above 0.5 | they differ |
+| contains 0.5 | **no decision: send to human review** |
 
-**Por qué CV+ y no split conformal.** Validación ya intervino en elegir modelo, iteración y umbral: usarla como
-calibración invalidaría la garantía. Reservar un fold de entrenamiento dejaría ~50 casos en el grupo de dos o más
-votos. CV+ usa los 1.348 viajes de entrenamiento mediante residuos fuera de fold y garantiza cobertura ≥ 1 − 2α.
+**Why CV+ and not split conformal.** Validation already took part in choosing model, iteration and threshold: using it as
+calibration would invalidate the guarantee. Holding out a training fold would leave ~50 cases in the two-or-more
+votes group. CV+ uses the 1,348 training journeys via out-of-fold residuals and guarantees coverage ≥ 1 − 2α.
 
-**Por qué dos grupos de calibración.** El ancho del intervalo sale del percentil de los errores pasados. Mezclar
-viajes de un voto con los de dos o más produce un ancho promedio que es demasiado estrecho para los primeros y
-demasiado ancho para los segundos: la cobertura global se cumple por compensación y falla justo donde importa. No
-separamos tres y cuatro votos porque con 8 y 2 casos de calibración no alcanzan el mínimo n ≥ 1/α − 1.
+**Why two calibration groups.** The interval width comes from a percentile of past errors. Mixing
+single-vote journeys with two-or-more ones produces an average width that is too narrow for the former and
+too wide for the latter: global coverage is met by compensation and fails precisely where it matters. We do not
+separate three and four votes because with 8 and 2 calibration cases they do not reach the minimum n ≥ 1/α − 1.
 """)
 
 code("""
@@ -2057,36 +2057,35 @@ display(Markdown(
 """)
 
 md(r"""
-### Lo que esto le da a operaciones
+### What this gives operations
 
-**Un contrato, no una métrica de informe.** Hoy el umbral 0,75 lo eligió un `argmax` de acierto equilibrado y el
-resultado es «fallamos un 6,3 % y no sabemos dónde». Con la curva de la izquierda, la conversación cambia de sentido:
-negocio fija el error que tolera y el sistema responde con el volumen de revisión necesario.
+**A contract, not a report metric.** Today the 0.75 threshold was chosen by an `argmax` of balanced accuracy and the
+result is «we fail 6.3 % of the time and we do not know where». With the curve on the left, the conversation changes direction:
+the business sets the error it tolerates and the system answers with the review volume needed.
 
-| Si quieres… | Envías a revisión | Error en lo automático |
+| If you want… | You send to review | Error on automated calls |
 |---|---:|---:|
-| el comportamiento de hoy | 0 % | 6,3 % |
-| menos del 3 % de error | 4,1 % | 2,8 % |
-| menos del 2 % | 6,1 % | 1,9 % |
-| menos del 1 % | 12,9 % | **0,5 %** |
+| today's behaviour | 0 % | 6.3 % |
+| under 3 % error | 4.1 % | 2.8 % |
+| under 2 % | 6.1 % | 1.9 % |
+| under 1 % | 12.9 % | **0.5 %** |
 
-Con un 13 % de los viajes revisados, el error de las decisiones automáticas cae de 6,3 % a 0,5 %: **doce veces menos**.
-Y al revés, si operaciones solo puede revisar el 5 % del volumen, la tabla dice qué error queda. Eso es dimensionable
-en personas y en coste.
+With 13 % of journeys reviewed, the error on automated decisions drops from 6.3 % to 0.5 %: **twelve times lower**.
+And the other way round, if operations can only review 5 % of the volume, the table says what error remains. That can be sized
+in people and in cost.
 
-**Y pone precio a la anotación.** El intervalo es un 30 % más estrecho cuando la etiqueta tiene dos votos en lugar de
-uno, lo que en α = 0,10 significa pasar del 14,5 % al 5,1 % de revisión. Conseguir una segunda anotación para los
-viajes de un voto —el 83 % del archivo— reduciría el volumen de revisión a cerca de un tercio. Eso convierte «habría
-que anotar más» en una propuesta con dos cifras enfrentadas: lo que cuesta anotar contra lo que cuesta revisar.
-
+**And it puts a price on annotation.** The interval is 30 % narrower when the label has two votes instead of
+one, which at α = 0.10 means going from 14.5 % to 5.1 % review. Getting a second annotation for the
+single-vote journeys — 83 % of the file — would cut the review volume to about a third. That turns «we should
+annotate more» into a proposal with two figures facing each other: what annotating costs against what reviewing costs.
 """)
 
 md(r"""
-### 10.1 ¿Cabe esto en el volumen real? Y si cabe, ¿cabe la revisión?
+### 10.1 Does this fit the real volume? And if it does, does the review fit?
 
-El enunciado justifica automatizar porque Cabify sirve millones de trayectos. Es una afirmación de producto que
-ninguna métrica de acierto responde, así que la medimos: el camino completo para una pareja nueva —proyectar a
-metros, calcular las ocho variables, puntuar— sobre 300 parejas reales, en un solo proceso sin lotes ni paralelismo.
+The brief justifies automating because Cabify serves millions of trips. That is a product claim that
+no accuracy metric answers, so we measure it: the full path for a new pair — project to
+metres, compute the eight variables, score — over 300 real pairs, in a single process with no batching or parallelism.
 """)
 
 code("""
@@ -2127,165 +2126,165 @@ display(Markdown(
 """)
 
 md(r"""
-**Pero la revisión humana no cabe.** Y esta es la conclusión que obliga a rediseñar la palanca de la sección anterior.
+**But the human review does not fit.** And this is the conclusion that forces a redesign of the previous section's lever.
 
-A un millón de viajes diarios, una tasa de abstención del 12,9 % son **129.000 revisiones al día**. A 6,1 %, son
-61.000. Aunque una persona revisara un caso por minuto sin descanso, harían falta cientos de revisores a jornada
-completa. **La tabla anterior, leída como política global, es inviable a escala real.**
+At a million journeys a day, a 12.9 % abstention rate is **129,000 reviews a day**. At 6.1 %, it is
+61,000. Even if one person reviewed a case per minute without a break, it would take hundreds of full-time
+reviewers. **The table above, read as a global policy, is unworkable at real scale.**
 
-No invalida el método: invalida la forma de aplicarlo. Y la sección 9 ya contiene el arreglo. Si el 10 % de los
-viajes acumula el 55 % del impacto económico, no hay razón para revisar por tasa de incertidumbre uniforme. La
-política sensata combina las dos señales:
+It does not invalidate the method: it invalidates how it is applied. And section 9 already contains the fix. If 10 % of
+journeys account for 55 % of the economic impact, there is no reason to review at a uniform uncertainty rate. The
+sensible policy combines both signals:
 
-> **Revisar solo donde el modelo duda *y* hay dinero en juego.**
+> **Review only where the model is unsure *and* there is money at stake.**
 
-Con un presupuesto fijo —pongamos 2.000 revisiones diarias, unas diez personas— se ordenan los casos abstenidos por
-desviación estimada en euros y se revisa de arriba abajo. Lo que queda sin revisar son casos dudosos de impacto
-céntimo, donde equivocarse no cuesta nada. El resto se decide automáticamente, y para esos sigue valiendo la
-garantía de cobertura.
+With a fixed budget — say 2,000 reviews a day, around ten people — the abstained cases are ranked by
+estimated deviation in euros and reviewed from the top down. What goes unreviewed are doubtful cases with cent-level
+impact, where being wrong costs nothing. The rest is decided automatically, and for those the coverage
+guarantee still holds.
 
-Eso convierte dos análisis que hasta aquí iban por separado en una sola política operable: **la sección 10 dice de
-qué no está seguro el modelo, y la sección 9 dice cuáles de esos casos merecen el tiempo de una persona.** Ninguna
-basta sola: la primera genera una cola inabordable y la segunda no distingue una desviación detectada con certeza
-de una dudosa.
+That turns two analyses that until now ran separately into a single workable policy: **section 10 says what
+the model is unsure about, and section 9 says which of those cases deserve a person's time.** Neither
+is enough alone: the first generates an unmanageable queue and the second cannot tell a confidently detected deviation
+from a doubtful one.
 
-No lo implementamos aquí porque requiere el presupuesto real de revisión, el coste por revisión y la fórmula de
-tarificación interna, que son decisiones de negocio y datos que no tenemos. Pero las dos piezas —el intervalo y el
-euro— ya están calculadas por viaje, y combinarlas es una ordenación, no un modelo nuevo.
+We do not implement it here because it requires the real review budget, the cost per review and the internal
+pricing formula, which are business decisions and data we do not have. But the two pieces — the interval and the
+euro — are already computed per journey, and combining them is a ranking, not a new model.
 """)
 
 md(r"""
-### Los límites, que son reales
+### The limits, which are real
 
-**α = 0,05 no es utilizable.** La tasa de abstención se dispara al 84 %, y en el grupo de un voto llega al 100 %: el
-sistema se niega a decidir nada. No es un fallo del método; es la medición honesta de que con un voto por viaje la
-etiqueta no está determinada. Ninguna mejora del modelo arregla eso.
+**α = 0.05 is not usable.** The abstention rate jumps to 84 %, and in the single-vote group it reaches 100 %: the
+system refuses to decide anything. This is not a failure of the method; it is an honest measurement of the fact that with one vote per journey the
+label is not determined. No model improvement fixes that.
 
-**La cobertura observada supera la garantizada** en todos los niveles —92,1 % frente a un 80 % nominal en α = 0,10—.
-Es el comportamiento conservador esperable de CV+, no una señal de que el método funcione mejor de lo prometido.
+**Observed coverage exceeds the guarantee** at every level — 92.1 % against a nominal 80 % at α = 0.10.
+That is the conservative behaviour expected of CV+, not a sign the method works better than promised.
 
-**La garantía es aproximada.** Conformal exige intercambiabilidad entre calibración y evaluación; nuestra partición es
-aleatoria y los trayectos comparten calles y corredores. La cobertura empírica en test la respalda, pero no la
-demuestra para una ciudad nueva.
+**The guarantee is approximate.** Conformal prediction requires exchangeability between calibration and evaluation; our split is
+random and the trips share streets and corridors. Empirical coverage on test supports it, but does not
+demonstrate it for a new city.
 
-**Y el intervalo es sobre la opinión, no sobre el dinero.** Cubre la proporción de votos «diferentes», que es el
-objetivo que tenemos. La sección 9 argumenta que la cantidad que de verdad importa son los euros. Un intervalo sobre
-euros —«este viaje se desvió entre 2 y 7 €, con un 90 % de confianza»— sería directamente accionable para una
-decisión de reembolso, y es la continuación natural de este trabajo una vez exista la etiqueta económica.
+**And the interval is over the opinion, not over the money.** It covers the proportion of «they differ» votes, which is the
+target we have. Section 9 argues that the quantity that really matters is euros. An interval over
+euros — «this trip deviated by between €2 and €7, with 90 % confidence» — would be directly actionable for a
+refund decision, and is the natural continuation of this work once the economic label exists.
 """)
 
 md(r"""
 <a id="recomendacion"></a>
 
-## 11. Qué haría a continuación
+## 11. What I would do next
 
-### La recomendación, en una frase
+### The recommendation, in one sentence
 
-> **Desplegar geometría básica con predicción conforme a α = 0,15, revisar por impacto económico en lugar de por
-> tasa fija, y gastar el siguiente euro en una segunda anotación y no en un modelo mayor.**
+> **Deploy basic geometry with conformal prediction at α = 0.15, review by economic impact rather than by a
+> fixed rate, and spend the next euro on a second annotation rather than on a bigger model.**
 
-Desglosada: ocho variables y un XGBoost, 6 ms por pareja, intervalo conforme calibrado por separado para viajes
-con uno y con dos o más votos. Los casos sin decisión se ordenan por desviación estimada en euros y se revisan
-hasta agotar el presupuesto diario; el resto se decide automáticamente con un 1,9 % de error. No desplegaría t2vec
-ni la ampliación viaria: ninguna demuestra mejora y ambas multiplican el coste operativo.
+Unpacked: eight variables and an XGBoost, 6 ms per pair, a conformal interval calibrated separately for journeys
+with one and with two or more votes. The undecided cases are ranked by estimated deviation in euros and reviewed
+until the daily budget runs out; the rest is decided automatically with 1.9 % error. I would not deploy t2vec
+or the road-network extension: neither demonstrates an improvement and both multiply the operational cost.
 
-### Qué está demostrado y qué no
+### What is demonstrated and what is not
 
-**Demostrado con este archivo y este protocolo.** Una representación geométrica pequeña rinde alto: 94,3 % de
-acierto equilibrado en test. El vector de 42 variables y el híbrido con t2vec son competitivos pero su mejora **no
-queda demostrada** —los intervalos bootstrap pareados incluyen el cero—, de modo que la regla congelada en
-validación elige la referencia pequeña y no hay motivo para cambiarla. La adaptación de t2vec quedó por debajo, y
-una auditoría posterior encontró que su reconstrucción fallaba y que la pérdida muestreada nunca usaba FIN como
-negativo; la versión corregida mejora algunos indicadores y sigue sin reconstruir. Esto describe **nuestras
-adaptaciones**, no el método publicado.
+**Demonstrated with this file and this protocol.** A small geometric representation performs well: 94.3 %
+balanced accuracy on test. The 42-variable vector and the t2vec hybrid are competitive but their improvement **is
+not demonstrated** — the paired bootstrap intervals include zero — so the rule frozen on
+validation picks the small baseline and there is no reason to change it. The t2vec adaptation came out below, and
+a later audit found that its reconstruction was failing and that the sampled loss never used END as a
+negative; the corrected version improves some indicators and still does not reconstruct. This describes **our
+adaptations**, not the published method.
 
-**Medido, y más interesante que lo anterior.** El cuello de botella no está en el modelo. El 83 % de las etiquetas
-las sostiene una sola persona; el panel son ocho anotadores con criterios que difieren en 25 puntos porcentuales; y
-el modelo coincide un 98 % con el anotador más indulgente y un 88 % con el más exigente. Traducido a euros, la
-desviación mediana es de 11 céntimos, pero casi la mitad de los viajes se desvía más de lo que ese viaje deja de
-margen. Y el modelo recupera el 97,4 % del dinero detectando el 90,2 % de los casos: se equivoca en lo barato.
+**Measured, and more interesting than the above.** The bottleneck is not in the model. 83 % of the labels
+are held up by a single person; the panel is eight annotators whose criteria differ by 25 percentage points; and
+the model agrees 98 % with the most lenient annotator and 88 % with the strictest. Translated into euros, the
+median deviation is 11 cents, but almost half of all journeys deviate by more than that journey leaves in
+margin. And the model recovers 97.4 % of the money while catching 90.2 % of the cases: it errs on the cheap ones.
 
-**No demostrado, y conviene decirlo.** Que el modelo transfiera a una ciudad nueva: la partición es aleatoria y los
-trayectos comparten calles. Que la asimetría favorable en euros se mantenga fuera de este archivo: nadie la buscó al
-entrenar, es una propiedad afortunada de esta muestra. Que la garantía conforme se sostenga exactamente: exige
-intercambiabilidad y aquí es aproximada. Y que las cifras en euros sean las reales: son tarifas públicas de 2026
-aplicadas a viajes de 2021, con categoría estándar y sin peajes ni tarifa dinámica.
+**Not demonstrated, and worth saying so.** That the model transfers to a new city: the split is random and the
+trips share streets. That the favourable asymmetry in euros holds outside this file: nobody was looking for it when
+training, it is a fortunate property of this sample. That the conformal guarantee holds exactly: it requires
+exchangeability and here that is approximate. And that the euro figures are the real ones: they are public 2026 fares
+applied to 2021 trips, at the standard category and without tolls or surge pricing.
 
-### Las tres inversiones siguientes, por retorno
+### The next three investments, by return
 
-**1 · Una segunda anotación para los viajes de un voto.** Es el 83 % del archivo y la práctica totalidad de los
-errores: los 21 de validación y 27 de los 28 de test. Y ahora tiene precio: el intervalo conforme es un 30 % más
-estrecho cuando la etiqueta está corroborada, lo que baja la tasa de revisión del 14,5 % al 5,1 %. Esa es la
-comparación que hay que llevar a un comité — lo que cuesta anotar contra lo que cuesta revisar, todos los días.
-Antes de encargarla, fijar en las instrucciones qué cuenta como diferente: hoy el criterio es la percepción de cada
-persona, y por eso existen los 31 empates.
+**1 · A second annotation for the single-vote journeys.** They are 83 % of the file and in practice all of the
+errors: the 21 on validation and 27 of the 28 on test. And it now has a price: the conformal interval is 30 %
+narrower when the label is corroborated, which cuts the review rate from 14.5 % to 5.1 %. That is the
+comparison to take to a committee — what annotating costs against what reviewing costs, every day.
+Before commissioning it, fix in the instructions what counts as different: today the criterion is each
+person's perception, which is why the 31 ties exist.
 
-**2 · Etiquetar con euros en lugar de con opiniones.** La sección 9 muestra que el juicio humano y el impacto
-económico solo correlacionan 0,45. Con la fórmula de tarificación interna —que Cabify tiene y nosotros no— el
-objetivo deja de depender de ocho personas y pasa a ser una cantidad medible, con una pérdida que pondera por
-impacto y un umbral que fija negocio: «actuamos por encima de X €». Las 42 variables ya construidas sirven igual,
-y un intervalo conforme sobre euros sería directamente accionable para un reembolso.
+**2 · Label with euros instead of with opinions.** Section 9 shows that human judgement and economic
+impact correlate at only 0.45. With the internal pricing formula — which Cabify has and we do not — the
+target stops depending on eight people and becomes a measurable quantity, with a loss weighted by
+impact and a threshold the business sets: «we act above €X». The 42 variables already built still apply,
+and a conformal interval over euros would be directly actionable for a refund.
 
-**3 · Validar por ciudad antes de prometer cobertura geográfica.** El reparto aleatorio permite que el mismo
-corredor aparezca en entrenamiento y en test. Hasta que no se separe una ciudad entera, la cifra de test describe
-rendimiento dentro de una mezcla conocida, no capacidad de generalizar.
+**3 · Validate by city before promising geographic coverage.** The random split allows the same
+corridor to appear in training and in test. Until a whole city is held out, the test figure describes
+performance within a known mix, not an ability to generalise.
 
-### Y lo que no haría
+### And what I would not do
 
-**No invertiría más en representaciones aprendidas** sin resolver antes la etiqueta. Con el 83 % de los votos sin
-corroborar, el techo no lo pone el modelo: subir del 94 % al 96 % no distingue una mejora real de haber ajustado
-mejor el criterio del anotador 2.
+**I would not invest further in learned representations** without first resolving the label. With 83 % of the votes
+uncorroborated, the ceiling is not set by the model: going from 94 % to 96 % does not distinguish a real improvement from having fitted
+annotator 2's criterion better.
 
-**No desplegaría la ampliación viaria.** Aporta una mejora dentro del ruido y a cambio exige Docker, varios GB de
-cartografía, un servicio OSRM y encajes que fallan en un 41 % de las parejas. El coste operativo no se justifica
-con la evidencia actual.
+**I would not deploy the road-network extension.** It contributes an improvement within the noise and in exchange demands Docker, several GB of
+cartography, an OSRM service and map matches that fail on 41 % of the pairs. The operational cost is not justified
+by the current evidence.
 
-**No presentaría el acierto equilibrado como la métrica del sistema.** Describe peor el comportamiento que «recupera
-97 de cada 100 euros desviados», y orienta el esfuerzo hacia la cola barata.
+**I would not present balanced accuracy as the system's metric.** It describes the behaviour worse than «it recovers
+97 of every 100 euros deviated», and it points effort at the cheap tail.
 
-### Trabajo pendiente ya identificado
+### Known outstanding work
 
-- Revisar las anotaciones contradictorias: siete personas se contradicen sobre el mismo viaje y en los siete casos
-  eran el único anotador, así que esos viajes quedan sin etiqueta.
-- Analizar la sensibilidad del resultado a la regla de consenso; las etiquetas describen un panel concreto.
-- Comparar varias semillas y usar validación cruzada dentro de entrenamiento para estabilizar la selección.
-  Reservar una muestra de confirmación nueva si se siguen tomando decisiones después de este análisis.
-- Si se continúa con t2vec: celdas más pequeñas, más datos de preentrenamiento, transferencia geográfica, y
-  documentar coste, latencia y fallos por celdas no vistas.
-- Evaluar ruido GPS, trazados incompletos, cambios de mapa y recorridos nuevos. Más exactitud sobre este archivo no
-  garantiza robustez operacional.
-- Incorporar al vector variables que describan los huecos de traza —mayor salto, número de saltos, proporción
-  cubierta— en lugar de imputarlos: rellenar un hueco con una ruta plausible empujaría la pareja hacia «iguales» y
-  alteraría la etiqueta que los anotadores vieron.
+- Review the contradictory annotations: seven people contradict themselves on the same journey and in all seven cases
+  they were the only annotator, so those journeys end up with no label.
+- Analyse the sensitivity of the result to the consensus rule; the labels describe one particular panel.
+- Compare several seeds and use cross-validation within training to stabilise the selection.
+  Hold out a fresh confirmation sample if decisions keep being made after this analysis.
+- If t2vec is pursued: smaller cells, more pretraining data, geographic transfer, and
+  documenting cost, latency and failures from unseen cells.
+- Evaluate GPS noise, incomplete traces, map changes and new routes. More accuracy on this file does not
+  guarantee operational robustness.
+- Add variables to the vector that describe the trace gaps — largest jump, number of jumps, proportion
+  covered — rather than imputing them: filling a gap with a plausible route would push the pair towards «the same» and
+  would alter the label the annotators saw.
 
-La selección original permanece documentada y sin tocar: la referencia geométrica, con el umbral congelado en
-validación. Todo lo añadido después —inspección, EDA ampliado, panel de anotadores, euros, conformal y coste— es
-descriptivo y no modifica modelos, umbrales ni particiones.
+The original selection stays documented and untouched: the geometric baseline, with the threshold frozen on
+validation. Everything added afterwards — inspection, extended EDA, annotator panel, euros, conformal and cost — is
+descriptive and modifies no models, thresholds or splits.
 """)
 
 md(r"""
-## 12. Reproducibilidad y fuentes
+## 12. Reproducibility and sources
 
-El código de extracción, preentrenamiento y clasificación está en **src/routes/**. El pipeline de los cuatro modelos originales se ejecuta con **python scripts/run_routes.py**, desde la raíz, después de instalar **requirements.txt**. La extensión viaria tiene un pipeline separado, descrito en el README. Las figuras se regeneran ejecutando este notebook con sus cachés disponibles.
+The extraction, pretraining and classification code is in **src/routes/**. The pipeline for the four original models runs with **python scripts/run_routes.py**, from the repository root, after installing **requirements.txt**. The road-network extension has a separate pipeline, described in the README. The figures are regenerated by running this notebook with its caches available.
 
-Los modelos y los datos brutos permanecen locales en **models/** y **data/**. Se guardan la partición, SHA-256 del archivo original, protocolo, hiperparámetros probados, selección congelada, predicciones y métricas en **results/routes/**. Las pruebas comprueban invariancia al muestreo en líneas, distancias conocidas, sensibilidad al orden, separación de conjuntos y probabilidades válidas.
+Models and raw data stay local, in **models/** and **data/**. The split, the SHA-256 of the original file, the protocol, the hyperparameters tried, the frozen selection, predictions and metrics are all saved in **results/routes/**. The tests check invariance to line sampling, known distances, order sensitivity, split separation and valid probabilities.
 
-La inspección conserva en **results/routes/inspection.json** los diez identificadores, reglas de selección, votos, predicciones y contribuciones del modelo, junto con el SHA-256 de sus pesos. Se verifica que cada caso pertenezca a test y que las contribuciones reconstruyan las probabilidades guardadas. El notebook no modifica los pesos, umbrales ni métricas del experimento.
+The inspection keeps in **results/routes/inspection.json** the ten identifiers, selection rules, votes, predictions and model contributions, along with the SHA-256 of its weights. Each case is verified to belong to test and the contributions are checked to reconstruct the saved probabilities. The notebook modifies no weights, thresholds or metrics of the experiment.
 
-El resumen del EDA se exporta a **results/routes/eda.json**: controles de calidad, longitudes, muestreo y comparación descriptiva de conjuntos. Sus figuras distinguen los recuentos del archivo completo de las distribuciones estudiadas solo en entrenamiento.
+The EDA summary is exported to **results/routes/eda.json**: quality checks, lengths, sampling and a descriptive comparison of splits. Its figures distinguish counts over the whole file from distributions studied on training only.
 
-La reconstrucción se audita con **scripts/audit_t2vec_reconstruction.py** y su opción **--corrected**. El reentrenamiento corregido se ejecuta mediante **python -m routes.t2vec_corrected**, con `src` en el path. Los informes separados permiten comparar el fallo original, la corrección del objetivo y sus resultados sin modificar los pesos anteriores.
+Reconstruction is audited with **scripts/audit_t2vec_reconstruction.py** and its **--corrected** option. The corrected retraining runs via **python -m routes.t2vec_corrected**, with `src` on the path. The separate reports make it possible to compare the original failure, the corrected objective and its results without modifying the earlier weights.
 
-La ampliación viaria se reproduce con **scripts/download_geofabrik.py**, **scripts/prepare_road_extract.py**, **scripts/start_local_osrm.py**, **python -m routes.graph_extension** y **scripts/evaluate_graph_extension.py**. Requiere Docker y varios GB de disco para las fuentes. Los informes están en **results/routes_graph/**; las cachés grandes y modelos se excluyen de Git. El motor se fija por digest de imagen; cada descarga conserva fecha y SHA-256. Las URLs «latest» pueden cambiar: los hashes detectan esa diferencia, no garantizan que el proveedor conserve el mismo archivo para futuras descargas.
+The road-network extension is reproduced with **scripts/download_geofabrik.py**, **scripts/prepare_road_extract.py**, **scripts/start_local_osrm.py**, **python -m routes.graph_extension** and **scripts/evaluate_graph_extension.py**. It needs Docker and several GB of disk for the sources. The reports are in **results/routes_graph/**; large caches and models are excluded from Git. The engine is pinned by image digest; each download keeps its date and SHA-256. The «latest» URLs can change: the hashes detect that difference, they do not guarantee the provider keeps the same file for future downloads.
 
-- [Enunciado](https://gist.github.com/jmontess/cd4bacd1b09301edf5f2e99ce07584d3) y [archivo enlazado](https://www.dropbox.com/s/rdm11r99pmi13if/challenge_dataset.json?dl=1).
-- [Li et al., 2018: t2vec](https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf): precedente del encoder-decoder espacial. Nuestra adaptación y evaluación supervisada se distinguen del trabajo original.
-- [Newson y Krumm, 2009](https://www.microsoft.com/en-us/research/publication/hidden-markov-map-matching-noise-sparseness/): referencia para interpretar el problema de map matching.
-- [Koide et al., 2020](https://www.vldb.org/pvldb/vol13/p2188-koide.pdf): comparación de secuencias sobre redes viarias; orienta extensiones, no es un algoritmo ya evaluado aquí.
-- [Google Routes: puntos de paso](https://developers.google.com/maps/documentation/routes/pass-through) y [API](https://developers.google.com/maps/documentation/routes/reference/rest/v2/TopLevel/computeRoutes): documentación de una posible fuente de tiempos estimados, no utilizada en los modelos.
-- [OpenStreetMap: atribución y licencia](https://www.openstreetmap.org/copyright).
-- [Geofabrik: extractos OSM](https://download.geofabrik.de/), [OSRM: código y perfil](https://github.com/Project-OSRM/osrm-backend) y [servicio de map matching](https://project-osrm.org/docs/v5.24.0/api/#match-service).
-- [XGBoost: predicción y contribuciones TreeSHAP](https://xgboost.readthedocs.io/en/stable/prediction.html): descomposición local del modelo congelado y uso de la iteración seleccionada.
+- [Challenge brief](https://gist.github.com/jmontess/cd4bacd1b09301edf5f2e99ce07584d3) and [linked file](https://www.dropbox.com/s/rdm11r99pmi13if/challenge_dataset.json?dl=1).
+- [Li et al., 2018: t2vec](https://xiucheng.org/assets/pdfs/icde18-t2vec.pdf): the precedent for the spatial encoder-decoder. Our adaptation and supervised evaluation are distinct from the original work.
+- [Newson and Krumm, 2009](https://www.microsoft.com/en-us/research/publication/hidden-markov-map-matching-noise-sparseness/): a reference for interpreting the map-matching problem.
+- [Koide et al., 2020](https://www.vldb.org/pvldb/vol13/p2188-koide.pdf): sequence comparison over road networks; it guides extensions, it is not an algorithm evaluated here.
+- [Google Routes: pass-through points](https://developers.google.com/maps/documentation/routes/pass-through) and [API](https://developers.google.com/maps/documentation/routes/reference/rest/v2/TopLevel/computeRoutes): documentation of a possible source of estimated travel times, not used in the models.
+- [OpenStreetMap: attribution and licence](https://www.openstreetmap.org/copyright).
+- [Geofabrik: OSM extracts](https://download.geofabrik.de/), [OSRM: code and profile](https://github.com/Project-OSRM/osrm-backend) and [map matching service](https://project-osrm.org/docs/v5.24.0/api/#match-service).
+- [XGBoost: prediction and TreeSHAP contributions](https://xgboost.readthedocs.io/en/stable/prediction.html): local decomposition of the frozen model and use of the selected iteration.
 """)
 
 nb=nbf.v4.new_notebook(cells=cells,metadata={
